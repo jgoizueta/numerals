@@ -1,5 +1,4 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'helper.rb'))
-
 require 'test/unit'
 require 'flt/bigdecimal'
 include Nio
@@ -102,7 +101,6 @@ class TestFmt < Test::Unit::TestCase
       assert_equal "0.10000000000000001",0.1.nio_write(Fmt.mode(:gen,:exact).show_all_digits(true))
       assert_equal "0.10000000000000001",0.1.nio_write(Fmt.mode(:gen,:exact,:show_all_digits=>true))
       assert_equal "0.1000000000000000055511151231257827021181583404541015625",0.1.nio_write(Fmt.mode(:gen,:exact,:approx=>:exact))
-
 
       assert_equal "******643,454,333.32",fmt.nio_write_formatted(fmt.nio_read_formatted("643,454,333.32"))
       assert_equal "******643.454.333,32",fmt.sep(',').nio_write_formatted(fmt.nio_read_formatted("643,454,333.32"))

@@ -13,7 +13,7 @@ require 'rubygems'
 
 
 module Nio
-  
+
   module StateEquivalent
     def ==(obj); test_equal(obj); end
     def eql?(obj); test_equal(obj); end
@@ -38,7 +38,7 @@ module Nio
       true
     end
   end
-  
+
   module_function
-  
+
 end

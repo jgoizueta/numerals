@@ -21,16 +21,16 @@ require 'bigdecimal'
 require 'flt'
 
 module Nio
-  
+
   # positional notation, unformatted numeric literal: used as intermediate form
   class NeutralNum
-    include StateEquivalent
+    include ModalSupport::StateEquivalent
     def initialize(s='',d='',p=nil,r=nil,dgs=DigitsDef.base(10), inexact=false, round=:inf)
       set s,d,p,r,dgs,dgs, inexact, round
     end
     attr_reader :sign, :digits, :dec_pos, :rep_pos, :special, :inexact, :rounding
     attr_writer :sign, :digits, :dec_pos, :rep_pos, :special, :inexact, :rounding
-    
+
     # set number
     def set(s,d,p=nil,r=nil,dgs=DigitsDef.base(10),inexact=false,rounding=:inf,normalize=true)
       @sign = s # sign: '+','-',''
@@ -51,7 +51,7 @@ module Nio
       @sign = sgn
       self
     end
-    
+
     def base
       @base
     end
@@ -66,17 +66,17 @@ module Nio
       @dgs = DigitsDef.base(b)
       @base=@dgs.radix
     end
-    
+
     # check for special numbers (which have only special and sign attributes)
     def special?
       special != nil
     end
-    
+
     # check for special numbers (which have only special and sign attributes)
     def inexact?
       @inexact
     end
-    
+
     def dup
       n = NeutralNum.new
       if special?
@@ -88,7 +88,7 @@ module Nio
       end
       return n
     end
-    
+
     def zero?
       z = false
       if !special
@@ -106,7 +106,7 @@ module Nio
       end
       z
     end
-    
+
     def round!(n, mode=:fix, dir=nil)
       dir ||= rounding
       trimLeadZeros
@@ -114,7 +114,7 @@ module Nio
         return unless @inexact
         n = @digits.size
       end
-      
+
       n += @dec_pos if mode==:fix
       n = [n,@digits.size].min if @inexact
 
@@ -134,19 +134,19 @@ module Nio
           if @inexact
             dv = :hi
           else
-           
+
            (n+1...@digits.length).each do |i|
              if dig_value(i)>0
                dv = :hi
                break
              end
            end
-           
+
           end
           dv = :hi if dv==:tie && @rep_pos<=n
         end
       end
-      
+
       if dv==:hi
         adj = +1
       elsif dv==:tie
@@ -160,14 +160,14 @@ module Nio
       #    adj = +1 unless (dig_value(n-1)%2)!=0
         end
       end
-      
+
       if n>@digits.length
         (@digits.length...n).each do |i|
           @digits << dig_char(dig_value(i))
           @rep_pos += 1
         end
       end
-      
+
       prefix = ''
       i = n-1
       while adj!=0
@@ -188,7 +188,7 @@ module Nio
         end
         i += -1
       end
-      
+
       if n<0
         @digits = ""
       else
@@ -201,17 +201,17 @@ module Nio
         @dec_pos += prefix.length
         @rep_pos += prefix.length
       end
-      
-      
+
+
     end
-    
+
     def round(n, mode=:fix, dir=nil)
       dir ||= rounding
       nn = dup
       nn.round!(n,mode,dir)
       return nn
     end
-    
+
     def trimTrailZeros()
       i = @digits.length
       while i>0 && dig_value(i-1)==0
@@ -221,15 +221,15 @@ module Nio
         @digits = @digits[0...i]
         @rep_pos = i
       end
-      
+
       if @digits==''
         @digits = dig_char(0) # '0'
         @rep_pos = 1
         @dec_pos = 1
       end
-      
+
     end
-    
+
     def trimLeadZeros()
       i = 0
       while i<@digits.length && dig_value(i)==0
@@ -238,22 +238,22 @@ module Nio
       @digits = @digits[i...@digits.length]
       @dec_pos -= i
       @rep_pos -= i
-      
+
       if @digits==''
         @digits = dig_char(0) # '0'
         @rep_pos = 1
         @dec_pos = 1
       end
-      
+
     end
-    
+
     def trimZeros()
       trimLeadZeros
       trimTrailZeros
     end
-    
+
     protected
-    
+
     def dig_value(i)
       v = 0
       if i>=@rep_pos
@@ -274,7 +274,7 @@ module Nio
     #  v
     #  @dgs.digit_value(c)
     #end
-    
+
     def dig_char(v)
       c = ''
       if v!=nil && v>=0 && v<@base
@@ -282,110 +282,71 @@ module Nio
       end
       c
     end
-    
+
   end
-  
+
   class NeutralNum
     public
     def to_RepDec
-      n = RepDec.new(@base)
+      n = RepDec[@base]
       if special?
-        
+
         case special
           when :nan
-            n.ip = :indeterminate
+            n.special = :indeterminate
           when :inf
             if sign=='-'
-              n.ip = :posinfinity
+              n.special = :posinfinity
             else
-              n.ip  :neginfinity
+              n.special  :neginfinity
             end
           else
             n = nil
         end
-        
+
       else
-        if dec_pos<=0
-          n.ip = 0
-          n.d =  text_to_digits(dig_char(0)*(-dec_pos) + digits)
-        elsif dec_pos >= digits.length
-          n.ip = digits.to_i(@base)
-          if rep_pos<dec_pos
-            i=0
-            (dec_pos-digits.length).times do
-              n.ip *= @base
-              n.ip += @dgs.digit_value(digits[rep_pos+i]) if rep_pos+i<digits.length
-              i += 1
-              i=0 if i>=digits.length-rep_pos
-            end
-            n.d = []
-            while i<digits.length-rep_pos
-              n.d << @dgs.digit_value(digits[rep_pos+i])
-              i += 1
-            end
-            new_rep_pos = n.d.size + dec_pos
-            n.d += text_to_digits(digits[rep_pos..-1])
-            self.rep_pos = new_rep_pos
-          else
-            n.ip *= @base**(dec_pos-digits.length)
-            n.d = []
-          end
-        else
-          n.ip = digits[0...dec_pos].to_i(@base)
-          n.d = text_to_digits(digits[dec_pos..-1])
-          if rep_pos<dec_pos
-            new_rep_pos = n.d.size + dec_pos
-            n.d += text_to_digits(digits[rep_pos..-1])
-            self.rep_pos = new_rep_pos
-            puts "--rep_pos=#{rep_pos}"
-          end
-        end
-        n.sign = -1 if sign=='-'
-        n.rep_i = rep_pos - dec_pos
+        n.digits = text_to_digits(digits)
+        n.pnt_i = dec_pos
+        n.rep_i = rep_pos
+        n.sign = sign=='-' ? -1 : +1
       end
-      n.normalize!(!inexact) # keep trailing zeros for inexact numbers
+      n.normalize!(remove_trailing_zeros: !inexact) # keep trailing zeros for inexact numbers
       return n
     end
     protected
     def text_to_digits(txt)
-      #txt.split('').collect{|c| @dgs.digit_value(c)}
-      ds = []
-      txt.each_byte{|b| ds << @dgs.digit_value(b)}
-      ds
+      txt.chars.map{|b| @dgs.digit_value(b)}
     end
   end
-  
+
   class RepDec
     public
     def to_NeutralNum(base_dgs=nil)
       num = NeutralNum.new
-      if !ip.is_a?(Integer)
-        
-        case ip
-          when :indeterminate
-            num.set_special :nan
-          when :posinfinity
-            num.set_special :inf,'+'
-          when :neginfinity
-            num.set_special :inf,'-'
-          else
-            num = nil
+      if special
+        case special
+        when :indeterminate
+          num.set_special :nan
+        when :posinfinity
+          num.set_special :inf,'+'
+        when :neginfinity
+          num.set_special :inf,'-'
+        else
+          num = nil
         end
-        
       else
         base_dgs ||= DigitsDef.base(@radix)
         # assert base_dgs.radix == @radix
         signch = sign<0 ? '-' : '+'
-        decimals = ip.to_s(@radix)
-        dec_pos = decimals.length
-        d.each {|dig| decimals << base_dgs.digit_char(dig) }
-        rep_pos = rep_i==nil ? decimals.length : dec_pos + rep_i
+        decimals = digits.map{|d| base_dgs.digit_char(d)}.join
+        dec_pos = pnt_i
+        rep_pos = rep_i==nil ? decimals.length : rep_i
         num.set signch, decimals, dec_pos, rep_pos, base_dgs
       end
       return num
     end
   end
-  
+
   # A Fmt object defines a numeric format.
   #
   # The formatting aspects managed by Fmt are:
@@ -418,22 +379,22 @@ module Nio
   # Finally numerical objects can be rounded according to a format:
   # * #nio_round() (Nio::Formattable#nio_round)
   class Fmt
-    include StateEquivalent
-    
+    include ModalSupport::StateEquivalent
+
     class Error < StandardError # :nodoc:
     end
     class InvalidOption < Error # :nodoc:
     end
     class InvalidFormat < Error # :nodoc:
     end
-    
+
     @@default_rounding_mode = :even
     def initialize(options=nil)
-      
+
       @dec_sep = '.'
       @grp_sep = ','
       @grp = []
-      
+
       @ndig = :exact
       @mode=:gen
       @round=Fmt.default_rounding_mode
@@ -441,37 +402,37 @@ module Nio
       @approx = :only_sig
       @non_sig = '' # marker for insignificant digits of inexact values e.g. '#','0'
       @sci_format = 1 # number of integral digits in the mantissa: -1 for all
-      
+
       @show_plus = false
       @show_exp_plus = false
-      
+
       @plus_symbol = nil
       @minus_symbol = nil
-      
+
       @rep_begin = '<'
       @rep_end   = '>'
       @rep_auto  = '...'
       @rep_n  = 2
       @rep_in   = true
-      
+
       @width = 0
       @fill_char = ' '
       @adjust=:right
-      
+
       @base_radix = 10
       @base_uppercase = true
       @base_digits = DigitsDef.base(@base_radix, !@base_uppercase)
       @show_base = false
       @base_indicators = { 2=>'b', 8=>'o', 10=>'', 16=>'h', 0=>'r'} # 0: generic (used with radix)
       @base_prefix = false
-      
+
       @nan_txt = 'NAN'
       @inf_txt = 'Infinity'
-      
+
       set! options if options
       yield self if block_given?
     end
-    
+
     # Defines the separators used in numerals. This is relevant to
     # both input and output.
     #
@@ -493,7 +454,7 @@ module Nio
     def sep!(dec_sep,grp_sep=nil,grp=nil)
       set! :dec_sep=>dec_sep, :grp_sep=>grp_sep, :grp=>grp
     end
-    
+
     # This defines the grouping of digits (which can also be defined in #sep()
     def grouping(grp=[3],grp_sep=nil)
       dup.grouping!(grp,grp_sep)
@@ -502,7 +463,7 @@ module Nio
     def grouping!(grp=[3],grp_sep=nil)
       set! :grp_sep=>grp_sep, :grp=>grp
     end
-    
+
     # This is a shortcut to return a new default Fmt object
     # and define the separators as with #sep().
     def Fmt.sep(dec_sep,grp_sep=nil,grp=nil)
@@ -513,7 +474,7 @@ module Nio
     def Fmt.grouping(grp=[3],grp_sep=nil)
       Fmt.default.grouping(grp,grp_sep)
     end
-    
+
     # Define the formatting mode. There are two fixed parameters:
     # - <tt>mode</tt> (only relevant for output)
     #   [<tt>:gen</tt>]
@@ -565,7 +526,7 @@ module Nio
       precision, options = nil, precision if options.empty? && precision.is_a?(Hash)
       set! options.merge(:mode=>mode, :ndig=>precision)
     end
-    
+
     # Defines the formatting mode like #mode() but using a different
     # order of the first two parameters parameters, which is useful
     # to change the precision only. Refer to #mode().
@@ -577,7 +538,7 @@ module Nio
       mode, options = nil, mode if options.empty? && mode.is_a?(Hash)
       set! options.merge(:mode=>mode, :ndig=>precision)
     end
-    
+
     # This is a shortcut to return a new default Fmt object
     # and define the formatting mode as with #mode()
     def Fmt.mode(mode,ndig=nil,options={})
@@ -588,7 +549,7 @@ module Nio
     def Fmt.prec(ndig,mode=nil,options={})
       Fmt.default.prec(ndig,mode,options)
     end
-    
+
     # Rounding mode used when not specified otherwise
     def Fmt.default_rounding_mode
       @@default_rounding_mode
@@ -599,7 +560,7 @@ module Nio
       @@default_rounding_mode=m
       Fmt.default = Fmt.default.round(m)
     end
-    
+
     # This controls the display of the digits that are not necessary
     # to specify the value unambiguosly (e.g. trailing zeros).
     #
@@ -649,7 +610,7 @@ module Nio
     def sci_digits!(n=-1)
       set! :sci_format=>n
     end
-    
+
     # This is a shortcut to return a new default Fmt object
     # and define show_all_digits
     def Fmt.show_all_digits(v=true)
@@ -670,7 +631,7 @@ module Nio
     def Fmt.sci_digits(v=-1)
       Fmt.default.sci_digits(v)
     end
-    
+
     # Controls the display of the sign for positive numbers
     def show_plus(sp=true)
       dup.show_plus! sp
@@ -681,7 +642,7 @@ module Nio
       set! :plus_symbol=>sp if sp.kind_of?(String)
       self
     end
-    
+
     # Controls the display of the sign for positive exponents
     def show_exp_plus(sp=true)
       dup.show_exp_plus! sp
@@ -692,7 +653,7 @@ module Nio
       set! :plus_symbol=>sp if sp.kind_of?(String)
       self
     end
-    
+
     # This is a shortcut to return a new default Fmt object
     # and define show_plus
     def Fmt.show_plus(v=true)
@@ -703,7 +664,7 @@ module Nio
     def Fmt.show_exp_plus(v=true)
       Fmt.default.show_exp_plus(v)
     end
-    
+
     # Defines the handling and notation for repeating numerals. The parameters
     # can be passed in order or in a hash:
     # [<tt>:begin</tt>] is the beginning delimiter of repeating section (<)
@@ -721,7 +682,7 @@ module Nio
     end
     # This is the mutator version of #rep().
     def rep!(*params)
-      
+
       params << {} if params.size==0
       if params[0].kind_of?(Hash)
         params = params[0]
@@ -729,16 +690,16 @@ module Nio
         begch,endch,autoch,rep,read = *params
         params = {:begin=>begch,:end=>endch,:suffix=>autoch,:nreps=>rep,:read=>read}
       end
-      
+
       set! params
     end
-    
+
     # This is a shortcut to return a new default Fmt object
     # and define the repeating decimals mode as with #rep()
     def Fmt.rep(*params)
       Fmt.default.rep(*params)
     end
-    
+
     # Sets the justificaton width, mode and fill character
     #
     # The mode accepts these values:
@@ -775,7 +736,7 @@ module Nio
     def Fmt.pad0s(w)
       Fmt.default.pad0s(w)
     end
-    
+
     # defines the numerical base; the second parameters forces the use
     # of uppercase letters for bases greater than 10.
     def base(b, uppercase=nil)
@@ -794,7 +755,7 @@ module Nio
       base ||= @base_radix
       base<=10 ? 'E' : '^'
     end
-    
+
     # returns the base
     def get_base # :nodoc:
       @base_radix
@@ -807,7 +768,7 @@ module Nio
     def get_base_uppercase? # :nodoc:
       @base_uppercase
     end
-    
+
     # returns the formatting mode
     def get_mode # :nodoc:
       @mode
@@ -824,12 +785,12 @@ module Nio
     def get_approx # :nodoc:
       @approx
     end
-    
+
     # returns the rounding mode
     def get_round # :nodoc:
       @round
     end
-    
+
     # Method used internally to format a neutral numeral
     def nio_write_formatted(neutral) # :nodoc:
       str = ''
@@ -852,7 +813,7 @@ module Nio
             str << @dec_sep << zero*@ndig
           end
         else
-          
+
           neutral.trimLeadZeros
           actual_mode = @mode
           trim_trail_zeros = !@all_digits # false
@@ -871,7 +832,7 @@ module Nio
             end
           end
           exp = neutral.dec_pos - integral_digits
-          
+
           case actual_mode
             when :gen # general (automatic)
               # @ndig means significant digits
@@ -879,29 +840,29 @@ module Nio
               actual_mode = :sci if use_scientific?(neutral, exp)
               trim_trail_zeros = !@all_digits # true
           end
-          
+
           case actual_mode
             when :fix, :sig #, :gen
-              
+
 
               if @show_plus || neutral.sign!='+'
                 str << ({'-'=>@minus_symbol, '+'=>@plus_symbol}[neutral.sign] || neutral.sign)
               end
-              
+
 
 
               if @show_base && @base_prefix
                 b_prefix = @base_indicators[neutral.base]
                 str << b_prefix if b_prefix
               end
-              
+
               if @ndig==:exact
                 neutral.sign = '+'
-                str << neutral.to_RepDec.getS(@rep_n, getRepDecOpt(neutral.base))
+                str << neutral.to_RepDec.get_text(@rep_n, getRepDecOpt(neutral.base))
               else
                 #zero = get_base_digits.digit_char(0).chr
                 ns_digits = ''
-                
+
                 nd = neutral.digits.length
                 if actual_mode==:fix
                   nd -= neutral.dec_pos
@@ -909,7 +870,7 @@ module Nio
                 if neutral.inexact? && @ndig>nd # assert no rep-dec.
                   ns_digits = @non_sig*(@ndig-nd)
                 end
-                
+
                 digits = neutral.digits + ns_digits
                 if neutral.dec_pos<=0
                   str << zero+@dec_sep+zero*(-neutral.dec_pos) + digits
@@ -926,29 +887,29 @@ module Nio
                 str.chomp!(@dec_sep)
                 #puts str
               end
-              
-              
+
+
             when :sci
-              
+
 
               if @show_plus || neutral.sign!='+'
                 str << ({'-'=>@minus_symbol, '+'=>@plus_symbol}[neutral.sign] || neutral.sign)
               end
-              
+
 
               if @show_base && @base_prefix
                 b_prefix = @base_indicators[neutral.base]
                 str << b_prefix if b_prefix
               end
-              
+
               #zero = get_base_digits.digit_char(0).chr
               if @ndig==:exact
                 neutral.sign = '+'
                 neutral.dec_pos-=exp
-                str << neutral.to_RepDec.getS(@rep_n, getRepDecOpt(neutral.base))
+                str << neutral.to_RepDec.get_text(@rep_n, getRepDecOpt(neutral.base))
               else
                 ns_digits = ''
-                
+
                 nd = neutral.digits.length
                 if actual_mode==:fix
                   nd -= neutral.dec_pos
@@ -956,7 +917,7 @@ module Nio
                 if neutral.inexact? && @ndig>nd # assert no rep-dec.
                   ns_digits = @non_sig*(@ndig-nd)
                 end
-                
+
                 digits = neutral.digits + ns_digits
                 str << ((integral_digits<1) ? zero : digits[0...integral_digits])
                 str << @dec_sep
@@ -971,24 +932,24 @@ module Nio
                 str.chomp!(@dec_sep)
                 #puts str
               end
-              
+
               str << get_exp_char(neutral.base)
               if @show_exp_plus || exp<0
                 str << (exp<0 ? (@minus_symbol || '-') : (@plus_symbol || '+'))
               end
               str << exp.abs.to_s
-              
+
           end
-          
+
         end
       end
-      
+
       if @show_base && !@base_prefix
         b_prefix = @base_indicators[neutral.base]
         str << b_prefix if b_prefix
       end
-      
-      
+
+
       if @width>0 && @fill_char!=''
         l = @width - str.length
         if l>0
@@ -1009,23 +970,23 @@ module Nio
           end
         end
       end
-      
+
       return str
     end
-    
+
     # round a neutral numeral according to the format options
     def round!(neutral) # :nodoc:
       neutral.round! @ndig, @mode, @round
     end
-    
+
     @@sci_fmt = nil
-    
+
     def nio_read_formatted(txt) # :nodoc:
       txt = txt.dup
       num = nil
 
       base = nil
-      
+
       base ||= get_base
 
       zero = get_base_digits(base).digit_char(0).chr
@@ -1033,39 +994,39 @@ module Nio
 
       exp = 0
       x_char = get_exp_char(base)
-      
+
       exp_i = txt.index(x_char)
       exp_i = txt.index(x_char.downcase) if exp_i===nil
       if exp_i!=nil
         exp = txt[exp_i+1...txt.length].to_i
         txt = txt[0...exp_i]
       end
-      
+
 
       opt = getRepDecOpt(base)
       if @rep_in
         #raise InvalidFormat,"Invalid numerical base" if base!=10
-        rd = RepDec.new # get_base not necessary: setS sets it from options
-        rd.setS txt, opt
+        rd = RepDec.new # get_base not necessary: set_text sets it from options
+        rd.set_text txt, opt
         num = rd.to_NeutralNum(opt.digits)
       else
         # to do: use RepDec.parse; then build NeutralNum directly
-        opt.set_delim '',''
-        opt.set_suffix ''
-        rd = RepDec.new # get_base not necessary: setS sets it from options
-        rd.setS txt, opt
+        opt.set_delim nil, nil
+        opt.set_suffix nil
+        rd = RepDec.new # get_base not necessary: set_text sets it from options
+        rd.set_text txt, opt
         num = rd.to_NeutralNum(opt.digits)
       end
       num.rounding = get_round
       num.dec_pos += exp
       return num
     end
-    
+
     def [](options)
       dup.set! options
     end
-    
-    
+
+
     @@fmts = {
       :def=>Fmt.new.freeze
     }
@@ -1096,9 +1057,9 @@ module Nio
       @@fmts[tag.to_sym]
     end
     end
-    
+
     protected
-    
+
     @@valid_properties = nil
     ALIAS_PROPERTIES = {
       :show_all_digits=>:all_digits,
@@ -1114,9 +1075,9 @@ module Nio
     }
     def set!(properties={}) # :nodoc:
 
-     
+
      @@valid_properties ||= instance_variables.collect{|v| v[1..-1].to_sym}
-     
+
 
      aliased_properties = {}
      properties.each do |k,v|
@@ -1128,29 +1089,29 @@ module Nio
      end
      properties = aliased_properties
 
-     
+
      if properties[:grp_sep].nil? && !properties[:dec_sep].nil? && properties[:dec_sep]!=@dec_sep && properties[:dec_sep]==@grp_sep
        properties[:grp_sep] = properties[:dec_sep]=='.' ? ',' : '.'
      end
-     
+
      if properties[:all_digits].nil? && (properties[:ndig] || properties[:mode])
         ndig = properties[:ndig] || @ndig
         mode = properties[:mode] || @mode
         properties[:all_digits] = ndig!=:exact && mode!=:gen
      end
-     
+
      if !properties[:all_digits].nil? && properties[:non_sig].nil?
        properties[:non_sig] = '' unless properties[:all_digits]
      elsif !properties[:non_sig].nil? && properties[:all_digits].nil?
        properties[:all_digits] = true if properties[:non_sig]!=''
      end
-     
+
      if !properties[:base_radix].nil? || !properties[:base_uppercase].nil?
         base = properties[:base_radix] || @base_radix
         uppercase = properties[:base_uppercase] || @base_uppercase
         properties[:base_digits] = DigitsDef.base(base, !uppercase)
      end
-     
+
 
      properties.each do |k,v|
        instance_variable_set "@#{k}", v unless v.nil?
@@ -1158,11 +1119,11 @@ module Nio
 
      self
     end
-    
+
     def set(properties={}) # :nodoc:
       self.dup.set!(properties)
     end
-    
+
     def use_scientific?(neutral,exp) # :nodoc:
       nd = @ndig.kind_of?(Numeric) ? @ndig : [neutral.digits.length,10].max
       if @@sci_fmt==:hp
@@ -1172,7 +1133,7 @@ module Nio
         exp<-4 || exp>=nd
       end
     end
-    
+
     def getRepDecOpt(base=nil) # :nodoc:
       rd_opt = RepDec::Opt.new
       rd_opt.begin_rep = @rep_begin
@@ -1191,13 +1152,13 @@ module Nio
     #  end
       return rd_opt
     end
-    
+
     def group(digits) # :nodoc:
       RepDec.group_digits(digits, getRepDecOpt)
     end
-    
+
   end
-  
+
   # This is a mix-in module to add formatting capabilities no numerical classes.
   # A class that includes this module should provide the methods
   # nio_write_neutral(fmt):: an instance method to write the value to
@@ -1206,7 +1167,7 @@ module Nio
   # nio_read_neutral(neutral):: a class method to create a value from a neutral
   #                             numeral.
   module Formattable
-    
+
     # This is the method available in all formattable objects
     # to format the value into a text string according
     # to the optional format passed.
@@ -1214,7 +1175,7 @@ module Nio
       neutral = nio_write_neutral(fmt)
       fmt.nio_write_formatted(neutral)
     end
-    
+
     module ClassMethods
       # This is the method available in all formattable clases
       # to read a formatted value from a text string into
@@ -1224,7 +1185,7 @@ module Nio
         nio_read_neutral neutral
       end
     end
-    
+
     # Round a formattable object according to the rounding mode and
     # precision of a format.
     def nio_round(fmt=Fmt.default)
@@ -1232,20 +1193,20 @@ module Nio
       fmt.round! neutral
       self.class.nio_read_neutral neutral
     end
-    
+
     def self.append_features(mod) # :nodoc:
       super
       mod.extend ClassMethods
     end
-    
+
   end
-  
+
   Fmt[:comma] = Fmt.sep(',','.')
   Fmt[:comma_th] = Fmt.sep(',','.',[3])
   Fmt[:dot] = Fmt.sep('.',',')
   Fmt[:dot_th] = Fmt.sep('.',',',[3])
   Fmt[:code] = Fmt.new.prec(20) # don't use :exact to avoid repeating numerals
-  
+
   class Fmt
     # Intermediate conversion format for simplified conversion
     CONV_FMT = Fmt.prec(:exact).rep('<','>','...',0).approx_mode(:simplify)
@@ -1269,21 +1230,21 @@ module Nio
       # return x.prec(type)
       if !(x.is_a?(type))
         # return type.nio_read(x.nio_write(fmt),fmt)
-        
+
         x = x.nio_write_neutral(fmt)
         x = type.nio_read_neutral(x)
-        
+
       end
       x
     end
   end
-  
+
   module_function
-  
+
   def Fmt(options=nil)
     Fmt.default(options)
   end
-  
+
   def nio_float_to_bigdecimal(x,prec) # :nodoc:
     if prec.nil?
       x = Fmt.convert(x,BigDecimal,:approx)
@@ -1294,17 +1255,17 @@ module Nio
     end
     x
   end
-  
-  
+
+
 end
 
 class Float
   include Nio::Formattable
   def self.nio_read_neutral(neutral)
     x = nil
-    
+
     honor_rounding = true
-    
+
     if neutral.special?
       case neutral.special
         when :nan
@@ -1313,10 +1274,10 @@ class Float
           x = (neutral.sign=='-' ? -1.0 : +1.0)/0.0
       end
     elsif neutral.rep_pos<neutral.digits.length
-      
-      x,y = neutral.to_RepDec.getQ
+
+      x,y = neutral.to_RepDec.get_quotient
       x = Float(x)/y
-      
+
     else
       nd = neutral.base==10 ? Float::DIG : ((Float::MANT_DIG-1)*Math.log(2)/Math.log(neutral.base)).floor
       k = neutral.dec_pos-neutral.digits.length
@@ -1334,7 +1295,7 @@ class Float
         x *= Float(neutral.base**(k-j))
         x = -x if neutral.sign=='-'
       elsif neutral.base.modulo(Float::RADIX)==0
-       
+
        f = neutral.digits.to_i(neutral.base)
        e = neutral.dec_pos-neutral.digits.length
 
@@ -1356,14 +1317,14 @@ class Float
        else
          nil
        end
-       
+
        reader = Flt::Support::Reader.new(:mode=>:fixed)
        sign = neutral.sign == '-' ? -1 : +1
        x = reader.read(Float.context, rounding, sign, f, e, neutral.base)
        exact = reader.exact?
-       
+
       else
-       
+
        f = neutral.digits.to_i(neutral.base)
        e = neutral.dec_pos-neutral.digits.length
 
@@ -1385,21 +1346,21 @@ class Float
        else
          nil
        end
-       
+
        reader = Flt::Support::Reader.new(:mode=>:fixed)
        sign = neutral.sign == '-' ? -1 : +1
        x = reader.read(Float.context, rounding, sign, f, e, neutral.base)
        exact = reader.exact?
-       
+
       end
     end
-    
+
     return x
   end
   def nio_write_neutral(fmt)
     neutral = Nio::NeutralNum.new
     x = self
-    
+
     if x.nan?
       neutral.set_special(:nan)
     elsif x.infinite?
@@ -1407,7 +1368,7 @@ class Float
     else
       converted = false
       if fmt.get_ndig==:exact && fmt.get_approx==:simplify
-        
+
         if x!=0
           q = x.nio_r(Flt.Tolerance(Float::DIG, :sig_decimals))
           if q!=0
@@ -1415,7 +1376,7 @@ class Float
             converted = true if neutral.digits.length<=Float::DIG
           end
         end
-        
+
       elsif fmt.get_approx==:exact
         neutral = x.nio_xr.nio_write_neutral(fmt)
         converted = true
@@ -1423,7 +1384,7 @@ class Float
       if !converted
         if fmt.get_base==10 && false
           txt = format "%.*e",Float::DECIMAL_DIG-1,x # note that spec. e output precision+1 significant digits
-          
+
           sign = '+'
           if txt[0,1]=='-'
             sign = '-'
@@ -1438,7 +1399,7 @@ class Float
             exp = txt[exp_i+1...txt.length].to_i
             txt = txt[0...exp_i]
           end
-          
+
           dec_pos = txt.index '.'
           if dec_pos==nil
             dec_pos = txt.length
@@ -1447,12 +1408,12 @@ class Float
           end
           dec_pos += exp
           neutral.set sign, txt, dec_pos, nil, fmt.get_base_digits(10), true, fmt.get_round
-          
+
           converted = true
         end
       end
       if !converted
-        
+
         sign = x<0 ? '-' : '+'
         f,e = Math.frexp(x)
         if e < Float::MIN_EXP
@@ -1485,7 +1446,7 @@ class Float
         else
           nil
         end
-        
+
 
         # Note: it is assumed that fmt will be used for for input too, otherwise
         # rounding should be Float.context.rounding (input rounding for Float) rather than fmt.get_round (output)
@@ -1496,10 +1457,10 @@ class Float
         txt = ''
         digits.each{|d| txt << fmt.get_base_digits.digit_char(d)}
         neutral.set sign, txt, dec_pos, nil, fmt.get_base_digits, inexact, fmt.get_round
-        
+
       end
     end
-    
+
     return neutral
   end
 end
@@ -1508,14 +1469,14 @@ class Integer
   include Nio::Formattable
   def self.nio_read_neutral(neutral)
     x = nil
-    
+
     if neutral.special?
       raise Nio::InvalidFormat,"Invalid integer numeral"
     elsif neutral.rep_pos<neutral.digits.length
       return Rational.nio_read_neutral(neutral).to_i
     else
       digits = neutral.digits
-      
+
       if neutral.dec_pos <= 0
         digits = '0'
       elsif neutral.dec_pos <= digits.length
@@ -1523,7 +1484,7 @@ class Integer
       else
         digits = digits + '0'*(neutral.dec_pos-digits.length)
       end
-      
+
       x = digits.to_i(neutral.base)
     # this was formely needed because we didn't adust the digits
     #  if neutral.dec_pos != neutral.digits.length
@@ -1532,18 +1493,18 @@ class Integer
     #  end
       x = -x if neutral.sign=='-'
     end
-    
+
     return x
   end
   def nio_write_neutral(fmt)
     neutral = Nio::NeutralNum.new
     x = self
-    
+
     sign = x<0 ? '-' : '+'
     txt = x.abs.to_s(fmt.get_base)
     dec_pos = rep_pos = txt.length
     neutral.set sign, txt, dec_pos, nil, fmt.get_base_digits, false ,fmt.get_round
-    
+
     return neutral
   end
 end
@@ -1552,7 +1513,7 @@ class Rational
   include Nio::Formattable
   def self.nio_read_neutral(neutral)
     x = nil
-    
+
     if neutral.special?
       case neutral.special
         when :nan
@@ -1561,15 +1522,15 @@ class Rational
           x = Rational((neutral.sign=='-' ? -1 : +1),0)
       end
     else
-      x = Rational(*neutral.to_RepDec.getQ)
+      x = Rational(*neutral.to_RepDec.get_quotient)
     end
-    
+
     return x
   end
   def nio_write_neutral(fmt)
     neutral = Nio::NeutralNum.new
     x = self
-    
+
     if x.denominator==0
       if x.numerator>0
         neutral.set_special(:inf)
@@ -1580,15 +1541,15 @@ class Rational
       end
     else
       if fmt.get_base==10
-        rd = Nio::RepDec.new.setQ(x.numerator,x.denominator)
+        rd = Nio::RepDec[x.numerator, x.denominator]
       else
         opt = Nio::RepDec::DEF_OPT.dup.set_digits(fmt.get_base_digits)
-        rd = Nio::RepDec.new.setQ(x.numerator,x.denominator, opt)
+        rd = Nio::RepDec[x.numerator, x.denominator, opt]
       end
       neutral = rd.to_NeutralNum(fmt.get_base_digits)
       neutral.rounding = fmt.get_round
     end
-    
+
     return neutral
   end
 end
@@ -1598,7 +1559,7 @@ class BigDecimal
   include Nio::Formattable
   def self.nio_read_neutral(neutral)
     x = nil
-    
+
     if neutral.special?
       case neutral.special
         when :nan
@@ -1607,10 +1568,10 @@ class BigDecimal
           x = BigDecimal(neutral.sign=='-' ? '-1.0' : '+1.0')/0
       end
     elsif neutral.rep_pos<neutral.digits.length
-      
-      x,y = neutral.to_RepDec.getQ
+
+      x,y = neutral.to_RepDec.get_quotient
       x = BigDecimal(x.to_s)/y
-      
+
     else
       if neutral.base==10
         #x = BigDecimal(neutral.digits)
@@ -1626,13 +1587,13 @@ class BigDecimal
         x = -x if neutral.sign=='-'
       end
     end
-    
+
     return x
   end
   def nio_write_neutral(fmt)
     neutral = Nio::NeutralNum.new
     x = self
-    
+
     if x.nan?
       neutral.set_special(:nan)
     elsif x.infinite?
@@ -1640,11 +1601,11 @@ class BigDecimal
     else
       converted = false
       if fmt.get_ndig==:exact && fmt.get_approx==:simplify
-        
+
         prc = [x.precs[0],20].max
         neutral = x.nio_r(Flt.Tolerance(prc, :sig_decimals)).nio_write_neutral(fmt)
         converted = true if neutral.digits.length<prc
-        
+
       elsif fmt.get_approx==:exact && fmt.get_base!=10
         neutral = x.nio_xr.nio_write_neutral(fmt)
         converted = true
@@ -1655,7 +1616,7 @@ class BigDecimal
           # x.to_s('F') is not affected by that problem, but produces innecesary long strings
           sgn,ds,b,e = x.split
           txt = "#{sgn<0 ? '-' : ''}0.#{ds}E#{e}"
-          
+
           sign = '+'
           if txt[0,1]=='-'
             sign = '-'
@@ -1670,7 +1631,7 @@ class BigDecimal
             exp = txt[exp_i+1...txt.length].to_i
             txt = txt[0...exp_i]
           end
-          
+
           dec_pos = txt.index '.'
           if dec_pos==nil
             dec_pos = txt.length
@@ -1679,12 +1640,12 @@ class BigDecimal
           end
           dec_pos += exp
           neutral.set sign, txt, dec_pos, nil, fmt.get_base_digits(10), true, fmt.get_round
-          
+
           converted = true
         end
       end
       if !converted
-        
+
         x = Flt::DecNum(x.to_s)
 
         min_exp  =  num_class.context.etiny
@@ -1720,7 +1681,7 @@ class BigDecimal
         else
           nil
         end
-        
+
 
         # TODO: use Num#format instead
         # Note: it is assumed that fmt will be used for for input too, otherwise
@@ -1732,11 +1693,11 @@ class BigDecimal
         txt = ''
         digits.each{|d| txt << fmt.get_base_digits.digit_char(d)}
         neutral.set sign, txt, dec_pos, nil, fmt.get_base_digits, inexact, fmt.get_round
-        
-        
+
+
       end
     end
-    
+
     return neutral
   end
 end
@@ -1746,7 +1707,7 @@ class Flt::Num
   include Nio::Formattable
   def self.nio_read_neutral(neutral)
     x = nil
-    
+
     if neutral.special?
       case neutral.special
       when :nan
@@ -1755,10 +1716,10 @@ class Flt::Num
         x = num_class.infinity(neutral.sign=='-' ? '-1.0' : '+1.0')
       end
     elsif neutral.rep_pos<neutral.digits.length
-      
+
       # uses num_clas.context.precision TODO: ?
-      x = num_class.new Rational(*neutral.to_RepDec.getQ)
-      
+      x = num_class.new Rational(*neutral.to_RepDec.get_quotient)
+
     else
       if neutral.base==num_class.radix
         if neutral.base==10
@@ -1779,20 +1740,20 @@ class Flt::Num
           x *= num_class.Num(neutral.base.to_s)**(neutral.dec_pos-neutral.digits.length)
           x = -x if neutral.sign=='-'
         else
-          
+
           # uses num_clas.context.precision TODO: ?
-          x = num_class.new Rational(*neutral.to_RepDec.getQ)
-          
+          x = num_class.new Rational(*neutral.to_RepDec.get_quotient)
+
         end
       end
     end
-    
+
     return x
   end
   def nio_write_neutral(fmt)
     neutral = Nio::NeutralNum.new
     x = self
-    
+
     if x.nan?
       neutral.set_special(:nan)
     elsif x.infinite?
@@ -1800,13 +1761,13 @@ class Flt::Num
     else
       converted = false
       if fmt.get_ndig==:exact && fmt.get_approx==:simplify
-        
+
         neutral = x.nio_r(Flt.Tolerance('0.5', :ulps)).nio_write_neutral(fmt)
         # TODO: find better method to accept the conversion
         prc = (fmt.get_base==num_class.radix) ? x.number_of_digits : x.coefficient.to_s(fmt.get_base).length
         prc = [prc, 8].max
         converted = true if neutral.digits.length<prc
-        
+
       elsif fmt.get_approx==:exact && fmt.get_base!=num_class.radix
         # TODO: num_class.context(:precision=>fmt....
         neutral = x.to_r.nio_write_neutral(fmt)
@@ -1822,7 +1783,7 @@ class Flt::Num
         end
       end
       if !converted
-        
+
         min_exp  =  num_class.context.etiny
         n = x.number_of_digits
         s,f,e = x.split
@@ -1856,7 +1817,7 @@ class Flt::Num
         else
           nil
         end
-        
+
 
         # TODO: use Num#format instead
         # Note: it is assumed that fmt will be used for for input too, otherwise
@@ -1868,10 +1829,10 @@ class Flt::Num
         txt = ''
         digits.each{|d| txt << fmt.get_base_digits.digit_char(d)}
         neutral.set sign, txt, dec_pos, nil, fmt.get_base_digits, inexact, fmt.get_round
-        
+
       end
     end
-    
+
     return neutral
   end
 end

@@ -1,110 +1,136 @@
-# repdec.rb -- Repeating Decimals (Repeating Numerals, actually)
-
-# Copyright (C) 2003-2005, Javier Goizueta <javier@goizueta.info>
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-
 require 'nio/tools'
+
 module Nio
-  
+
   class RepDecError <StandardError
   end
-  
+
+  # Digits definition
   class DigitsDef
-    include StateEquivalent
+    include ModalSupport::StateEquivalent
+
     def initialize(ds='0123456789', cs=true)
       @digits = ds
       @casesens = cs
       @dncase = (ds.downcase==ds)
       @radix = @digits.size
     end
+
     def is_digit?(ch_code)
       ch_code = set_case(ch_code) unless @casesens
       @digits.include?(ch_code)
     end
+
     def digit_value(ch_code)
       ch_code = set_case(ch_code) unless @casesens
       @digits.index(ch_code.chr)
     end
+
     def digit_char(v)
       @digits[v]
     end
+
     def digit_char_safe(v)
       v>=0 && v<@radix ? @digits[v] : nil
     end
+
     def radix
       @radix
     end
+
     def DigitsDef.base(b,dncase=false,casesens=false)
       dgs = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"[0,b]
       dgs.downcase! if dncase
       DigitsDef.new(dgs,casesens)
     end
+
     private
+
     def set_case(ch_code)
       ch_code = ch_code.chr if ch_code.kind_of?(Numeric)
       @dncase ? ch_code.downcase[0] : ch_code.upcase[0]
     end
+
   end
-  
-  
+
   # RepDec handles repeating decimals (repeating numerals actually)
   class RepDec
-    include StateEquivalent
-    
-    class Opt # :nodoc:
-      include StateEquivalent
-      def initialize() #default options
-        
-        @begin_rep = '<'
-        @end_rep = '>'
-        
-        @auto_rep = '...'
-        
-        @dec_sep = '.'
-        @grp_sep = ','
-        @grp = [] # [3] for thousands separators
-        
-        @inf_txt = 'Infinity'
-        @nan_txt = 'NaN'
-        
-        @digits = DigitsDef.new
-        @digits_defined = false
-        
-        @max_d = 5000
-        
+    include ModalSupport::StateEquivalent
+    include ModalSupport::BracketConstructor
+
+    @maximum_number_of_digits = 5000
+
+    # Change the maximum number of digits that RepDec objects
+    # can handle.
+    def RepDec.maximum_number_of_digits=(n)
+      @maximum_number_of_digits = [n,2048].max
+    end
+    # Return the maximum number of digits that RepDec objects
+    # can handle.
+    def RepDec.maximum_number_of_digits
+      @maximum_number_of_digits
+    end
+
+    # Repeating decimal configuration options
+    class Opt
+      include ModalSupport::StateEquivalent
+      include ModalSupport::BracketConstructor
+
+      def initialize(options={})
+        options = {
+          #  default options
+            delim: ['<', '>'],
+            suffix:  '...',
+            sep:   '.',
+            grouping:   [',', []], # [...,[3]] for thousands separators
+            special:   ['NaN', 'Infinity'],
+            digits:    nil,
+            signs: ['+', '-'],
+            maximum_number_of_digits: RepDec.maximum_number_of_digits
+          }.merge(options)
+
+        set_delim *Array(options[:delim])
+        set_suffix options[:suffix]
+        set_sep options[:sep]
+        set_grouping *Array(options[:grouping])
+        set_special *Array(options[:special])
+        set_digits *Array(options[:digits])
+        set_signs *Array(options[:signs])
+        @maximum_number_of_digits = options[:maximum_number_of_digits]
       end
-      attr_accessor :begin_rep, :end_rep, :auto_rep, :dec_sep, :grp_sep, :grp, :max_d
-      attr_accessor :nan_txt, :inf_txt
-      
-      def set_delim(begin_d,end_d='')
+
+      attr_accessor :begin_rep, :end_rep, :auto_rep, :dec_sep, :grp_sep, :grp, :maximum_number_of_digits
+      attr_accessor :nan_txt, :inf_txt, :plus_sign, :minus_sign
+
+      def set_delim(begin_d, end_d='')
         @begin_rep = begin_d
         @end_rep = end_d
         return self
       end
+
       def set_suffix(a)
         @auto_rep = a
         return self
       end
+
       def set_sep(d)
-        @dec_sep = a
+        @dec_sep = d
         return self
       end
-      def set_grouping(sep,g=[])
-        @grp_sep = a
+
+      def set_grouping(sep, g=[])
+        @grp_sep = sep
         @grp = g
         return self
       end
+
       def set_special(nan_txt, inf_txt)
         @nan_txt = nan_txt
         @inf_txt = inf_txt
         return self
       end
-      
-      def set_digits(ds, dncase=false, casesens=false)
+
+      def set_digits(ds=nil, dncase=false, casesens=false)
         if ds
           @digits_defined = true
           if ds.kind_of?(DigitsDef)
@@ -120,345 +146,450 @@ module Nio
         end
         self
       end
-      
+
+      def set_signs(plus, minus)
+        @plus_sign = plus
+        @minus_sign = minus
+      end
+
       attr_accessor :digits
+
       def digits_defined?
         @digits_defined
       end
-      
-    end
-    
-    DEF_OPT=Opt.new
-    
-    
-    def initialize(b=10)
-      setZ(b)
-    end
-    
-    def setZ(b=10)
-       @ip    = 0;
-       @d     = [];
-       @rep_i = nil;
-       @sign  = 0;
-       @radix = b;
-       self
-    end
-    
-    def setS(str, opt=DEF_OPT)
-      setZ(opt.digits_defined? ? opt.digits.radix : @radix);
-      sgn,i_str,f_str,ri,detect_rep = RepDec.parse(str,opt)
-      if i_str.kind_of?(Symbol)
-        @ip = i_str
-      else
-        @ip = i_str.to_i(@radix); # this assumes conventional digits
-      end
-      @sign = sgn
-      @rep_i = ri if ri
-      f_str.each_byte{|b| @d.push opt.digits.digit_value(b)} unless f_str.nil?
 
-      if detect_rep then
-        
-        for l in 1..(@d.length/2)
-          l = @d.length/2 + 1 - l;
-          if @d[-l..-1]==@d[-2*l...-l]
-            
+    end
+
+    DEF_OPT = Opt[]
+
+    def initialize(*args)
+      if args.empty?
+        set_zero
+      elsif args.size == 1 && Integer === args.first
+        # base
+        set_zero args.first
+      elsif String === args.first
+        # text, options
+        text = args.shift
+        set_text text, Opt[*args]
+      else
+        x, y, *opt = args
+        set_quotient x, y, Opt[*opt]
+      end
+    end
+
+    def set_zero(b=10)
+      @radix = b
+      @special = nil
+      @sign = +1
+      @digits = [0] # digit values # [] ?
+      @pnt_i = 1                   # 0 ?
+      @rep_i = nil # 1
+      self
+    end
+
+    def scale
+      @pnt_i - @digits.size
+    end
+
+    def scale=(s)
+      @pnt_i = s + @digits.size
+    end
+
+    def set_text(str, opt=DEF_OPT)
+      set_zero(opt.digits_defined? ? opt.digits.radix : @radix)
+
+      sgn,i_str,f_str,ri,detect_rep = RepDec.parse(str,opt)
+      @sign = sgn
+
+      if i_str.kind_of?(Symbol)
+        @special = i_str
+      else
+        # TODO: HANDLE leading 0 in i_str...
+        # if i_str[0] == '0' && i_str.size > 1
+        #   i_str = i_str[1..-1]
+        # end
+        if i_str == '0'
+          if f_str && f_str!=''
+            digits_str = f_str
+            @pnt_i = 0
+            i_size = 0
+          else
+            digits_str = opt.digits.digit_char(0)
+            @pnt_i = 1
+          end
+        else
+          digits_str = i_str+(f_str || '')
+          @pnt_i = i_str.size
+        end
+        @digits = digits_str.chars.map{|digit| opt.digits.digit_value(digit)}
+      end
+      @rep_i = ri + @pnt_i if ri
+
+      if detect_rep
+        for l in 1..(@digits.length/2)
+          l = @digits.length/2 + 1 - l
+          if @digits[-l..-1] == @digits[-2*l...-l]
+
             for m in 1..l
-              if l.modulo(m)==0 then
-                reduce_l = true;
+              if l.modulo(m) == 0
+                reduce_l = true
                 for i in 2..l/m
-                  if @d[-m..-1]!=@d[-i*m...-i*m+m] then
-                     reduce_l = false;
-                     break;
+                  if @digits[-m..-1] != @digits[-i*m...-i*m+m]
+                     reduce_l = false
+                     break
                   end
                 end
-                if reduce_l then
+                if reduce_l
                    l = m
                    break
                 end
               end
             end
-            
-            
-            @rep_i = @d.length - 2*l;
-            l.times { @d.pop }
-            
-            
-            while @d.length >= 2*l && @d[-l..-1]==@d[-2*l...-l]
-              
-              @rep_i = @d.length - 2*l;
-              l.times { @d.pop }
-              
+
+            @rep_i = @digits.length - 2*l
+            l.times { @digits.pop }
+
+
+            while @digits.length >= 2*l && @digits[-l..-1] == @digits[-2*l...-l]
+
+              @rep_i = digits.length - 2*l
+              l.times { @digits.pop }
+
             end
-            
+
             break
           end
         end
-        
+
       end
 
-      
-      if @rep_i!=nil then
-        if @d.length==@rep_i+1 && @d[@rep_i]==0 then
-          @rep_i = nil;
-          @d.pop;
+
+      if @rep_i != nil
+        if @digits.length == @rep_i+1 && @digits[@rep_i]==0
+          @rep_i = nil
+          @digits.pop
         end
       end
-      @d.pop while @d[@d.length-1]==0
-      
+      @digits.pop while @digits[@digits.length-1]==0 && !@digits.empty?
+
       self
     end
-    
+
     def RepDec.parse(str, opt=DEF_OPT)
-      sgn,i_str,f_str,ri,detect_rep = nil,nil,nil,nil,nil
+      sgn, i_str, f_str, ri, detect_rep = nil,nil,nil,nil,nil
 
-      i = 0;
-      l = str.length;
+      i = 0
+      l = str.size
 
-      detect_rep = false;
+      detect_rep = false
 
-      
-      i += 1 while i<str.length && str[i,1] =~/\s/
-      
-      
-      neg = false;
+      i += 1 while i<str.size && str[i] =~/\s/
 
-      neg = true if str[i,1]=='-'
-      i += 1 if str[i,1]=='-' || str[i,1]=='+'
-      
+      neg = false
 
-      i += 1 while i<str.length && str[i,1] =~/\s/
-      
-
-      str.upcase!
-      if str[i,opt.nan_txt.size]==opt.nan_txt.upcase
-        i_str = :indeterminate;
-      elsif str[i,opt.inf_txt.size]==opt.inf_txt.upcase
-        i_str = neg ? :neginfinity : :posinfinity;
+      if str[i, opt.minus_sign.size] == opt.minus_sign
+        neg = true
+        i += opt.minus_sign.size
+      elsif str[i, opt.plus_sign.size] == opt.plus_sign
+        i += opt.plus_sign.size
       end
-      
-      unless i_str
-        i_str = "0";
-        while i<l && str[i,1]!=opt.dec_sep
-          break if str[i,opt.auto_rep.length]==opt.auto_rep && opt.auto_rep!=''
-          i_str += str[i,1] if str[i,1]!=opt.grp_sep
-          i += 1;
+
+      i += 1 while i<str.size && str[i] =~/\s/
+
+      str = str.upcase
+      if str[i, opt.nan_txt.size] == opt.nan_txt.upcase
+        i_str = :indeterminate
+      elsif str[i,opt.inf_txt.size] == opt.inf_txt.upcase
+        i_str = neg ? :neginfinity : :posinfinity
+      else
+        i_str = ""
+        while i < l && str[i, opt.dec_sep.size] != opt.dec_sep
+          # TODO: admit opt.begin_rep / opt.end_rep here
+          if opt.auto_rep && opt.auto_rep != ''
+            break if str[i, opt.auto_rep.length] == opt.auto_rep
+          end
+          if str[i, opt.grp_sep.size] == opt.grp_sep
+            i += opt.grp_sep.size
+          else
+            i_str << str[i]
+            i += 1
+          end
         end
         sgn = neg ? -1 : +1
-        i += 1; # skip the decimal separator
+        i += opt.dec_sep.size # skip the decimal separator
       end
-      
+
       unless i_str.kind_of?(Symbol)
-        j = 0;
-        f_str = ''
-        while i<l
-          ch = str[i,1];
-          if ch==opt.begin_rep then
-            ri = j;
-          elsif ch==opt.end_rep then
-            i = l;
-          elsif ch==opt.auto_rep[0,1] then
-            detect_rep = true;
-            i = l;
+        i_str = opt.digits.digit_char(0) if i_str.empty?
+        j = 0
+        f_str = ""
+        while i < l
+          if opt.begin_rep && !opt.begin_rep.empty? && str[i, opt.begin_rep.size] == opt.begin_rep
+            i += opt.begin_rep.size
+            ri = j
+          elsif opt.end_rep && !opt.end_rep.empty? && str[i, opt.end_rep.size] == opt.end_rep
+            i = l
+          elsif opt.auto_rep && !opt.auto_rep.empty? && str[i, opt.auto_rep.size] == opt.auto_rep
+            detect_rep = true
+            i = l
           else
-            f_str << ch
-            j += 1;
+            f_str << str[i]
+            i += 1
+            j += 1
           end
-          i += 1;
         end
       end
-      return [sgn,i_str,f_str,ri,detect_rep]
+      [sgn, i_str, f_str, ri, detect_rep]
     end
-    
-    def getS(nrep=0, opt=DEF_OPT)
+
+    def digit_value_at(i)
+      if i < 0
+        0
+      elsif i < @digits.size
+        @digits[i]
+      elsif @rep_i.nil?
+        0
+      else
+        repeated_length = @digits.size - @rep_i
+        i = (i - @rep_i) % repeated_length
+        @digits[i + @rep_i]
+      end
+    end
+
+    def get_text(nrep=0, opt=DEF_OPT)
       raise RepDecError,"Base mismatch: #{opt.digits.radix} when #{@radix} was expected." if opt.digits_defined? && @radix!=opt.digits.radix
-       
-       if !ip.is_a?(Integer) then
-         str=opt.nan_txt if ip==:indeterminate;
-         str=opt.inf_txt if ip==:posinfinity
-         str='-'+opt.inf_txt if ip==:neginfinity
-         return str;
-       end
-       
-       s = "";
-       s += '-' if @sign<0
-       s += RepDec.group_digits(@ip.to_s(@radix),opt);
-       s += opt.dec_sep if @d.length>0;
-       for i in 0...@d.length
-         break if nrep>0 && @rep_i==i;
-         s += opt.begin_rep if i==@rep_i;
-         s << opt.digits.digit_char(@d[i])
-       end;
-       if nrep>0 then
-         if @rep_i!=nil then
-            nrep += 1;
-            nrep.times do
-              for i in @rep_i...@d.length
-               s << opt.digits.digit_char(@d[i])
-              end
-            end
-            
-            check = RepDec.new;
-            check.setS s+opt.auto_rep, opt;
-            #print " s=",s,"\n"
-            #print " self=",self.to_s,"\n"
-            while check!=self
-              for i in @rep_i...@d.length
-                s << opt.digits.digit_char(@d[i])
-              end
-              check.setS s+opt.auto_rep, opt;
-            end
-            
-            s += opt.auto_rep;
-         end
-       else
-         s += opt.end_rep if @rep_i!=nil;
-       end
-       return s;
-    end
-    
-    def to_s()
-      getS
-    end
-    
-    def normalize!(remove_trailing_zeros=true)
-      if ip.is_a?(Integer)
-        if @rep_i!=nil && @rep_i==@d.length-1 && @d[@rep_i]==(@radix-1) then
-          @d.pop;
-          @rep_i = nil;
-          
-          i = @d.length-1;
-          carry = 1;
-          while carry>0 && i>=0
-            @d[i] += carry;
-            carry = 0;
-            if @d[i]>(@radix) then
-              carry = 1;
-              @d[i]=0;
-              @d.pop if i==@d.length;
-            end
-            i -= 1;
-          end
-          @ip += carry;
-          
+
+      if @special
+        case @special
+        when :indeterminate
+          opt.nan_txt
+        when :posinfinity
+          opt.inf_txt
+        when :neginfinity
+          opt.minus_sign + opt.inf_txt
         end
-        
-        if @rep_i!=nil && @rep_i>=@d.length
+      else
+        numeral = ""
+        numeral << opt.minus_sign if @sign<0
+        n_ip_digits = @pnt_i
+        ip = (0...n_ip_digits).map{|i| opt.digits.digit_char(digit_value_at(i))}.join
+        numeral << RepDec.group_digits(ip, opt)
+        numeral = "0" if numeral.empty?
+
+        fractional_part = ""
+        if @rep_i
+          i_first_fractional_rep = @rep_i
+          repeated_length = @digits.size - @rep_i
+          while i_first_fractional_rep < @pnt_i
+            i_first_fractional_rep += repeated_length
+          end
+          (@pnt_i...i_first_fractional_rep).each do |i|
+            fractional_part << opt.digits.digit_char(digit_value_at(i))
+          end
+          repeated_sequence = @digits[@rep_i..-1].map{|d| opt.digits.digit_char(d)}.join
+          if nrep == 0
+            fractional_part << opt.begin_rep
+            fractional_part << repeated_sequence
+            fractional_part << opt.end_rep
+          else
+            (nrep+1).times do
+              fractional_part << repeated_sequence
+            end
+            fractional_part << opt.auto_rep
+          end
+        else
+          (n_ip_digits...@digits.size).each do |i|
+            fractional_part << opt.digits.digit_char(digit_value_at(i))
+          end
+        end
+
+        unless fractional_part.empty?
+          numeral << opt.dec_sep
+          numeral << fractional_part
+        end
+
+        numeral
+      end
+
+    end
+
+    def to_s()
+      get_text
+    end
+
+    def normalize!(options = {})
+      unless @special
+
+        defaults = { remove_extra_reps: false, remove_trailing_zeros: true }
+        options = defaults.merge(options)
+        remove_trailing_zeros = options[:remove_trailing_zeros]
+        remove_extra_reps = options[:remove_extra_reps]
+
+        # Replace 'nines' repetition 0.999... -> 1
+        if @rep_i && @rep_i==@digits.length-1 && @digits[@rep_i]==(@radix-1)
+          @digits.pop
+          @rep_i = nil
+
+          i = @digits.length-1
+          carry = 1
+          while carry > 0 && i >= 0
+            @digits[i] += carry
+            carry = 0
+            if @digits[i] > @radix
+              carry = 1
+              @digits[i] = 0
+              @digits.pop if i == @digits.size
+            end
+            i -= 1
+          end
+          if carry > 0
+            digits.unshift carry
+          end
+        end
+
+        # Remove zeros repetition
+        if @rep_i && @rep_i >= @digits.length
           @rep_i = nil
         end
-        
-        if @rep_i!=nil && @rep_i>=0
-          unless @d[@rep_i..-1].find {|x| x!=0}
-            @d = @d[0...@rep_i]
+        if @rep_i != nil && @rep_i >= 0
+          unless @digits[@rep_i..-1].any?{|x| x!=0}
+            @digits = @digits[0...@rep_i]
             @rep_i = nil
           end
         end
-        if @rep_i==nil && remove_trailing_zeros
-          while @d[@d.length-1]==0
-            @d.pop
+
+        # Remove unnecessary repetitions # OPTIMIZE: only if @digits_size > 2*rep_length; optionally only if prev_rep would get into ip
+        if @rep_i && remove_extra_reps
+          rep_length = @digits.size - @rep_i
+          while @digits[@rep_i, rep_length] == @digits[@rep_i-rep_length, rep_length]
+            @rep_i -= rep_length
+            @digits = @digits[0...-rep_length]
           end
         end
-        
+
+        # Remove trailing zeros
+        if @rep_i.nil? && remove_trailing_zeros
+          while @digits.last == 0
+            @digits.pop
+          end
+        end
       end
     end
-    
+
     def copy()
       c = clone
-      c.d = d.clone
-      return c;
+      c.digits = digits.clone
+      return c
     end
-    
+
     def ==(c)
-      a = copy;
-      b = c.copy;
+      a = copy
+      b = c.copy
       a.normalize!
       b.normalize!
-      return a.ip==b.ip && a.d==b.d && a.rep_i==b.rep_i
+      return a.sign == b.sign && a.rep_i == b.rep_i && a.digits == b.digits
     end
-    
+
     #def !=(c)
-    #  return !(self==c);
+    #  return !(self==c)
     #end
-    
-    # Change the maximum number of digits that RepDec objects
-    # can handle.
-    def RepDec.maximum_number_of_digits=(n)
-      @max_d = [n,2048].max
-    end
-    # Return the maximum number of digits that RepDec objects
-    # can handle.
-    def RepDec.maximum_number_of_digits
-      @max_d
-    end
-    
-    def setQ(x,y, opt=DEF_OPT)
+
+    def set_quotient(x, y, opt=DEF_OPT)
+      return set_zero opt if x==0 && y!=0
       @radix = opt.digits.radix if opt.digits_defined?
-      xy_sign = x==0 ? 0 : x<0 ? -1 : +1;
-      xy_sign = -xy_sign if y<0;
+      @radix ||= 10
+      xy_sign = x==0 ? 0 : x<0 ? -1 : +1
+      xy_sign = -xy_sign if y<0
       @sign = xy_sign
-      x = x.abs;
-      y = y.abs;
+      x = x.abs
+      y = y.abs
 
-      @d = [];
-      @rep_i = nil;
-      
-      if y==0 then
-        if x==0 then
-          @ip = :indeterminate
+      @digits = []
+      @rep_i = nil
+      @special = nil
+
+      if y==0
+        if x==0
+          @special = :indeterminate
         else
-          @ip = xy_sign==-1 ? :neginfinity : :posinfinity
+          @special = xy_sign==-1 ? :neginfinity : :posinfinity
         end
-        return self
       end
-      
-      k = {};
-      @ip = x.div(y) #x/y;
-      x -= @ip*y;
-      i = 0;
-      ended = false;
 
-      max_d = opt.max_d
-      while x>0 && @rep_i==nil && (max_d<=0 || i<max_d)
-        @rep_i = k[x]
-        if @rep_i.nil? then
-          k[x] = i;
-          x *= @radix
+      unless @special
+        @pnt_i = 1
+        k = {}
+        i = 0
+
+        # alternative: instead of scaling, use div to compute integer part,
+        # normalize! remove_extra_reps: true
+        # loop do
+        #   z = y*@radix
+        #   if x > z
+        #     y = z
+        #     @scale += 1
+        #   else
+        #     break
+        #   end
+        # end
+        while (z = y*@radix) < x
+          y = z
+          @pnt_i += 1
+        end
+
+        max_d = opt.maximum_number_of_digits
+        while x>0 && (max_d<=0 || i<max_d)
+          break if @rep_i = k[x]
+          k[x] = i
           d,x = x.divmod(y)
-          @d.push d
-          i += 1;
+          x *= @radix
+          @digits.push d
+          i += 1
         end
       end
+
+      # TODO: remove leading zeros and adust @rep_i, @pnt_i accordingly
+
       self
     end
-    
-    def getQ(opt=DEF_OPT)
-      raise RepDecError,"Base mismatch: #{opt.digits.radix} when #{@radix} was expected." if opt.digits_defined? && @radix!=opt.digits.radix
-      
-      if !ip.is_a?(Integer) then
-        y = 0;
-        x=0 if ip==:indeterminate;
-        x=1 if ip==:posinfinity
-        x=-1 if ip==:neginfinity
-        return x,y;
-      end if
 
-      
-      n = @d.length
-      a = @ip
+    def get_quotient(opt=DEF_OPT)
+      if opt.digits_defined? && @radix!=opt.digits.radix
+        raise RepDecError,"Base mismatch: #{opt.digits.radix} when #{@radix} was expected."
+      end
+
+      if @special
+        y = 0
+        case @special
+        when :indeterminate
+          x=0
+        when :posinfinity
+          x=1
+        when :neginfinity
+          x=-1
+        end
+        return x,y
+      end
+
+      n = @digits.size
+      a = 0
       b = a
+
       for i in 0...n
-        a*=@radix
-        a+=@d[i];
-        if @rep_i!=nil && i<@rep_i
+        a *= @radix
+        a += @digits[i]
+        if @rep_i != nil && i < @rep_i
           b *= @radix
-          b += @d[i];
+          b += @digits[i]
         end
       end
 
       x = a
-      x -= b if @rep_i!=nil
+      x -= b if @rep_i
 
-      y = @radix**n
-      y -= @radix**@rep_i if @rep_i!=nil
+      y = @radix**(n - @pnt_i)
+      y -= @radix**(@rep_i - @pnt_i) if @rep_i
 
       d = Nio.gcd(x,y)
       x /= d
@@ -466,17 +597,16 @@ module Nio
 
       x = -x if @sign<0
 
-      return x,y;
+      return x,y
     end
-    
+
     #protected
-    
-    attr_reader :d, :ip, :rep_i, :sign;
-    attr_writer :d, :ip, :rep_i, :sign;
-    
+
+    attr_accessor :sign, :digits, :pnt_i, :rep_i, :special
+
   end
-  
-  
+
+
   def RepDec.group_digits(digits, opt)
     if opt.grp_sep!=nil && opt.grp_sep!='' && opt.grp.length>0
       grouped = ''
@@ -494,14 +624,14 @@ module Nio
      digits
     end
   end
-  
+
   module_function
-  
+
   def gcd(a,b)
     while b!=0 do
       a,b = b, a.modulo(b)
     end
-    return a.abs;
+    return a.abs
   end
-  
+
 end

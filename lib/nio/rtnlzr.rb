@@ -76,21 +76,21 @@ class BigDecimal
 end
 
 class Flt::Num
-  
+
   def nio_xr
     to_r
   end
 end
 
 class Integer
-  
+
   def nio_xr
     return Rational(self,1)
   end
 end
 
 class Rational
-  
+
   def nio_xr
     return self
   end
@@ -103,7 +103,7 @@ end
 
 
 class Float
-  
+
   def nio_r(tol = Flt.Tolerance(:big_epsilon))
     case tol
       when Integer
@@ -115,7 +115,7 @@ class Float
 end
 
 class BigDecimal
-  
+
   def nio_r(tol = nil)
     tol ||= Flt.Tolerance([precs[0],Float::DIG].max,:sig_decimals)
     case tol
@@ -128,7 +128,7 @@ class BigDecimal
 end
 
 class Flt::Num
-  
+
   def nio_r(tol = nil)
     tol ||= Flt.Tolerance(Rational(1,2),:ulps)
     case tol
@@ -141,13 +141,13 @@ class Flt::Num
 end
 
 module Nio
-  
-  
+
+
   # This class provides conversion of fractions
   # (as approximate floating point numbers)
   # to rational numbers.
   class Rtnlzr
-    include StateEquivalent
+    include ModalSupport::StateEquivalent
 
     # Create Rationalizator with given tolerance.
     def initialize(tol=Flt.Tolerance(:epsilon))
@@ -166,7 +166,7 @@ module Nio
     # This algorithm is derived from exercise 39 of 4.5.3 in
     # "The Art of Computer Programming", by Donald E. Knuth.
     def rationalize_Knuth(x)
-      
+
 
       num_tol = @tol.kind_of?(Numeric)
       if !num_tol && @tol.zero?(x)
@@ -180,7 +180,7 @@ module Nio
         end
         dx = num_tol ? @tol : @tol.value(x)
 
-        
+
           x = x.nio_xr
           dx = dx.nio_xr
           xp,xq = (x-dx).nio_num_den
@@ -208,17 +208,17 @@ module Nio
             p,q = 1,0
             (1..a.size).each{|i| p,q=q+p*a[-i],p}
             num,den = q,p
-        
+
 
         num = -num if negans
       end
       return num,den
-      
-      
+
+
     end
     # This is algorithm PDQ2 by Joe Horn.
     def rationalize_Horn(x)
-      
+
 
       num_tol = @tol.kind_of?(Numeric)
       if !num_tol && @tol.zero?(x)
@@ -232,7 +232,7 @@ module Nio
         end
         dx = num_tol ? @tol : @tol.value(x)
 
-        
+
         z,t = x,dx # renaming
 
         a,b = t.nio_xr.nio_num_den
@@ -248,7 +248,7 @@ module Nio
           cd = y
           n,d = d,r
         end until b*(n0*y-d0*x).abs <= a*d0*y
-        
+
         if q>1
           hi = q
           begin
@@ -264,19 +264,19 @@ module Nio
           x = cn - pn*lo
           y = cd - pd*lo
         end
-        
+
         num,den = x,y # renaming
-        
+
 
         num = -num if negans
       end
       return num,den
-      
-      
+
+
     end
     # This is from a RPL program by Tony Hutchins (PDR6).
     def rationalize_HornHutchins(x)
-      
+
 
       num_tol = @tol.kind_of?(Numeric)
       if !num_tol && @tol.zero?(x)
@@ -290,7 +290,7 @@ module Nio
         end
         dx = num_tol ? @tol : @tol.value(x)
 
-        
+
         z,t = x,dx # renaming
 
         a,b = t.nio_xr.nio_num_den
@@ -306,7 +306,7 @@ module Nio
           cd = y
           n,d = d,r
         end until b*(n0*y-d0*x).abs <= a*d0*y
-        
+
         if q>1
           hi = q
           begin
@@ -322,18 +322,18 @@ module Nio
           x = cn - pn*lo
           y = cd - pd*lo
         end
-        
+
         num,den = x,y # renaming
-        
+
 
         num = -num if negans
       end
       return num,den
-      
-      
+
+
     end
   end
-  
+
   # Best fraction given maximum denominator
   # Algorithm Copyright (c) 1991 by Joseph K. Horn.
   #
@@ -376,7 +376,7 @@ module Nio
 
     return num,den
   end
-  
+
   class Rtnlzr
     private
     #Auxiliary floating-point functions
@@ -407,7 +407,7 @@ module Nio
     end
     def self.mth; Mth; end
   end
-  
+
   module_function
-  
+
 end

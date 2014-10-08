@@ -12,65 +12,65 @@ class TestRepdec < Test::Unit::TestCase
 
     def test_basic_repdec
       r = RepDec.new
-      assert_equal "2.<3>", r.setQ(7,3).getS(0)
-      assert_equal [7, 3], r.setQ(7,3).getQ
+      assert_equal "2.<3>", r.set_quotient(7,3).get_text(0)
+      assert_equal [7, 3], r.set_quotient(7,3).get_quotient
 
-      assert_equal "1.<3>", r.setS("1.<3>").getS(0)
-      assert_equal [4, 3], r.setS("1.<3>").getQ
+      assert_equal "1.<3>", r.set_text("1.<3>").get_text(0)
+      assert_equal [4, 3], r.set_text("1.<3>").get_quotient
 
-      assert_equal "254.34212<678>", r.setS("254.34212<678>").getS(0)
-      assert_equal [4234796411, 16650000], r.setS("254.34212<678>").getQ
+      assert_equal "254.34212<678>", r.set_text("254.34212<678>").get_text(0)
+      assert_equal [4234796411, 16650000], r.set_text("254.34212<678>").get_quotient
 
-      assert_equal "254.34212<678>", r.setS("254.34212678678...").getS(0)
-      assert_equal [4234796411, 16650000], r.setS("254.34212678678...").getQ
+      assert_equal "254.34212<678>", r.set_text("254.34212678678...").get_text(0)
+      assert_equal [4234796411, 16650000], r.set_text("254.34212678678...").get_quotient
 
-      assert_equal "254.34212<678>", r.setS("254.34212678678678678...").getS(0)
-      assert_equal [4234796411, 16650000], r.setS("254.34212678678678678...").getQ
+      assert_equal "254.34212<678>", r.set_text("254.34212678678678678...").get_text(0)
+      assert_equal [4234796411, 16650000], r.set_text("254.34212678678678678...").get_quotient
 
-      assert_equal "0.<3>", r.setS("0.3333333...").getS(0)
-      assert_equal [1, 3], r.setS("0.3333333...").getQ
+      assert_equal "0.<3>", r.set_text("0.3333333...").get_text(0)
+      assert_equal [1, 3], r.set_text("0.3333333...").get_quotient
 
-      assert_equal "-7.2<14>", r.setS("-7.2141414...").getS(0)
-      assert_equal [-3571, 495], r.setS("-7.2141414...").getQ
+      assert_equal "-7.2<14>", r.set_text("-7.2141414...").get_text(0)
+      assert_equal [-3571, 495], r.set_text("-7.2141414...").get_quotient
 
-      assert_equal "-7.21414...", r.setS("-7.2141414...").getS(1)
-      assert_equal [-3571, 495], r.setS("-7.2141414...").getQ
+      assert_equal "-7.21414...", r.set_text("-7.2141414...").get_text(1)
+      assert_equal [-3571, 495], r.set_text("-7.2141414...").get_quotient
 
-      assert_equal "1.<234545>", r.setS("1.234545234545...").getS(0)
-      assert_equal [1234544, 999999], r.setS("1.234545234545...").getQ
+      assert_equal "1.<234545>", r.set_text("1.234545234545...").get_text(0)
+      assert_equal [1234544, 999999], r.set_text("1.234545234545...").get_quotient
 
-      assert_equal "1.234545234545...", r.setS("1.234545234545...").getS(1)
-      assert_equal [1234544, 999999], r.setS("1.234545234545...").getQ
+      assert_equal "1.234545234545...", r.set_text("1.234545234545...").get_text(1)
+      assert_equal [1234544, 999999], r.set_text("1.234545234545...").get_quotient
 
-      assert_equal "1.23454523<45>", r.setS("1.23454523454545...").getS(0)
-      assert_equal [678999879, 550000000], r.setS("1.23454523454545...").getQ
+      assert_equal "1.23454523<45>", r.set_text("1.23454523454545...").get_text(0)
+      assert_equal [678999879, 550000000], r.set_text("1.23454523454545...").get_quotient
 
-      assert_equal "1.23454523454545...", r.setS("1.23454523454545...").getS(1)
-      assert_equal [678999879, 550000000], r.setS("1.23454523454545...").getQ
+      assert_equal "1.234545234545...", r.set_text("1.23454523454545...").get_text(1)
+      assert_equal [678999879, 550000000], r.set_text("1.23454523454545...").get_quotient
 
-      assert_equal "0.<9>", r.setS(".<9>").getS(0)
-      assert_equal [1, 1], r.setS(".<9>").getQ
+      assert_equal "0.<9>", r.set_text(".<9>").get_text(0)
+      assert_equal [1, 1], r.set_text(".<9>").get_quotient
 
-      assert_equal "0.1<9>", r.setS("0.1999999...",RepDec::DEF_OPT.dup.set_digits(DigitsDef.base(16))).getS(0)
-      assert_equal [1, 10], r.setS("0.1999999...",RepDec::DEF_OPT.dup.set_digits(DigitsDef.base(16))).getQ
+      assert_equal "0.1<9>", r.set_text("0.1999999...",RepDec::DEF_OPT.dup.set_digits(DigitsDef.base(16))).get_text(0)
+      assert_equal [1, 10], r.set_text("0.1999999...",RepDec::DEF_OPT.dup.set_digits(DigitsDef.base(16))).get_quotient
 
-      assert_equal "Infinity", r.setQ(10,0).getS(0)
-      assert_equal [1, 0], r.setQ(10,0).getQ
+      assert_equal "Infinity", r.set_quotient(10,0).get_text(0)
+      assert_equal [1, 0], r.set_quotient(10,0).get_quotient
 
-      assert_equal "-Infinity", r.setQ(-10,0).getS(0)
-      assert_equal [-1, 0], r.setQ(-10,0).getQ
+      assert_equal "-Infinity", r.set_quotient(-10,0).get_text(0)
+      assert_equal [-1, 0], r.set_quotient(-10,0).get_quotient
 
-      assert_equal "NaN", r.setQ(0,0).getS(0)
-      assert_equal [0, 0], r.setQ(0,0).getQ
+      assert_equal "NaN", r.set_quotient(0,0).get_text(0)
+      assert_equal [0, 0], r.set_quotient(0,0).get_quotient
 
-      assert_equal "NaN", r.setS("NaN").getS(0)
-      assert_equal [0, 0], r.setS("NaN").getQ
+      assert_equal "NaN", r.set_text("NaN").get_text(0)
+      assert_equal [0, 0], r.set_text("NaN").get_quotient
 
-      assert_equal "Infinity", r.setS("Infinity").getS(0)
-      assert_equal [1, 0], r.setS("Infinity").getQ
+      assert_equal "Infinity", r.set_text("Infinity").get_text(0)
+      assert_equal [1, 0], r.set_text("Infinity").get_quotient
 
-      assert_equal "-Infinity", r.setS("-Infinity").getS(0)
-      assert_equal [-1, 0], r.setS("-Infinity").getQ
+      assert_equal "-Infinity", r.set_text("-Infinity").get_text(0)
+      assert_equal [-1, 0], r.set_text("-Infinity").get_quotient
     end
 
 end

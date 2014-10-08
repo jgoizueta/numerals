@@ -184,12 +184,17 @@ module Nio
       @sign = +1
       @digits = [0] # digit values # [] ?
       @pnt_i = 1                   # 0 ?
-      @rep_i = nil # 1
+      @rep_i = nil
       self
     end
 
     def scale
       @pnt_i - @digits.size
+    end
+
+    # unlike @rep_i this is nevel nil
+    def repeating_position
+      @rep_i || @digits.size
     end
 
     def scale=(s)
@@ -305,7 +310,6 @@ module Nio
       else
         i_str = ""
         while i < l && str[i, opt.dec_sep.size] != opt.dec_sep
-          # TODO: admit opt.begin_rep / opt.end_rep here
           if opt.auto_rep && opt.auto_rep != ''
             break if str[i, opt.auto_rep.length] == opt.auto_rep
           end
@@ -421,7 +425,7 @@ module Nio
     def normalize!(options = {})
       unless @special
 
-        defaults = { remove_extra_reps: false, remove_trailing_zeros: true }
+        defaults = { remove_extra_reps: true, remove_trailing_zeros: true }
         options = defaults.merge(options)
         remove_trailing_zeros = options[:remove_trailing_zeros]
         remove_extra_reps = options[:remove_extra_reps]
@@ -459,12 +463,13 @@ module Nio
           end
         end
 
-        # Remove unnecessary repetitions # OPTIMIZE: only if @digits_size > 2*rep_length; optionally only if prev_rep would get into ip
         if @rep_i && remove_extra_reps
           rep_length = @digits.size - @rep_i
-          while @digits[@rep_i, rep_length] == @digits[@rep_i-rep_length, rep_length]
-            @rep_i -= rep_length
-            @digits = @digits[0...-rep_length]
+          if rep_length > 0 && rep_length >= 2*rep_length
+            while @rep_i > rep_length && @digits[@rep_i, rep_length] == @digits[@rep_i-rep_length, rep_length]
+              @rep_i -= rep_length
+              @digits = @digits[0...-rep_length]
+            end
           end
         end
 
@@ -522,17 +527,6 @@ module Nio
         k = {}
         i = 0
 
-        # alternative: instead of scaling, use div to compute integer part,
-        # normalize! remove_extra_reps: true
-        # loop do
-        #   z = y*@radix
-        #   if x > z
-        #     y = z
-        #     @scale += 1
-        #   else
-        #     break
-        #   end
-        # end
         while (z = y*@radix) < x
           y = z
           @pnt_i += 1
@@ -547,9 +541,13 @@ module Nio
           @digits.push d
           i += 1
         end
-      end
 
-      # TODO: remove leading zeros and adust @rep_i, @pnt_i accordingly
+        while @digits.size > 1 && @digits.first == 0
+          @digits.shift
+          @rep_i -= 1 if @rep_i
+          @pnt_i -= 1
+        end
+      end
 
       self
     end
@@ -597,7 +595,7 @@ module Nio
 
       x = -x if @sign<0
 
-      return x,y
+      return x.to_i, y.to_i
     end
 
     #protected

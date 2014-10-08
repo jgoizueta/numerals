@@ -54,6 +54,8 @@ class TestRepdec < Test::Unit::TestCase
       assert_equal "0.1<9>", r.set_text("0.1999999...",RepDec::DEF_OPT.dup.set_digits(DigitsDef.base(16))).get_text(0)
       assert_equal [1, 10], r.set_text("0.1999999...",RepDec::DEF_OPT.dup.set_digits(DigitsDef.base(16))).get_quotient
 
+      r = RepDec.new
+
       assert_equal "Infinity", r.set_quotient(10,0).get_text(0)
       assert_equal [1, 0], r.set_quotient(10,0).get_quotient
 
@@ -71,6 +73,16 @@ class TestRepdec < Test::Unit::TestCase
 
       assert_equal "-Infinity", r.set_text("-Infinity").get_text(0)
       assert_equal [-1, 0], r.set_text("-Infinity").get_quotient
+
+      assert_equal [1, 3], r.set_quotient(1, 3).get_quotient
+      assert_equal [10, 3], r.set_quotient(10, 3).get_quotient
+      assert_equal [100, 3], r.set_quotient(100, 3).get_quotient
+      assert_equal [1000000000000, 3], r.set_quotient(1000000000000, 3).get_quotient
+      assert_equal [1, 30], r.set_quotient(1, 30).get_quotient
+      assert_equal [1, 300], r.set_quotient(1, 300).get_quotient
+      assert_equal [1, 30000000000], r.set_quotient(1, 30000000000).get_quotient
+      # TODO: set maximum_digits properly and test:
+      # assert_equal [23, 34324241934923424], r.set_quotient(23, 34324241934923424).get_quotient
     end
 
 end

@@ -51,8 +51,8 @@ class TestNumeral < Test::Unit::TestCase
       assert_equal "0.<9>", r.set_text(".<9>").get_text(0)
       assert_equal [1, 1], r.set_text(".<9>").get_quotient
 
-      assert_equal "0.1<9>", r.set_text("0.1999999...",Numeral::DEF_OPT.dup.set_digits(DigitsDefinition.base(16))).get_text(0)
-      assert_equal [1, 10], r.set_text("0.1999999...",Numeral::DEF_OPT.dup.set_digits(DigitsDefinition.base(16))).get_quotient
+      assert_equal "0.1<9>", r.set_text("0.1999999...",Numeral::DEF_OPT.dup.set_digits(DigitsDefinition[base: 16])).get_text(0)
+      assert_equal [1, 10], r.set_text("0.1999999...",Numeral::DEF_OPT.dup.set_digits(DigitsDefinition[base: 16])).get_quotient
 
       r = Numeral.new
 

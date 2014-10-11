@@ -5,55 +5,75 @@ module Numerals
   class NumeralError <StandardError
   end
 
-  # Digits definition
+  # Digits definition (symbols used as digits)
   class DigitsDefinition
     include ModalSupport::StateEquivalent
+    include ModalSupport::BracketConstructor
 
-    def initialize(ds='0123456789', cs=true)
-      @digits = ds
-      @casesens = cs
-      @dncase = (ds.downcase==ds)
-      @radix = @digits.size
+    DEFAULT_DIGITS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    DEFAULT_BASE   = 10
+
+    def initialize(*args)
+      if String === args.first
+        digits = args.shift
+      end
+      options = args.shift || {}
+      raise NumeralError, "Invalid DigitsDefinitio" unless args.empty? && Hash === options
+      digits ||= options[:digits]
+      base = options[:base]
+      if base
+        if digits
+          raise NumeralError, "Inconsistent DigitsDefinition" unless digits.size == base
+        end
+      elsif digits
+        base = digits.size
+      else
+        base = DEFAULT_BASE
+      end
+      digits ||= DEFAULT_DIGITS[0, base]
+
+      @radix = base
+      @digits = digits
+      @case_sensitive = options[:case_sensitive]
+      @downcase = options[:downcase] || (@digits.downcase == @digits)
+      @digits = @digits.downcase if @downcase
     end
 
-    def is_digit?(ch_code)
-      ch_code = set_case(ch_code) unless @casesens
-      @digits.include?(ch_code)
+    def is_digit?(digit)
+      digit = set_case(digit)
+      @digits.include?(digit)
     end
 
-    def digit_value(ch_code)
-      ch_code = set_case(ch_code) unless @casesens
-      @digits.index(ch_code.chr)
+    def digit_value(digit)
+      digit = set_case(digit)
+      @digits.index(digit)
     end
 
     def digit_char(v)
-      @digits[v]
-    end
-
-    def digit_char_safe(v)
-      v>=0 && v<@radix ? @digits[v] : nil
+      v >= 0 && v < @radix ? @digits[v] : nil
     end
 
     def radix
       @radix
     end
 
-    def DigitsDefinition.base(b,dncase=false,casesens=false)
-      dgs = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"[0,b]
-      dgs.downcase! if dncase
-      DigitsDefinition.new(dgs,casesens)
-    end
-
     private
 
-    def set_case(ch_code)
-      ch_code = ch_code.chr if ch_code.kind_of?(Numeric)
-      @dncase ? ch_code.downcase[0] : ch_code.upcase[0]
+    def set_case(digit_char)
+      if digit_char
+        unless @case_sensitive
+          if @downcase
+            digit_char = digit_char.downcase
+          else
+            digit_char = digit_char.upcase
+          end
+        end
+      end
+      digit_char
     end
-
   end
 
-  # Digit value sequence type, with an Array-compatible interface
+  # Sequence of digit values type, with an Array-compatible interface
   # Having this encapsulated here allow to change the implementation
   # e.g. to an Integer or packed in a String, ...
   class Digits
@@ -175,20 +195,9 @@ module Numerals
         return self
       end
 
-      def set_digits(ds=nil, dncase=false, casesens=false)
-        if ds
-          @digits_defined = true
-          if ds.kind_of?(DigitsDefinition)
-            @digits = ds
-          elsif ds.kind_of?(Numeric)
-            @digits = DigitsDefinition.base(ds, dncase, casesens)
-          else
-            @digits = DigitsDefinition.new(ds,casesens)
-          end
-        else
-          @digits = DigitsDefinition.new
-          @digits_defined = false
-        end
+      def set_digits(*args)
+        @digits_defined = !args.empty?
+        @digits = DigitsDefinition[*args]
         self
       end
 

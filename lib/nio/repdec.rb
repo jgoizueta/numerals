@@ -1,5 +1,7 @@
 require 'nio/tools'
 
+require 'forwardable'
+
 module Nio
 
   class RepDecError <StandardError
@@ -51,6 +53,51 @@ module Nio
       @dncase ? ch_code.downcase[0] : ch_code.upcase[0]
     end
 
+  end
+
+  # Digit value sequence type, with an Array-compatible interface
+  # Having this encapsulated here allow to change the implementation
+  # e.g. to an Integer or packed in a String, ...
+  class Digits
+    def initialize(radix, *digits)
+      @radix
+      @digits_array = digits
+    end
+
+    include ModalSupport::BracketConstructor
+
+    attr_reader :digits_array, :radix
+
+    # delegate :replace, :size, :map, :pop, :push, :shift, :unshift,
+    #          :empty?, :first, :last,
+    #          to: :digits_array
+
+    extend Forwardable
+    def_delegators :@digits_array,
+                   :size, :map, :pop, :push, :shift, :unshift,
+                   :empty?, :first, :last, :any?, :all?, :[]=
+
+    # The [] with a Range argument or two arguments (index, length)
+    # returns a Regular Array.
+    def_delegators :@digits_array, :[], :replace
+    include ModalSupport::StateEquivalent # maybe == with Arrays too?
+
+    # This could be changed to have [] return a Digits object (except when a single index is passed).
+    # In that case we would have to define replace, ==, != to accept either Array or Digits arguments
+    # (and also possibly the constructor)
+
+    # Integral coefficient
+    def value
+      if @radix == 10
+        @digits_array.join.to_i
+      else
+        @digits_array.inject(0){|x,y| x*@radix + y}
+      end
+    end
+
+    def value=(v)
+      replace v.to_s(@radix).each_char.map{|c| c.to_i(@radix)}
+    end
   end
 
   # RepDec handles repeating decimals (repeating numerals actually)
@@ -182,7 +229,7 @@ module Nio
       @radix = b
       @special = nil
       @sign = +1
-      @digits = [0] # digit values # [] ?
+      @digits = Digits[@radix, 0]  # Digits[@radix] ?
       @pnt_i = 1                   # 0 ?
       @rep_i = nil
       self
@@ -227,13 +274,13 @@ module Nio
           digits_str = i_str+(f_str || '')
           @pnt_i = i_str.size
         end
-        @digits = digits_str.chars.map{|digit| opt.digits.digit_value(digit)}
+        @digits.replace digits_str.chars.map{|digit| opt.digits.digit_value(digit)}
       end
       @rep_i = ri + @pnt_i if ri
 
       if detect_rep
-        for l in 1..(@digits.length/2)
-          l = @digits.length/2 + 1 - l
+        for l in 1..(@digits.size/2)
+          l = @digits.size/2 + 1 - l
           if @digits[-l..-1] == @digits[-2*l...-l]
 
             for m in 1..l
@@ -252,13 +299,13 @@ module Nio
               end
             end
 
-            @rep_i = @digits.length - 2*l
+            @rep_i = @digits.size - 2*l
             l.times { @digits.pop }
 
 
-            while @digits.length >= 2*l && @digits[-l..-1] == @digits[-2*l...-l]
+            while @digits.size >= 2*l && @digits[-l..-1] == @digits[-2*l...-l]
 
-              @rep_i = digits.length - 2*l
+              @rep_i = @digits.size - 2*l
               l.times { @digits.pop }
 
             end
@@ -271,12 +318,12 @@ module Nio
 
 
       if @rep_i != nil
-        if @digits.length == @rep_i+1 && @digits[@rep_i]==0
+        if @digits.size == @rep_i+1 && @digits[@rep_i]==0
           @rep_i = nil
           @digits.pop
         end
       end
-      @digits.pop while @digits[@digits.length-1]==0 && !@digits.empty?
+      @digits.pop while @digits[@digits.size-1]==0 && !@digits.empty?
 
       self
     end
@@ -311,7 +358,7 @@ module Nio
         i_str = ""
         while i < l && str[i, opt.dec_sep.size] != opt.dec_sep
           if opt.auto_rep && opt.auto_rep != ''
-            break if str[i, opt.auto_rep.length] == opt.auto_rep
+            break if str[i, opt.auto_rep.size] == opt.auto_rep
           end
           if str[i, opt.grp_sep.size] == opt.grp_sep
             i += opt.grp_sep.size
@@ -431,11 +478,11 @@ module Nio
         remove_extra_reps = options[:remove_extra_reps]
 
         # Replace 'nines' repetition 0.999... -> 1
-        if @rep_i && @rep_i==@digits.length-1 && @digits[@rep_i]==(@radix-1)
+        if @rep_i && @rep_i==@digits.size-1 && @digits[@rep_i]==(@radix-1)
           @digits.pop
           @rep_i = nil
 
-          i = @digits.length-1
+          i = @digits.size-1
           carry = 1
           while carry > 0 && i >= 0
             @digits[i] += carry
@@ -453,12 +500,12 @@ module Nio
         end
 
         # Remove zeros repetition
-        if @rep_i && @rep_i >= @digits.length
+        if @rep_i && @rep_i >= @digits.size
           @rep_i = nil
         end
         if @rep_i != nil && @rep_i >= 0
           unless @digits[@rep_i..-1].any?{|x| x!=0}
-            @digits = @digits[0...@rep_i]
+            @digits.replace @digits[0...@rep_i]
             @rep_i = nil
           end
         end
@@ -468,7 +515,7 @@ module Nio
           if rep_length > 0 && rep_length >= 2*rep_length
             while @rep_i > rep_length && @digits[@rep_i, rep_length] == @digits[@rep_i-rep_length, rep_length]
               @rep_i -= rep_length
-              @digits = @digits[0...-rep_length]
+              @digits.replace @digits[0...-rep_length]
             end
           end
         end
@@ -510,7 +557,7 @@ module Nio
       x = x.abs
       y = y.abs
 
-      @digits = []
+      @digits = Digits[@radix]
       @rep_i = nil
       @special = nil
 
@@ -598,7 +645,23 @@ module Nio
       return x.to_i, y.to_i
     end
 
-    #protected
+    def set_coefficient_scale(coefficient, scale, opt=DEF_OPT)
+      @radix = opt.digits.radix if opt.digits_defined?
+      @radix ||= 10
+      @digits = Digits[@radix]
+      @digits.value = coefficient
+      @pnt_i = scale + @digits.size
+      @rep_i = nil
+      @special = nil
+    end
+
+    def get_coefficient_scale
+      if @special || (@rep_i && @rep_i < @digits.size)
+        raise RepDecError, "RedDec is not exact"
+      end
+      [@digits.value, scale]
+    end
+
 
     attr_accessor :sign, :digits, :pnt_i, :rep_i, :special
 
@@ -606,16 +669,16 @@ module Nio
 
 
   def RepDec.group_digits(digits, opt)
-    if opt.grp_sep!=nil && opt.grp_sep!='' && opt.grp.length>0
+    if opt.grp_sep!=nil && opt.grp_sep!='' && opt.grp.size>0
       grouped = ''
       i = 0
-      while digits.length>0
+      while digits.size>0
         l = opt.grp[i]
-        l = digits.length if l>digits.length
-        grouped = opt.grp_sep + grouped if grouped.length>0
+        l = digits.size if l>digits.size
+        grouped = opt.grp_sep + grouped if grouped.size>0
         grouped = digits[-l,l] + grouped
-        digits = digits[0,digits.length-l]
-        i += 1 if i<opt.grp.length-1
+        digits = digits[0,digits.size-l]
+        i += 1 if i<opt.grp.size-1
       end
       grouped
     else

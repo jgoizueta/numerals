@@ -18,7 +18,7 @@ module Numerals
         digits = args.shift
       end
       options = args.shift || {}
-      raise NumeralError, "Invalid DigitsDefinitio" unless args.empty? && Hash === options
+      raise NumeralError, "Invalid DigitsDefinition" unless args.empty? && Hash === options
       digits ||= options[:digits]
       base = options[:base]
       if base

@@ -1128,7 +1128,7 @@ module Numerals
     end
 
     def get_numeral_opt(base=nil) # :nodoc:
-      rd_opt = Numeral::Opt.new
+      rd_opt = Numeral::Options[]
       rd_opt.begin_rep = @rep_begin
       rd_opt.end_rep = @rep_end
       rd_opt.auto_rep = @rep_auto
@@ -1536,7 +1536,7 @@ class Rational
       if fmt.get_base==10
         rd = Numerals::Numeral[x.numerator, x.denominator]
       else
-        opt = Numerals::Numeral::DEF_OPT.dup.set_digits(fmt.get_base_digits)
+        opt = Numerals::Numeral::DEFAULT_OPTIONS.dup.set_digits(fmt.get_base_digits)
         rd = Numerals::Numeral[x.numerator, x.denominator, opt]
       end
       neutral = rd.to_NeutralNum(fmt.get_base_digits)

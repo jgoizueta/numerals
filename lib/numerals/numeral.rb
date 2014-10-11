@@ -137,7 +137,7 @@ module Numerals
     end
 
     # Repeating decimal configuration options
-    class Opt
+    class Options
       include ModalSupport::StateEquivalent
       include ModalSupport::BracketConstructor
 
@@ -214,7 +214,7 @@ module Numerals
 
     end
 
-    DEF_OPT = Opt[]
+    DEFAULT_OPTIONS = Options[]
 
     def initialize(*args)
       if args.empty?
@@ -225,10 +225,10 @@ module Numerals
       elsif String === args.first
         # text, options
         text = args.shift
-        set_text text, Opt[*args]
+        set_text text, Options[*args]
       else
         x, y, *opt = args
-        set_quotient x, y, Opt[*opt]
+        set_quotient x, y, Options[*opt]
       end
     end
 
@@ -255,7 +255,7 @@ module Numerals
       @pnt_i = s + @digits.size
     end
 
-    def set_text(str, opt=DEF_OPT)
+    def set_text(str, opt=DEFAULT_OPTIONS)
       set_zero(opt.digits_defined? ? opt.digits.radix : @radix)
 
       sgn,i_str,f_str,ri,detect_rep = Numeral.parse(str,opt)
@@ -335,7 +335,7 @@ module Numerals
       self
     end
 
-    def Numeral.parse(str, opt=DEF_OPT)
+    def Numeral.parse(str, opt=DEFAULT_OPTIONS)
       sgn, i_str, f_str, ri, detect_rep = nil,nil,nil,nil,nil
 
       i = 0
@@ -415,7 +415,7 @@ module Numerals
       end
     end
 
-    def get_text(nrep=0, opt=DEF_OPT)
+    def get_text(nrep=0, opt=DEFAULT_OPTIONS)
       raise NumeralError,"Base mismatch: #{opt.digits.radix} when #{@radix} was expected." if opt.digits_defined? && @radix!=opt.digits.radix
 
       if @special
@@ -554,7 +554,7 @@ module Numerals
     #  return !(self==c)
     #end
 
-    def set_quotient(x, y, opt=DEF_OPT)
+    def set_quotient(x, y, opt=DEFAULT_OPTIONS)
       return set_zero opt if x==0 && y!=0
       @radix = opt.digits.radix if opt.digits_defined?
       @radix ||= 10
@@ -606,7 +606,7 @@ module Numerals
       self
     end
 
-    def get_quotient(opt=DEF_OPT)
+    def get_quotient(opt=DEFAULT_OPTIONS)
       if opt.digits_defined? && @radix!=opt.digits.radix
         raise NumeralError,"Base mismatch: #{opt.digits.radix} when #{@radix} was expected."
       end
@@ -652,7 +652,7 @@ module Numerals
       return x.to_i, y.to_i
     end
 
-    def set_coefficient_scale(coefficient, scale, opt=DEF_OPT)
+    def set_coefficient_scale(coefficient, scale, opt=DEFAULT_OPTIONS)
       @radix = opt.digits.radix if opt.digits_defined?
       @radix ||= 10
       @digits = Digits[@radix]

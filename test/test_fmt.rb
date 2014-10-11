@@ -1,7 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'helper.rb'))
 require 'test/unit'
 require 'flt/bigdecimal'
-include Nio
+include Numerals
 require 'yaml'
 
 def neighbours(x)

@@ -1,5 +1,5 @@
 require "numerals/version"
-
-module Numerals
-
-end
+require 'modalsupport'
+require 'numerals/repdec'
+require 'numerals/rtnlzr'
+require 'numerals/fmt'

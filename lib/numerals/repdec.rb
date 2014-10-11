@@ -1,8 +1,6 @@
-require 'nio/tools'
-
 require 'forwardable'
 
-module Nio
+module Numerals
 
   class RepDecError <StandardError
   end
@@ -636,7 +634,7 @@ module Nio
       y = @radix**(n - @pnt_i)
       y -= @radix**(@rep_i - @pnt_i) if @rep_i
 
-      d = Nio.gcd(x,y)
+      d = Numerals.gcd(x,y)
       x /= d
       y /= d
 

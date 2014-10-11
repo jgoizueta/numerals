@@ -1,11 +1,11 @@
-# This file provides some syntactic sugar for the Nio module.
+# This file provides some syntactic sugar for the Numerals module.
 # Some methods here: #to_r(), #to_xr, may collide with methods in other
 # libraries.
 #
-# This non mondule-function is equivalent to +Nio::Fmt.convert+
-#   Nio.convert(x, type, arpx=true)
-# There's also a module-function synonim useful for including the Nio namespace:
-#   Nio.nio_convert(x, type, aprx=true)
+# This non mondule-function is equivalent to +Numerals::Fmt.convert+
+#   Numerals.convert(x, type, arpx=true)
+# There's also a module-function synonim useful for including the Numerals namespace:
+#   Numerals.nio_convert(x, type, aprx=true)
 # (the convert() method seems too likely for name collisions)
 # Some aliases for nio_write and nio_read:
 #   fmt << x      ->  x.nio_write(fmt)
@@ -19,19 +19,19 @@
 # Also methods #to_r and #to_xr are added to Float,BigDecimal, etc. as
 # synonims for #nio_r, #nio_xr
 
-require 'nio/rtnlzr'
-require 'nio/fmt'
+require 'numerals/rtnlzr'
+require 'numerals/fmt'
 
-# This is not a module function: this provides a shorthand access to Nio::Fmt.convert
-def Nio.convert(x, type, mode=:approx)
-  Nio::Fmt.convert x, type, mode
+# This is not a module function: this provides a shorthand access to Numerals::Fmt.convert
+def Numerals.convert(x, type, mode=:approx)
+  Numerals::Fmt.convert x, type, mode
 end
 
-module Nio
+module Numerals
   module_function
-  # This module function can be used after <tt>import Nio</tt>
+  # This module function can be used after <tt>import Numerals</tt>
   def nio_convert(x, type, mode=:approx)
-    Nio::Fmt.convert x, type, mode
+    Numerals::Fmt.convert x, type, mode
   end
   # :stopdoc:
   class Fmt

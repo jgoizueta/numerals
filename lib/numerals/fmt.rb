@@ -7,20 +7,13 @@
 # as published by the Free Software Foundation; either version 2
 # of the License, or (at your option) any later version.
 
-
-require 'nio/tools'
-
-require 'nio/repdec'
-
-require 'nio/rtnlzr'
-
+require 'numerals/repdec'
+require 'numerals/rtnlzr'
 require 'rational'
-
 require 'bigdecimal'
-
 require 'flt'
 
-module Nio
+module Numerals
 
   # positional notation, unformatted numeric literal: used as intermediate form
   class NeutralNum
@@ -374,10 +367,10 @@ module Nio
   # * Fmt.[] / Fmt.[]=
   #
   # The actual formatted reading and writting if performed by
-  # * #nio_write() (Nio::Formattable#nio_write)
-  # * #nio_read() (Nio::Formattable::ClassMethods#nio_read)
+  # * #nio_write() (Numerals::Formattable#nio_write)
+  # * #nio_read() (Numerals::Formattable::ClassMethods#nio_read)
   # Finally numerical objects can be rounded according to a format:
-  # * #nio_round() (Nio::Formattable#nio_round)
+  # * #nio_round() (Numerals::Formattable#nio_round)
   class Fmt
     include ModalSupport::StateEquivalent
 
@@ -1251,7 +1244,7 @@ module Nio
     elsif prec==:exact
       x = Fmt.convert(x,BigDecimal,:exact)
     else
-      x = BigDecimal(x.nio_write(Nio::Fmt.new.prec(prec,:sig)))
+      x = BigDecimal(x.nio_write(Numerals::Fmt.new.prec(prec,:sig)))
     end
     x
   end
@@ -1260,7 +1253,7 @@ module Nio
 end
 
 class Float
-  include Nio::Formattable
+  include Numerals::Formattable
   def self.nio_read_neutral(neutral)
     x = nil
 
@@ -1358,7 +1351,7 @@ class Float
     return x
   end
   def nio_write_neutral(fmt)
-    neutral = Nio::NeutralNum.new
+    neutral = Numerals::NeutralNum.new
     x = self
 
     if x.nan?
@@ -1466,12 +1459,12 @@ class Float
 end
 
 class Integer
-  include Nio::Formattable
+  include Numerals::Formattable
   def self.nio_read_neutral(neutral)
     x = nil
 
     if neutral.special?
-      raise Nio::InvalidFormat,"Invalid integer numeral"
+      raise Numerals::InvalidFormat,"Invalid integer numeral"
     elsif neutral.rep_pos<neutral.digits.length
       return Rational.nio_read_neutral(neutral).to_i
     else
@@ -1497,7 +1490,7 @@ class Integer
     return x
   end
   def nio_write_neutral(fmt)
-    neutral = Nio::NeutralNum.new
+    neutral = Numerals::NeutralNum.new
     x = self
 
     sign = x<0 ? '-' : '+'
@@ -1510,7 +1503,7 @@ class Integer
 end
 
 class Rational
-  include Nio::Formattable
+  include Numerals::Formattable
   def self.nio_read_neutral(neutral)
     x = nil
 
@@ -1528,7 +1521,7 @@ class Rational
     return x
   end
   def nio_write_neutral(fmt)
-    neutral = Nio::NeutralNum.new
+    neutral = Numerals::NeutralNum.new
     x = self
 
     if x.denominator==0
@@ -1541,10 +1534,10 @@ class Rational
       end
     else
       if fmt.get_base==10
-        rd = Nio::RepDec[x.numerator, x.denominator]
+        rd = Numerals::RepDec[x.numerator, x.denominator]
       else
-        opt = Nio::RepDec::DEF_OPT.dup.set_digits(fmt.get_base_digits)
-        rd = Nio::RepDec[x.numerator, x.denominator, opt]
+        opt = Numerals::RepDec::DEF_OPT.dup.set_digits(fmt.get_base_digits)
+        rd = Numerals::RepDec[x.numerator, x.denominator, opt]
       end
       neutral = rd.to_NeutralNum(fmt.get_base_digits)
       neutral.rounding = fmt.get_round
@@ -1556,7 +1549,7 @@ end
 
 if defined? BigDecimal
 class BigDecimal
-  include Nio::Formattable
+  include Numerals::Formattable
   def self.nio_read_neutral(neutral)
     x = nil
 
@@ -1591,7 +1584,7 @@ class BigDecimal
     return x
   end
   def nio_write_neutral(fmt)
-    neutral = Nio::NeutralNum.new
+    neutral = Numerals::NeutralNum.new
     x = self
 
     if x.nan?
@@ -1704,7 +1697,7 @@ end
 end
 
 class Flt::Num
-  include Nio::Formattable
+  include Numerals::Formattable
   def self.nio_read_neutral(neutral)
     x = nil
 
@@ -1751,7 +1744,7 @@ class Flt::Num
     return x
   end
   def nio_write_neutral(fmt)
-    neutral = Nio::NeutralNum.new
+    neutral = Numerals::NeutralNum.new
     x = self
 
     if x.nan?

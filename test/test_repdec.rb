@@ -1,6 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'helper.rb'))
 require 'test/unit'
-include Nio
+include Numerals
 require 'yaml'
 
 class TestRepdec < Test::Unit::TestCase

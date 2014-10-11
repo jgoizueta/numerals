@@ -1,7 +1,7 @@
 require 'test/unit'
 $: << "." unless $:.include?(".") # for Ruby 1.9.2
-require File.expand_path(File.join(File.dirname(__FILE__),'/../lib/nio'))
-require File.expand_path(File.join(File.dirname(__FILE__),'/../lib/nio/sugar'))
+require File.expand_path(File.join(File.dirname(__FILE__),'/../lib/numerals'))
+require File.expand_path(File.join(File.dirname(__FILE__),'/../lib/numerals/sugar'))
 
 require 'yaml'
 

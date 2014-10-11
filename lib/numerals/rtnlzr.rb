@@ -19,17 +19,10 @@
 # * Float#nio_xr
 # * BigDecimal#nio_r
 
-
-require 'nio/tools'
-
 require 'flt/tolerance'
-
 require 'rational'
-
 require 'bigdecimal'
-
 require 'flt'
-
 
 class Float
   # Conversion to Rational preserving the exact value of the number.
@@ -107,9 +100,9 @@ class Float
   def nio_r(tol = Flt.Tolerance(:big_epsilon))
     case tol
       when Integer
-        Rational(*Nio::Rtnlzr.max_denominator(self,tol,Float))
+        Rational(*Numerals::Rtnlzr.max_denominator(self,tol,Float))
       else
-        Rational(*Nio::Rtnlzr.new(tol).rationalize(self))
+        Rational(*Numerals::Rtnlzr.new(tol).rationalize(self))
     end
   end
 end
@@ -120,9 +113,9 @@ class BigDecimal
     tol ||= Flt.Tolerance([precs[0],Float::DIG].max,:sig_decimals)
     case tol
       when Integer
-        Rational(*Nio::Rtnlzr.max_denominator(self,tol,BigDecimal))
+        Rational(*Numerals::Rtnlzr.max_denominator(self,tol,BigDecimal))
       else
-        Rational(*Nio::Rtnlzr.new(tol).rationalize(self))
+        Rational(*Numerals::Rtnlzr.new(tol).rationalize(self))
     end
   end
 end
@@ -133,14 +126,14 @@ class Flt::Num
     tol ||= Flt.Tolerance(Rational(1,2),:ulps)
     case tol
       when Integer
-        Rational(*Nio::Rtnlzr.max_denominator(self,tol,num_class))
+        Rational(*Numerals::Rtnlzr.max_denominator(self,tol,num_class))
       else
-        Rational(*Nio::Rtnlzr.new(tol).rationalize(self))
+        Rational(*Numerals::Rtnlzr.new(tol).rationalize(self))
     end
   end
 end
 
-module Nio
+module Numerals
 
 
   # This class provides conversion of fractions

@@ -18,14 +18,14 @@ module Numerals
   # positional notation, unformatted numeric literal: used as intermediate form
   class NeutralNum
     include ModalSupport::StateEquivalent
-    def initialize(s='',d='',p=nil,r=nil,dgs=DigitsDef.base(10), inexact=false, round=:inf)
+    def initialize(s='',d='',p=nil,r=nil,dgs=DigitsDefinition.base(10), inexact=false, round=:inf)
       set s,d,p,r,dgs,dgs, inexact, round
     end
     attr_reader :sign, :digits, :dec_pos, :rep_pos, :special, :inexact, :rounding
     attr_writer :sign, :digits, :dec_pos, :rep_pos, :special, :inexact, :rounding
 
     # set number
-    def set(s,d,p=nil,r=nil,dgs=DigitsDef.base(10),inexact=false,rounding=:inf,normalize=true)
+    def set(s,d,p=nil,r=nil,dgs=DigitsDefinition.base(10),inexact=false,rounding=:inf,normalize=true)
       @sign = s # sign: '+','-',''
       @digits = d # digits string
       @dec_pos = p==nil ? d.length : p # position of decimal point: 0=before first digit...
@@ -56,7 +56,7 @@ module Numerals
       @base = @dgs.radix
     end
     def base=(b)
-      @dgs = DigitsDef.base(b)
+      @dgs = DigitsDefinition.base(b)
       @base=@dgs.radix
     end
 
@@ -328,7 +328,7 @@ module Numerals
           num = nil
         end
       else
-        base_dgs ||= DigitsDef.base(@radix)
+        base_dgs ||= DigitsDefinition.base(@radix)
         # assert base_dgs.radix == @radix
         signch = sign<0 ? '-' : '+'
         decimals = digits.map{|d| base_dgs.digit_char(d)}.join
@@ -414,7 +414,7 @@ module Numerals
 
       @base_radix = 10
       @base_uppercase = true
-      @base_digits = DigitsDef.base(@base_radix, !@base_uppercase)
+      @base_digits = DigitsDefinition.base(@base_radix, !@base_uppercase)
       @show_base = false
       @base_indicators = { 2=>'b', 8=>'o', 10=>'', 16=>'h', 0=>'r'} # 0: generic (used with radix)
       @base_prefix = false
@@ -755,7 +755,7 @@ module Numerals
     end
     # returns the digit characters used for a base
     def get_base_digits(b=nil) # :nodoc:
-      (b.nil? || b==@base_radix) ? @base_digits : DigitsDef.base(b,!@base_uppercase)
+      (b.nil? || b==@base_radix) ? @base_digits : DigitsDefinition.base(b,!@base_uppercase)
     end
     # returns true if uppercase digits are used
     def get_base_uppercase? # :nodoc:
@@ -1102,7 +1102,7 @@ module Numerals
      if !properties[:base_radix].nil? || !properties[:base_uppercase].nil?
         base = properties[:base_radix] || @base_radix
         uppercase = properties[:base_uppercase] || @base_uppercase
-        properties[:base_digits] = DigitsDef.base(base, !uppercase)
+        properties[:base_digits] = DigitsDefinition.base(base, !uppercase)
      end
 
 

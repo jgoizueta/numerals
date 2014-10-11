@@ -6,7 +6,7 @@ module Numerals
   end
 
   # Digits definition
-  class DigitsDef
+  class DigitsDefinition
     include ModalSupport::StateEquivalent
 
     def initialize(ds='0123456789', cs=true)
@@ -38,10 +38,10 @@ module Numerals
       @radix
     end
 
-    def DigitsDef.base(b,dncase=false,casesens=false)
+    def DigitsDefinition.base(b,dncase=false,casesens=false)
       dgs = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"[0,b]
       dgs.downcase! if dncase
-      DigitsDef.new(dgs,casesens)
+      DigitsDefinition.new(dgs,casesens)
     end
 
     private
@@ -178,15 +178,15 @@ module Numerals
       def set_digits(ds=nil, dncase=false, casesens=false)
         if ds
           @digits_defined = true
-          if ds.kind_of?(DigitsDef)
+          if ds.kind_of?(DigitsDefinition)
             @digits = ds
           elsif ds.kind_of?(Numeric)
-            @digits = DigitsDef.base(ds, dncase, casesens)
+            @digits = DigitsDefinition.base(ds, dncase, casesens)
           else
-            @digits = DigitsDef.new(ds,casesens)
+            @digits = DigitsDefinition.new(ds,casesens)
           end
         else
-          @digits = DigitsDef.new
+          @digits = DigitsDefinition.new
           @digits_defined = false
         end
         self

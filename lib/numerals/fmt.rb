@@ -7,7 +7,7 @@
 # as published by the Free Software Foundation; either version 2
 # of the License, or (at your option) any later version.
 
-require 'numerals/repdec'
+require 'numerals/numeral'
 require 'numerals/rtnlzr'
 require 'rational'
 require 'bigdecimal'
@@ -280,8 +280,8 @@ module Numerals
 
   class NeutralNum
     public
-    def to_RepDec
-      n = RepDec[@base]
+    def to_numeral
+      n = Numeral[@base]
       if special?
 
         case special
@@ -312,7 +312,7 @@ module Numerals
     end
   end
 
-  class RepDec
+  class Numeral
     public
     def to_NeutralNum(base_dgs=nil)
       num = NeutralNum.new
@@ -851,7 +851,7 @@ module Numerals
 
               if @ndig==:exact
                 neutral.sign = '+'
-                str << neutral.to_RepDec.get_text(@rep_n, getRepDecOpt(neutral.base))
+                str << neutral.to_numeral.get_text(@rep_n, get_numeral_opt(neutral.base))
               else
                 #zero = get_base_digits.digit_char(0).chr
                 ns_digits = ''
@@ -899,7 +899,7 @@ module Numerals
               if @ndig==:exact
                 neutral.sign = '+'
                 neutral.dec_pos-=exp
-                str << neutral.to_RepDec.get_text(@rep_n, getRepDecOpt(neutral.base))
+                str << neutral.to_numeral.get_text(@rep_n, get_numeral_opt(neutral.base))
               else
                 ns_digits = ''
 
@@ -996,17 +996,17 @@ module Numerals
       end
 
 
-      opt = getRepDecOpt(base)
+      opt = get_numeral_opt(base)
       if @rep_in
         #raise InvalidFormat,"Invalid numerical base" if base!=10
-        rd = RepDec.new # get_base not necessary: set_text sets it from options
+        rd = Numeral.new # get_base not necessary: set_text sets it from options
         rd.set_text txt, opt
         num = rd.to_NeutralNum(opt.digits)
       else
-        # to do: use RepDec.parse; then build NeutralNum directly
+        # to do: use Numeral.parse; then build NeutralNum directly
         opt.set_delim nil, nil
         opt.set_suffix nil
-        rd = RepDec.new # get_base not necessary: set_text sets it from options
+        rd = Numeral.new # get_base not necessary: set_text sets it from options
         rd.set_text txt, opt
         num = rd.to_NeutralNum(opt.digits)
       end
@@ -1127,8 +1127,8 @@ module Numerals
       end
     end
 
-    def getRepDecOpt(base=nil) # :nodoc:
-      rd_opt = RepDec::Opt.new
+    def get_numeral_opt(base=nil) # :nodoc:
+      rd_opt = Numeral::Opt.new
       rd_opt.begin_rep = @rep_begin
       rd_opt.end_rep = @rep_end
       rd_opt.auto_rep = @rep_auto
@@ -1147,7 +1147,7 @@ module Numerals
     end
 
     def group(digits) # :nodoc:
-      RepDec.group_digits(digits, getRepDecOpt)
+      Numeral.group_digits(digits, get_numeral_opt)
     end
 
   end
@@ -1268,7 +1268,7 @@ class Float
       end
     elsif neutral.rep_pos<neutral.digits.length
 
-      x,y = neutral.to_RepDec.get_quotient
+      x,y = neutral.to_numeral.get_quotient
       x = Float(x)/y
 
     else
@@ -1515,7 +1515,7 @@ class Rational
           x = Rational((neutral.sign=='-' ? -1 : +1),0)
       end
     else
-      x = Rational(*neutral.to_RepDec.get_quotient)
+      x = Rational(*neutral.to_numeral.get_quotient)
     end
 
     return x
@@ -1534,10 +1534,10 @@ class Rational
       end
     else
       if fmt.get_base==10
-        rd = Numerals::RepDec[x.numerator, x.denominator]
+        rd = Numerals::Numeral[x.numerator, x.denominator]
       else
-        opt = Numerals::RepDec::DEF_OPT.dup.set_digits(fmt.get_base_digits)
-        rd = Numerals::RepDec[x.numerator, x.denominator, opt]
+        opt = Numerals::Numeral::DEF_OPT.dup.set_digits(fmt.get_base_digits)
+        rd = Numerals::Numeral[x.numerator, x.denominator, opt]
       end
       neutral = rd.to_NeutralNum(fmt.get_base_digits)
       neutral.rounding = fmt.get_round
@@ -1562,7 +1562,7 @@ class BigDecimal
       end
     elsif neutral.rep_pos<neutral.digits.length
 
-      x,y = neutral.to_RepDec.get_quotient
+      x,y = neutral.to_numeral.get_quotient
       x = BigDecimal(x.to_s)/y
 
     else
@@ -1711,7 +1711,7 @@ class Flt::Num
     elsif neutral.rep_pos<neutral.digits.length
 
       # uses num_clas.context.precision TODO: ?
-      x = num_class.new Rational(*neutral.to_RepDec.get_quotient)
+      x = num_class.new Rational(*neutral.to_numeral.get_quotient)
 
     else
       if neutral.base==num_class.radix
@@ -1735,7 +1735,7 @@ class Flt::Num
         else
 
           # uses num_clas.context.precision TODO: ?
-          x = num_class.new Rational(*neutral.to_RepDec.get_quotient)
+          x = num_class.new Rational(*neutral.to_numeral.get_quotient)
 
         end
       end

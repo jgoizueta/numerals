@@ -2,7 +2,7 @@ require 'forwardable'
 
 module Numerals
 
-  class RepDecError <StandardError
+  class NumeralError <StandardError
   end
 
   # Digits definition
@@ -98,21 +98,21 @@ module Numerals
     end
   end
 
-  # RepDec handles repeating decimals (repeating numerals actually)
-  class RepDec
+  # Numeral handles repeating decimals (repeating numerals actually)
+  class Numeral
     include ModalSupport::StateEquivalent
     include ModalSupport::BracketConstructor
 
     @maximum_number_of_digits = 5000
 
-    # Change the maximum number of digits that RepDec objects
+    # Change the maximum number of digits that Numeral objects
     # can handle.
-    def RepDec.maximum_number_of_digits=(n)
+    def Numeral.maximum_number_of_digits=(n)
       @maximum_number_of_digits = [n,2048].max
     end
-    # Return the maximum number of digits that RepDec objects
+    # Return the maximum number of digits that Numeral objects
     # can handle.
-    def RepDec.maximum_number_of_digits
+    def Numeral.maximum_number_of_digits
       @maximum_number_of_digits
     end
 
@@ -131,7 +131,7 @@ module Numerals
             special:   ['NaN', 'Infinity'],
             digits:    nil,
             signs: ['+', '-'],
-            maximum_number_of_digits: RepDec.maximum_number_of_digits
+            maximum_number_of_digits: Numeral.maximum_number_of_digits
           }.merge(options)
 
         set_delim *Array(options[:delim])
@@ -249,7 +249,7 @@ module Numerals
     def set_text(str, opt=DEF_OPT)
       set_zero(opt.digits_defined? ? opt.digits.radix : @radix)
 
-      sgn,i_str,f_str,ri,detect_rep = RepDec.parse(str,opt)
+      sgn,i_str,f_str,ri,detect_rep = Numeral.parse(str,opt)
       @sign = sgn
 
       if i_str.kind_of?(Symbol)
@@ -326,7 +326,7 @@ module Numerals
       self
     end
 
-    def RepDec.parse(str, opt=DEF_OPT)
+    def Numeral.parse(str, opt=DEF_OPT)
       sgn, i_str, f_str, ri, detect_rep = nil,nil,nil,nil,nil
 
       i = 0
@@ -407,7 +407,7 @@ module Numerals
     end
 
     def get_text(nrep=0, opt=DEF_OPT)
-      raise RepDecError,"Base mismatch: #{opt.digits.radix} when #{@radix} was expected." if opt.digits_defined? && @radix!=opt.digits.radix
+      raise NumeralError,"Base mismatch: #{opt.digits.radix} when #{@radix} was expected." if opt.digits_defined? && @radix!=opt.digits.radix
 
       if @special
         case @special
@@ -423,7 +423,7 @@ module Numerals
         numeral << opt.minus_sign if @sign<0
         n_ip_digits = @pnt_i
         ip = (0...n_ip_digits).map{|i| opt.digits.digit_char(digit_value_at(i))}.join
-        numeral << RepDec.group_digits(ip, opt)
+        numeral << Numeral.group_digits(ip, opt)
         numeral = "0" if numeral.empty?
 
         fractional_part = ""
@@ -599,7 +599,7 @@ module Numerals
 
     def get_quotient(opt=DEF_OPT)
       if opt.digits_defined? && @radix!=opt.digits.radix
-        raise RepDecError,"Base mismatch: #{opt.digits.radix} when #{@radix} was expected."
+        raise NumeralError,"Base mismatch: #{opt.digits.radix} when #{@radix} was expected."
       end
 
       if @special
@@ -655,7 +655,7 @@ module Numerals
 
     def get_coefficient_scale
       if @special || (@rep_i && @rep_i < @digits.size)
-        raise RepDecError, "RedDec is not exact"
+        raise NumeralError, "RedDec is not exact"
       end
       [@digits.value, scale]
     end
@@ -666,7 +666,7 @@ module Numerals
   end
 
 
-  def RepDec.group_digits(digits, opt)
+  def Numeral.group_digits(digits, opt)
     if opt.grp_sep!=nil && opt.grp_sep!='' && opt.grp.size>0
       grouped = ''
       i = 0

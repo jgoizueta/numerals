@@ -3,15 +3,15 @@ require 'test/unit'
 include Numerals
 require 'yaml'
 
-class TestRepdec < Test::Unit::TestCase
+class TestNumeral < Test::Unit::TestCase
 
   def setup
 
   end
 
 
-    def test_basic_repdec
-      r = RepDec.new
+    def test_basic_numeral
+      r = Numeral.new
       assert_equal "2.<3>", r.set_quotient(7,3).get_text(0)
       assert_equal [7, 3], r.set_quotient(7,3).get_quotient
 
@@ -51,10 +51,10 @@ class TestRepdec < Test::Unit::TestCase
       assert_equal "0.<9>", r.set_text(".<9>").get_text(0)
       assert_equal [1, 1], r.set_text(".<9>").get_quotient
 
-      assert_equal "0.1<9>", r.set_text("0.1999999...",RepDec::DEF_OPT.dup.set_digits(DigitsDef.base(16))).get_text(0)
-      assert_equal [1, 10], r.set_text("0.1999999...",RepDec::DEF_OPT.dup.set_digits(DigitsDef.base(16))).get_quotient
+      assert_equal "0.1<9>", r.set_text("0.1999999...",Numeral::DEF_OPT.dup.set_digits(DigitsDef.base(16))).get_text(0)
+      assert_equal [1, 10], r.set_text("0.1999999...",Numeral::DEF_OPT.dup.set_digits(DigitsDef.base(16))).get_quotient
 
-      r = RepDec.new
+      r = Numeral.new
 
       assert_equal "Infinity", r.set_quotient(10,0).get_text(0)
       assert_equal [1, 0], r.set_quotient(10,0).get_quotient

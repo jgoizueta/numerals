@@ -336,7 +336,7 @@ class TestFmt < Test::Unit::TestCase
       assert_equal "64.1",x.nio_write(Fmt.prec(:exact,:gen))
 
       # to do:  exact conversion of Rational(32095022417, 54517) should throw and exception
-      #         (unless RepDec.max_d is greater than 27300 or so)
+      #         (unless Numeral.maximum_number_of_digits is greater than 27300 or so)
 
 
     end

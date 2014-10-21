@@ -251,4 +251,36 @@ class TestNumeral <  Test::Unit::TestCase # < Minitest::Test
     # assert_equal Rational(23, 34324241934923424), Numeral.from_quotient(Rational(23, 34324241934923424)).to_quotient
   end
 
+  def test_expand
+    assert_equal Digits[1,2,3,4,5], Numeral[1,2,3,4,5, point: 1].expand(0).digits
+    assert_equal 1, Numeral[1,2,3,4,5, point: 1].expand(0).point
+    assert_equal Digits[1,2,3,4,5], Numeral[1,2,3,4,5, point: 1].expand(1).digits
+    assert_equal Digits[1,2,3,4,5], Numeral[1,2,3,4,5, point: 1].expand(4).digits
+    assert_equal Digits[1,2,3,4,5], Numeral[1,2,3,4,5, point: 1].expand(5).digits
+    assert_equal Digits[1,2,3,4,5,0], Numeral[1,2,3,4,5, point: 1].expand(6).digits
+    assert_equal Digits[1,2,3,4,5,0,0], Numeral[1,2,3,4,5, point: 1].expand(7).digits
+    assert_equal Digits[1,2,3,4,5,0,0,0], Numeral[1,2,3,4,5, point: 1].expand(8).digits
+    assert_equal Digits[1,2,3,4,5,0,0,0,0], Numeral[1,2,3,4,5, point: 1].expand(9).digits
+    assert_equal Digits[1,2,3,4,5,0,0,0,0,0], Numeral[1,2,3,4,5, point: 1].expand(10).digits
+    assert_equal Digits[1,2,3,4,5,0,0,0,0,0,0], Numeral[1,2,3,4,5, point: 1].expand(11).digits
+    assert_equal Numeral[1,2,3,4,5,0,0,0,0,0,0, point: 1, unnormalized: true], Numeral[1,2,3,4,5, point: 1].expand(11)
+    assert_equal Digits[1,2,3,4,5,0,0,0,0,0,0], Numeral[1,2,3,4,5, point: 0].expand(11).digits
+    assert_equal Digits[1,2,3,4,5,0,0,0,0,0,0], Numeral[1,2,3,4,5, point: 4].expand(11).digits
+    assert_equal Digits[1,2,3,4,5,0,0,0,0,0,0], Numeral[1,2,3,4,5, point: 5].expand(11).digits
+    assert_equal Digits[1,2,3,4,5,0,0,0,0,0,0], Numeral[1,2,3,4,5, point: 20].expand(11).digits
+    assert_equal Digits[], Numeral[0, point: 1].expand(0).digits
+    assert_equal Digits[0], Numeral[0, point: 1].expand(1).digits
+    assert_equal Digits[0,0], Numeral[0, point: 1].expand(2).digits
+    assert_equal Digits[0,0,0], Numeral[0, point: 1].expand(3).digits
+    assert_equal Digits[0,0,0,0], Numeral[0, point: 1].expand(4).digits
+    assert_equal Digits[1,2,3,4,5,0,0,0,0,0,0], Numeral[1,2,3,4,5, point: 1, sign: -1].expand(11).digits
+    assert_equal Digits[7,2,1,4], Numeral[7,2,1,4,1,4, point: 1, repeat: 4].expand(3).digits
+    assert_equal Digits[7,2,1,4], Numeral[7,2,1,4,1,4, point: 1, repeat: 4].expand(4).digits
+    assert_equal Digits[7,2,1,4,1], Numeral[7,2,1,4,1,4, point: 1, repeat: 4].expand(5).digits
+    assert_equal Digits[7,2,1,4,1,4], Numeral[7,2,1,4,1,4, point: 1, repeat: 4].expand(6).digits
+    assert_equal Digits[7,2,1,4,1,4,1], Numeral[7,2,1,4,1,4, point: 1, repeat: 4].expand(7).digits
+    assert_equal Numeral[1,2,3,4,5,0,0,0,0, point: 1, unnormalized: true], Numeral[1,2,3,4,5, point: 1].expand(11)
+    assert_equal Digits[0,1,1,1, point: 1, repeat: 3], Numeral[0,1, point: 0, repeat: 1].expand(4).digits
+  end
+
 end

@@ -42,6 +42,7 @@ module Numerals
       else
         options = {}
       end
+      unnormalized = options.delete(:unnormalized)
       @point  = nil
       @repeat = nil
       @sign   = nil
@@ -89,7 +90,7 @@ module Numerals
         @point   ||= options[:point]  || @digits.size
         @repeat  ||= options[:repeat] || @digits.size
       end
-      normalize!
+      normalize! unless unnormalized
     end
 
     attr_accessor :sign, :digits, :point, :repeat, :special, :radix
@@ -461,6 +462,24 @@ module Numerals
 
     def inspect
       to_s
+    end
+
+    # Make sure the numeral has at least the given number of digits;
+    # This may denormalize the number.
+    def expand!(minimum_number_of_digits)
+      if @repeat
+        while @digits.size < minimum_number_of_digits
+          @digits.push @digits[@repeat] || 0
+          @repeat += 1
+        end
+      else
+        @digits.push 0 while @digits.size < minimum_number_of_digits
+      end
+      self
+    end
+
+    def expand(minimum_number_of_digits)
+      dup.expand! minimum_number_of_digits
     end
 
     private

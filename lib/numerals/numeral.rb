@@ -252,7 +252,7 @@ module Numerals
       Numeral[:inf, sign: -1]
     end
 
-    def self.infinite(sign)
+    def self.infinity(sign)
       Numeral[:inf, sign: sign]
     end
 
@@ -452,7 +452,7 @@ module Numerals
           args << ', '
         end
         params = parameters
-        params.delete :digits_array
+        params.delete :digits
         params.merge! base: @radix
         args << params.to_s.unwrap('{}')
         "Numeral[#{args}]"

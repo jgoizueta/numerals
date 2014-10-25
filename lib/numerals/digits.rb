@@ -85,6 +85,9 @@ module Numerals
       to_s
     end
 
+    def truncate!(n)
+      @digits_array.slice! n..-1
+    end
   end
 
 end

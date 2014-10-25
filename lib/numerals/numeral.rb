@@ -8,17 +8,31 @@ module Numerals
 
   # A Numeral represents a numeric value as a sequence of digits
   # (possibly repeating) in some numeric base.
-  # A numeral can be a special value (:infinite, ...),
+  #
+  # A numeral can have a special value (infinity or not-a-number).
+  #
   # A non-special numeral is defined by:
+  #
   # * radix (the base)
   # * digits (a Digits object)
   # * sign (+1/-1)
   # * point: the position of the fractional point; 0 would place it
   #   before the first digit, 1 before the second, etc.
   # * repeat: the digits starting at this position repeat indefinitely
+  #
   # A Numeral is equivalent to a Rational number; a quotient of integers
   # can be converted to a Numeral in any base and back to a quotient without
   # altering its value (though the fraction might be simplified).
+  #
+  # By default a Numeral represents an exact quantity (rational number).
+  # A numeral can alo represent an approximate value given with a certain
+  # precision, the number of significant digits (numeral.digits.size)
+  # which can include significant trailing zeros. Approximate numerals
+  # are never repeating.
+  #
+  # Exact numerals are always repeating, but when the repeating digits are
+  # just zeros, the repeating? method returns false.
+  #
   class Numeral
     include ModalSupport::StateEquivalent
     include ModalSupport::BracketConstructor
@@ -36,13 +50,43 @@ module Numerals
       @maximum_number_of_digits
     end
 
+    # Special nomerals may be contructed with the symbols :nan, :infinity,
+    # :negative_infinity, :positive_infinity. Or also with :infinity and the
+    # :sign option which should be either +1 or -1:
+    #
+    # Examples:
+    #
+    #   Numeral[:nan]
+    #   Numeral[:infinity, sign: -1]
+    #
+    # For nonspecial numerals, the first argument may be a Digits object or
+    # an Array of digits, and the rest parameters (:base, :sign, :point and
+    # :repeat) are passed as options.
+    #
+    # Examples:
+    #
+    #   Numeral[1,2,3, base: 10, point: 1] # 1.23
+    #   Numeral[1,2,3,4, point: 1, repeat: 2] # 1.234343434...
+    #
+    # The :normalize option can be used to specify the kind of normalization
+    # applied to the numeral:
+    #
+    # * :exact, the default produces a normalized :exact number,
+    #   where no trailing zeros are kept and there are always a repeat point
+    #   (which may just repeat trailing zeros)
+    # * :approximate produces a non-repeating numeral with a fixed number of
+    #   digits (where trailing zeros are significant)
+    # * false or nil will not normalize the result, mantaining the digits
+    #   and repeat values passed.
+    #
     def initialize(*args)
       if Hash === args.last
         options = args.pop
       else
         options = {}
       end
-      unnormalized = options.delete(:unnormalized)
+      options = {normalize: :exact}.merge(options)
+      normalize = options.delete(:normalize)
       @point  = nil
       @repeat = nil
       @sign   = nil
@@ -90,7 +134,12 @@ module Numerals
         @point   ||= options[:point]  || @digits.size
         @repeat  ||= options[:repeat] || @digits.size
       end
-      normalize! unless unnormalized
+      case normalize
+      when :exact
+        normalize! Numeral.exact_normalization
+      when :approximate
+        normalize! Numeral.approximate_normalization
+      end
     end
 
     attr_accessor :sign, :digits, :point, :repeat, :special, :radix
@@ -162,6 +211,14 @@ module Numerals
       end
     end
 
+    def self.approximate_normalization
+      { remove_extra_reps: false, remove_trailing_zeros: false, remove_leading_zeros: true, force_repeat: false }
+    end
+
+    def self.exact_normalization
+      { remove_extra_reps: true, remove_trailing_zeros: true, remove_leading_zeros: true, force_repeat: true }
+    end
+
     def normalize!(options = {})
       if @special
         if @special == :nan
@@ -174,7 +231,10 @@ module Numerals
         options = defaults.merge(options)
         remove_trailing_zeros = options[:remove_trailing_zeros]
         remove_extra_reps = options[:remove_extra_reps]
+        remove_leading_zeros = options[:remove_extra_reps]
+        force_repeat = options[:force_repeat]
 
+        # Remove unneeded repetitions
         if @repeat && remove_extra_reps
           rep_length = @digits.size - @repeat
           if rep_length > 0 && @digits.size >= 2*rep_length
@@ -208,21 +268,39 @@ module Numerals
           end
         end
 
-        # Remove zeros repetition
-        if @repeat && @repeat >= @digits.size
-          @repeat = nil
+        # Remove zeros repetitions
+        if remove_trailing_zeros
+          if @repeat && @repeat >= @digits.size
+            @repeat = @digits.size
+          end
+          if @repeat && @repeat >= 0
+            unless @digits[@repeat..-1].any?{|x| x!=0}
+              @digits.replace @digits[0...@repeat]
+              @repeat = nil
+            end
+          end
         end
-        if @repeat != nil && @repeat >= 0
-          unless @digits[@repeat..-1].any?{|x| x!=0}
-            @digits.replace @digits[0...@repeat]
-            @repeat = nil
+
+        if force_repeat
+          @repeat ||= @digits.size
+        else
+          @repeat = nil if @repeat && @repeat >= @digits.size
+        end
+
+        # Remove leading zeros
+        if remove_leading_zeros
+          while @digits.first == 0
+            @digits.shift
+            @repeat -= 1 if @repeat
+            @point -= 1
           end
         end
 
         # Remove trailing zeros
-        if @repeat.nil? && remove_trailing_zeros
+        if remove_trailing_zeros && !repeating?
           while @digits.last == 0
             @digits.pop
+            @repeat -= 1 if @repeat
           end
         end
       end
@@ -368,20 +446,23 @@ module Numerals
       a = 0
       b = a
 
+      repeat = @repeat
+      repeat = nil if repeat && repeat >= n
+
       for i in 0...n
         a *= @radix
         a += @digits[i]
-        if @repeat != nil && i < @repeat
+        if repeat && i < repeat
           b *= @radix
           b += @digits[i]
         end
       end
 
       x = a
-      x -= b if @repeat
+      x -= b if repeat
 
       y = @radix**(n - @point)
-      y -= @radix**(@repeat - @point) if @repeat
+      y -= @radix**(repeat - @point) if repeat
 
       d = Numerals.gcd(x,y)
       x /= d
@@ -403,7 +484,9 @@ module Numerals
       digits = Digits[radix]
       digits.value = coefficient
       point = scale + digits.size
-      Numeral[digits, base: radix, point: point, sign: sign]
+      normalization = options[:normalize] || :exact
+      normalization = :approximate if options[:approximate]
+      Numeral[digits, base: radix, point: point, sign: sign, normalize: normalization]
     end
 
     def to_coefficient_scale
@@ -418,7 +501,8 @@ module Numerals
       if other_base == @radix
         dup
       else
-        Numeral.from_quotient to_quotient, base: other_base
+        normalization = exact? ? :exact : :approximate
+        Numeral.from_quotient to_quotient, base: other_base, normalize: normalization
       end
     end
 
@@ -432,7 +516,10 @@ module Numerals
           sign:   @sign,
           point:  @point
         }
-        params.merge! repeat: @repeat if repeating?
+        params.merge! repeat: @repeat if @repeat
+        if approximate?
+          params.merge! normalize: :approximate
+        end
       end
       params
     end
@@ -464,6 +551,19 @@ module Numerals
       to_s
     end
 
+    # An exact Numeral represents exactly a rational number.
+    # It always has a repeat position, althugh the repeated digits
+    # may all be zero.
+    def exact?
+      !!@repeat
+    end
+
+    # An approximate Numeral has limited precision (number of significant digits).
+    # In an approximate Numeral, trailing zeros are significant.
+    def approximate?
+      !exact?
+    end
+
     # Make sure the numeral has at least the given number of digits;
     # This may denormalize the number.
     def expand!(minimum_number_of_digits)
@@ -480,6 +580,19 @@ module Numerals
 
     def expand(minimum_number_of_digits)
       dup.expand! minimum_number_of_digits
+    end
+
+    # Expand to the specified number of digits,
+    # then truncate and remove repetitions.
+    def approximate!(number_of_digits)
+      expand! number_of_digits
+      @digits.truncate! number_of_digits
+      @repeat = nil
+      self
+    end
+
+    def approximate(number_of_digits)
+      dup.approximate! number_of_digits
     end
 
     private

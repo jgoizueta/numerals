@@ -595,6 +595,14 @@ module Numerals
       dup.approximate! number_of_digits
     end
 
+    def exact!
+      normalize! Numeral.exact_normalization
+    end
+
+    def exact
+      dup.exact!
+    end
+
     private
 
     def test_equal(other)

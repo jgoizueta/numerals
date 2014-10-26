@@ -298,19 +298,68 @@ class TestNumeral <  Test::Unit::TestCase # < Minitest::Test
     approx = Numeral[1,2,3,4,5,0,0,0, point: 1, normalize: :approximate]
     assert approx.approximate?
     assert_equal Digits[1,2,3,4,5,0,0,0], approx.digits
+    assert_equal 1, approx.point
+    assert_nil approx.repeat
+    refute approx.repeating?
+    exact = approx.exact
+    assert exact.exact?
+    assert_equal Digits[1,2,3,4,5], exact.digits
+    assert_equal 1, exact.point
+    assert_equal exact.digits.size, exact.repeat
+    refute exact.repeating?
+    approx = approx.approximate(approx.digits.size)
+    assert approx.approximate?
+    assert_equal Digits[1,2,3,4,5,0,0,0], approx.digits
+    assert_equal 1, approx.point
+    assert_nil approx.repeat
+    refute approx.repeating?
 
     approx = Numeral[1,2,3,4,5, point: 1].approximate(8)
     assert approx.approximate?
     assert_equal Digits[1,2,3,4,5,0,0,0], approx.digits
+    assert_equal 1, approx.point
+    assert_nil approx.repeat
+    refute approx.repeating?
+    exact = approx.exact
+    assert exact.exact?
+    assert_equal Digits[1,2,3,4,5], exact.digits
+    assert_equal 1, exact.point
+    assert_equal exact.digits.size, exact.repeat
+    refute exact.repeating?
+    approx = approx.approximate(approx.digits.size)
+    assert approx.approximate?
+    assert_equal Digits[1,2,3,4,5,0,0,0], approx.digits
+    assert_equal 1, approx.point
+    assert_nil approx.repeat
 
+    exact = Numeral.from_quotient([1,3])
+    assert exact.exact?
+    assert_equal Digits[3], exact.digits
+    assert_equal 0, exact.point
+    assert_equal 0, exact.repeat
+    assert exact.repeating?
     approx = Numeral.from_quotient([1,3]).approximate(10)
     assert approx.approximate?
     assert_equal Digits[3,3,3,3,3,3,3,3,3,3], approx.digits
+    assert_equal 0, approx.point
+    assert_nil approx.repeat
+    refute approx.repeating?
+    exact = approx.exact
+    assert exact.exact?
+    assert_equal Digits[3,3,3,3,3,3,3,3,3,3], exact.digits
+    assert_equal 0, exact.point
+    assert_equal exact.digits.size, exact.repeat
+    refute exact.repeating?
 
     assert Numeral.from_quotient([1,3]).exact?
     assert Numeral[1,2,3,4,5, point: 1].exact?
     exact =  Numeral[1,2,3,4,5,0,0,0, point: 1]
     refute exact.approximate?
+    assert_equal Digits[1,2,3,4,5], exact.digits
+    assert_equal 1, exact.point
+    assert_equal exact.digits.size, exact.repeat
+    exact = exact.exact
+    assert exact.exact?
     assert_equal Digits[1,2,3,4,5], exact.digits
   end
 

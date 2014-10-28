@@ -202,32 +202,8 @@ class Rounding
         # Assume no leading zeros; otherwise value = value.normalize(remove_trailing_zeros: true)
         value.point
       end
-    # else
-    #  Conversions.order_of_magnitude(value)
-    when Integer
-      if @base == 2 && value.respond_to?(:bit_length)
-        value.bit_length
-      else
-        value.to_s(@base).size
-      end
-    when Flt::Num
-      if value.class.radix == @base
-        value.adjusted_exponent + 1
-      else
-        value.abs.log(@base).floor + 1
-      end
-    when BigDecimal
-      value.exponent
     else
-      if value == 0
-        0
-      else
-        if @base == 10
-          Math.log10(value.abs).floor + 1
-        else
-          (Math.log(value.abs)/Math.log(@base)).floor + 1
-        end
-      end
+      Conversions.order_of_magnitude(value, base: @base)
     end
   end
 

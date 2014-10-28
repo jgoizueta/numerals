@@ -139,6 +139,8 @@ module Numerals
         normalize! Numeral.exact_normalization
       when :approximate
         normalize! Numeral.approximate_normalization
+      when Hash
+        normalize! normalize
       end
     end
 
@@ -178,6 +180,10 @@ module Numerals
 
     def negative_infinite?
       @special == :inf && @sign == -1
+    end
+
+    def zero?
+      !special? && @digits.zero?
     end
 
     # unlike the repeat attribute, this is nevel nil
@@ -289,10 +295,13 @@ module Numerals
 
         # Remove leading zeros
         if remove_leading_zeros
-          while @digits.first == 0
-            @digits.shift
-            @repeat -= 1 if @repeat
-            @point -= 1
+          # if all digits are zero, we consider all to be trailing zeros
+          unless !remove_trailing_zeros && @digits.zero?
+            while @digits.first == 0
+              @digits.shift
+              @repeat -= 1 if @repeat
+              @point -= 1
+            end
           end
         end
 
@@ -606,7 +615,7 @@ module Numerals
     private
 
     def test_equal(other)
-      return false if other.nil?
+      return false if other.nil? || !other.is_a?(Numeral)
       if self.special? || other.special?
         self.special == other.special && self.sign == other.sign
       else

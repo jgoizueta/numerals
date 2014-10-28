@@ -66,6 +66,11 @@ module Numerals
       end
     end
 
+    def zero?
+      # value == 0
+      @digits && @digits.all?{|d| d==0 }
+    end
+
     # Deep copy
     def dup
       Digits[@digits_array.dup, base: @radix]

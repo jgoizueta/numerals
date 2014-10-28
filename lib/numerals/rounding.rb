@@ -199,8 +199,10 @@ class Rounding
       if value.zero?
         ZERO_DIGITS
       else
-        # Assume no leading zeros; otherwise value = value.normalize(remove_trailing_zeros: true)
-        value.point
+        if @base != value.base
+          value = value.to_base(@base)
+        end
+        value.normalized(remove_trailing_zeros: true).point
       end
     else
       Conversions.order_of_magnitude(value, base: @base)

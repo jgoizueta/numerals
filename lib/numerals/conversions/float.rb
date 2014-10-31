@@ -99,7 +99,7 @@ class Numerals::FloatConversion
   def native_float_to_numeral(number, rounding)
     need_to_round = (rounding.mode != @context.rounding)
     n = need_to_round ? Float::DECIMAL_DIG : rounding.precision
-    txt = format("%.*e", n-1, x)
+    txt = format("%.*e", n - 1, number)
     numeral = text_to_numeral(txt, normalize: :approximate) # C-Locale text to numeral...
     numeral = rounding.round(numeral) if need_to_round
     numeral
@@ -122,7 +122,7 @@ class Numerals::FloatConversion
 
     dec_pos, digits = formatter.digits
     rep_pos = formatter.repeat
-    numeral = Numeral[digits, sign: sign, point: dec_pos, rep_pos: formatter.repeat, base: output_base]
+    numeral = Numeral[digits, sign: sign, point: dec_pos, rep_pos: rep_pos, base: output_base]
     if all_digits
       numeral = rounding.round(numeral, formatter.round_up)
     end
@@ -150,9 +150,9 @@ class Numerals::FloatConversion
       k = numeral.scale
       if !@honor_rounding && numeral.digits.size <= representable_digits && k.abs <= representable_digits
         representable_numeral_to_float numeral
-      elsif !@honor_rounding && (k>0 && numeral.point < 2*representable_digits)
+      elsif !@honor_rounding && (k > 0 && numeral.point < 2*representable_digits)
         near_representable_numeral_to_float numeral
-      elsif numeral.base.modulo(@context.radix)==0
+      elsif numeral.base.modulo(@context.radix) == 0
         conmensurable_base_numeral_to_float numeral
       else
         general_numeral_to_float numeral, :fixed
@@ -180,7 +180,7 @@ class Numerals::FloatConversion
   def representable_numeral_to_float(numeral)
     value, scale = numeral.to_value_scale
     x = value.to_f
-    if scale<0
+    if scale < 0
       x /= Float(numeral.base**-scale)
     else
       x *= Float(numeral.base**scale)
@@ -190,9 +190,9 @@ class Numerals::FloatConversion
 
   def near_representable_numeral_to_float(numeral)
     value, scale = numeral.to_value_scale
-    j = scale-numeral.digits.size
+    j = scale - numeral.digits.size
     x = value.to_f * Float(numeral.base**(j))
-    x *= Float(numeral.base**(scale-j))
+    x *= Float(numeral.base**(scale - j))
     x
   end
 

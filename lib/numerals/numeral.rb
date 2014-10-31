@@ -3,7 +3,7 @@ require 'numerals/support'
 
 module Numerals
 
-  class NumeralError <StandardError
+  class NumeralError < StandardError
   end
 
   # A Numeral represents a numeric value as a sequence of digits
@@ -41,12 +41,12 @@ module Numerals
 
     # Change the maximum number of digits that Numeral objects
     # can handle.
-    def Numeral.maximum_number_of_digits=(n)
-      @maximum_number_of_digits = [n,2048].max
+    def self.maximum_number_of_digits=(n)
+      @maximum_number_of_digits = [n, 2048].max
     end
     # Return the maximum number of digits that Numeral objects
     # can handle.
-    def Numeral.maximum_number_of_digits
+    def self.maximum_number_of_digits
       @maximum_number_of_digits
     end
 
@@ -85,7 +85,7 @@ module Numerals
       else
         options = {}
       end
-      options = {normalize: :exact}.merge(options)
+      options = { normalize: :exact }.merge(options)
       normalize = options.delete(:normalize)
       @point  = nil
       @repeat = nil
@@ -109,7 +109,7 @@ module Numerals
       elsif args.size == 1 && Array === args.first
         @digits = Digits[args.first, base: @radix]
       else
-        if args.any?{|v| Symbol === v}
+        if args.any? { |v| Symbol === v }
           @digits = Digits[base: @radix]
           args.each do |v|
             case v
@@ -252,11 +252,11 @@ module Numerals
         end
 
         # Replace 'nines' repetition 0.999... -> 1
-        if @repeat && @repeat==@digits.size-1 && @digits[@repeat]==(@radix-1)
+        if @repeat && @repeat == @digits.size-1 && @digits[@repeat] == (@radix-1)
           @digits.pop
           @repeat = nil
 
-          i = @digits.size-1
+          i = @digits.size - 1
           carry = 1
           while carry > 0 && i >= 0
             @digits[i] += carry
@@ -280,7 +280,7 @@ module Numerals
             @repeat = @digits.size
           end
           if @repeat && @repeat >= 0
-            unless @digits[@repeat..-1].any?{|x| x!=0}
+            unless @digits[@repeat..-1].any? { |x| x != 0 }
               @digits.replace @digits[0...@repeat]
               @repeat = nil
             end
@@ -386,12 +386,12 @@ module Numerals
       else
         x, y = r
       end
-      return integer(x, options) if (x == 0 && y !=0) || y == 1
+      return integer(x, options) if (x == 0 && y != 0) || y == 1
 
       radix = options[:base] || options[:radix] || 10
 
-      xy_sign = x==0 ? 0 : x<0 ? -1 : +1
-      xy_sign = -xy_sign if y<0
+      xy_sign = x == 0 ? 0 : x < 0 ? -1 : +1
+      xy_sign = -xy_sign if y < 0
       x = x.abs
       y = y.abs
 
@@ -399,8 +399,8 @@ module Numerals
       repeat = nil
       special = nil
 
-      if y==0
-        if x==0
+      if y == 0
+        if x == 0
           special = :nan
         else
           special = :inf
@@ -418,10 +418,10 @@ module Numerals
         point += 1
       end
 
-      while x>0 && (max_d<=0 || i<max_d)
+      while x > 0 && (max_d <= 0 || i < max_d)
         break if repeat = k[x]
         k[x] = i
-        d,x = x.divmod(y)
+        d, x = x.divmod(y)
         x *= radix
         digits.push d
         i += 1
@@ -473,11 +473,11 @@ module Numerals
       y = @radix**(n - @point)
       y -= @radix**(repeat - @point) if repeat
 
-      d = Numerals.gcd(x,y)
+      d = Numerals.gcd(x, y)
       x /= d
       y /= d
 
-      x = -x if @sign<0
+      x = -x if @sign < 0
 
       [x.to_i, y.to_i]
     end

@@ -498,9 +498,16 @@ module Numerals
       Numeral[digits, base: radix, point: point, sign: sign, normalize: normalization]
     end
 
-    def to_coefficient_scale
+    def split
       if @special || (@repeat && @repeat < @digits.size)
-        raise NumeralError, "RedDec is not exact"
+        raise NumeralError, "Numeral cannot be represented as sign, coefficient, scale"
+      end
+      [@sign, @digits.value, scale]
+    end
+
+    def to_value_scale
+      if @special || (@repeat && @repeat < @digits.size)
+        raise NumeralError, "Numeral cannot be represented as value, scale"
       end
       [@digits.value*@sign, scale]
     end

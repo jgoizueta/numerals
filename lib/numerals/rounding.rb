@@ -43,6 +43,8 @@ class Rounding
     end
   end
 
+  attr_reader :mode, :base
+
   include ModalSupport::BracketConstructor
   include ModalSupport::StateEquivalent
 

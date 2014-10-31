@@ -9,5 +9,4 @@ require 'numerals/conversions/rational'
 require 'numerals/conversions/bigdecimal'
 require 'numerals/conversions/flt'
 
-require 'numerals/rtnlzr'
 require 'numerals/fmt'

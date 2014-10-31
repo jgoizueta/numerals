@@ -340,7 +340,7 @@ module Numerals
       Numeral[:inf, sign: -1]
     end
 
-    def self.infinity(sign)
+    def self.infinity(sign=+1)
       Numeral[:inf, sign: sign]
     end
 

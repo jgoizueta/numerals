@@ -1,6 +1,12 @@
 require 'numerals/conversions'
+require 'singleton'
 
 class Numerals::IntegerConversion
+
+  include Singleton
+
+  class InvalidConversion < RuntimeError
+  end
 
   def order_of_magnitude(value, options={})
     base = options[:base] || 10
@@ -11,20 +17,23 @@ class Numerals::IntegerConversion
     end
   end
 
-  def number_to_numeral(number, options={})
-    mode = options[:mode] || :fixed
-    base = options[:base] || 10
-    rounding = options[:rounding] || Rounding[:exact]
-
+  def number_to_numeral(number, mode, rounding)
+    # Rational.numerals_conversion Rational(number), mode, rounding
+    numeral = Numeral.from_quotient(number, 1)
+    numeral = rounding.round(numeral) unless rounding.exact?
+    numeral
   end
 
-  def numeral_to_number(numeral, options={})
-    mode = options[:mode] || :fixed
-
+  def numeral_to_number(numeral, mode)
+    rational = Rational.numerals_conversion.numeral_to_number numeral, mode
+    if rational.denominator != 1
+      raise InvalidConversion, "Invalid numeral to rational conversion"
+    end
+    rational.numerator
   end
 
 end
 
 def Integer.numerals_conversion
-  Numerals::IntegerConversion.new
+  Numerals::IntegerConversion.instance
 end

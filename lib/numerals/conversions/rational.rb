@@ -1,6 +1,9 @@
 require 'numerals/conversions'
+require 'singleton'
 
 class Numerals::RationalConversion
+
+  include Singleton
 
   def order_of_magnitude(value, options={})
     base = options[:base] || 10
@@ -11,20 +14,19 @@ class Numerals::RationalConversion
     end
   end
 
-  def number_to_numeral(number, options={})
-    mode = options[:mode] || :fixed
-    base = options[:base] || 10
-    rounding = options[:rounding] || Rounding[:exact]
-
+  def number_to_numeral(number, mode, rounding)
+    q = [number.numerator, number.denominator]
+    numeral = Numeral.from_quotient(q)
+    numeral = rounding.round(numeral) unless rounding.exact?
+    numeral
   end
 
-  def numeral_to_number(numeral, options={})
-    mode = options[:mode] || :fixed
-
+  def numeral_to_number(numeral, mode)
+    Rational(*numeral.to_quotient)
   end
 
 end
 
 def Rational.numerals_conversion
-  Numerals::RationalConversion.new
+  Numerals::RationalConversion.instance
 end

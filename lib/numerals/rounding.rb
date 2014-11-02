@@ -18,7 +18,7 @@ class Rounding
   #
   def initialize(*args)
     if Hash === args.last
-      options = args.pop
+      options = args.pop.dup
     else
       options = {}
     end
@@ -31,8 +31,6 @@ class Rounding
         raise "Invalid Rounding definition"
       end
     end
-    @mode = :half_even
-    @base = 10
     assign! options
   end
 
@@ -46,16 +44,21 @@ class Rounding
   end
 
   def assign!(options)
-    @mode = options[:mode] || @mode
+    @mode      = options[:mode]      || @mode
+    @precision = options[:precision] || @precision
+    @places    = options[:places]    || @places
+    @base      = options[:base]      || @base
+
+    if @precision == 0 || @precision.nil?
+      @precision = 0
+      @mode = :exact
+    else
+      @mode ||= :half_even
+    end
     if @mode == :exact
       @precision = @places = 0
     end
-    @precision = options[:precision] || @precision
-    @places = options[:places] || @places
-    @base = options[:base] || @base
-    if @precision == 0
-      @mode = :exact
-    end
+    @base ||= 10
     self
   end
 

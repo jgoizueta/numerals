@@ -31,22 +31,33 @@ class Rounding
         raise "Invalid Rounding definition"
       end
     end
-    @mode = options[:mode] || :half_even
-    if @mode == :exact
-      @precision = @places = 0
-    end
-    @precision = options[:precision]
-    @places = options[:places]
-    @base = options[:base] || 10
-    if @precision == 0
-      @mode = :exact
-    end
+    @mode = :half_even
+    @base = 10
+    assign! options
   end
 
   attr_reader :mode, :base
 
   include ModalSupport::BracketConstructor
   include ModalSupport::StateEquivalent
+
+  def [](options={})
+    assign! options
+  end
+
+  def assign!(options)
+    @mode = options[:mode] || @mode
+    if @mode == :exact
+      @precision = @places = 0
+    end
+    @precision = options[:precision] || @precision
+    @places = options[:places] || @places
+    @base = options[:base] || @base
+    if @precision == 0
+      @mode = :exact
+    end
+    self
+  end
 
   def parameters
     if exact?

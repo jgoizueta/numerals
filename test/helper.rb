@@ -1,7 +1,8 @@
 require 'test/unit'
+# require 'minitest/spec'
+# require 'minitest/unit'
 $: << "." unless $:.include?(".") # for Ruby 1.9.2
 require File.expand_path(File.join(File.dirname(__FILE__),'/../lib/numerals'))
-require File.expand_path(File.join(File.dirname(__FILE__),'/../lib/numerals/sugar'))
 
 require 'yaml'
 

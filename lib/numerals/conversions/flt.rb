@@ -80,7 +80,7 @@ class Numerals::FltConversion
   end
 
   def general_num_to_numeral(x, rounding, all_digits)
-    sign, coefficient, exponent = x.split
+    sign, coefficient, exponent = x.split # @context.split(x)
     precision = x.number_of_digits
     output_base = rounding.base
 

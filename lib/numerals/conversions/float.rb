@@ -106,8 +106,8 @@ class Numerals::FloatConversion
   end
 
   def general_float_to_numeral(x, rounding, all_digits)
-    sign, coefficient, exponent = x.split
-    precision = x.number_of_digits
+    sign, coefficient, exponent = @context.split(x)
+    precision = @context.precision
     output_base = rounding.base
 
     # here rounding_mode should be not the output rounding mode, but the rounding mode used for input

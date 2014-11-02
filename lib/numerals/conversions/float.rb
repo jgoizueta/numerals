@@ -197,7 +197,7 @@ class Numerals::FloatConversion
   end
 
   def conmensurable_base_numeral_to_float(numeral)
-    general_numeral_to_float numeral, :float
+    general_numeral_to_float numeral, :fixed
   end
 
   def general_numeral_to_float(numeral, mode)

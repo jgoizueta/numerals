@@ -116,6 +116,7 @@ class Numerals::FltConversion
     # consider:
     # return exact_numeral_to_num(numeral) if numeral.exact?
     if numeral.base == @context.radix
+      numeral = numeral.approximate(@context.precision) unless @context.exact?
       same_base_numeral_to_num numeral
     else
       general_numeral_to_num numeral, :fixed
@@ -133,11 +134,6 @@ class Numerals::FltConversion
 
   def free_numeral_to_num(numeral)
     general_numeral_to_num numeral, :free
-  end
-
-  def same_base_numeral_to_numt(numeral)
-    sign, coefficient, scale = numeral.split
-    @context.Num(sign, coefficient, scale)
   end
 
   def general_numeral_to_num(numeral, mode)

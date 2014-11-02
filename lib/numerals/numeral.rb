@@ -324,6 +324,19 @@ module Numerals
       duped
     end
 
+    def negate!
+      @sign = -@sign
+      self
+    end
+
+    def negated
+      dup.negate!
+    end
+
+    def -@
+      negated
+    end
+
     def normalized(options={})
       dup.normalize! options
     end

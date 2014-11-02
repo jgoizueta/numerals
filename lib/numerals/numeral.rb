@@ -208,7 +208,7 @@ module Numerals
         0
       elsif i < @digits.size
         @digits[i]
-      elsif @repeat.nil?
+      elsif @repeat.nil? || @repeat >= @digits.size
         0
       else
         repeated_length = @digits.size - @repeat

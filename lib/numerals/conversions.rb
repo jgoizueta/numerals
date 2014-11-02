@@ -40,6 +40,22 @@ module Numerals::Conversions
       self[number.class].number_to_numeral(number, mode, rounding)
     end
 
+    # conversion mode:
+    # * :fixed interprets the input as an exact quantity and represents it
+    #   with the destitation type/context precision.
+    # * :free interprets the input as an approximate quantity with given
+    #   precision (trailing zeros being considered); the destination
+    #   type precision is ignored when possible and generates number with
+    #   equivalent (no less) to that of the input. The destination rounding
+    #   mode is not used to round the number but taken into consideration
+    #   so that if the result is converted back with that rounding mode
+    #   to the input precision and base, the same input is obtained.
+    #   It is meaningless for destination types with fixed precision
+    #   (e.g. Float).
+    # TODO: either add :short mode or some other way to trigger that option;
+    # In the :short case, which is a variant of :free, the output doesn't have
+    # precision equivalent to the input, but just the least possible
+    # precision value that can produce back the input as described above.
     def numeral_to_number(numeral, type, *args)
       mode = extract_mode_from_args!(args) || :fixed
       self[type].numeral_to_number(numeral, mode, *args)

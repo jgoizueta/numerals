@@ -49,14 +49,15 @@ class Rounding
     @places    = options[:places]    || @places
     @base      = options[:base]      || @base
 
-    if @precision == 0 || @precision.nil?
+    if (@precision == 0 || @precision.nil?) && @places.nil?
       @precision = 0
       @mode = :exact
     else
       @mode ||= :half_even
     end
     if @mode == :exact
-      @precision = @places = 0
+      @precision = 0
+      @places    = nil
     end
     @base ||= 10
     self

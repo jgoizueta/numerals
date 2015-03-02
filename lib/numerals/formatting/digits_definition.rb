@@ -1,6 +1,6 @@
 module Numerals
 
-  # Digits definition (symbols used as digits)
+  # Digits definition holds the symbols used as digits.
   class DigitsDefinition
     include ModalSupport::StateEquivalent
     include ModalSupport::BracketConstructor

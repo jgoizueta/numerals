@@ -2,8 +2,8 @@ require 'forwardable'
 
 module Numerals
 
-  # Sequence of digit values type, with an Array-compatible interface
-  # Having this encapsulated here allow to change the implementation
+  # Sequence of digit values, with an Array-compatible interface.
+  # Having this encapsulated here allows changing the implementation
   # e.g. to an Integer or packed in a String, ...
   class Digits
     def initialize(*args)
@@ -32,7 +32,7 @@ module Numerals
                    :size, :map, :pop, :push, :shift, :unshift,
                    :empty?, :first, :last, :any?, :all?, :[]=
 
-    # The [] with a Range argument or two arguments (index, length)
+    # The [] operator with a Range argument or two arguments (index, length)
     # returns a Regular Array.
     def_delegators :@digits_array, :[], :replace
     include ModalSupport::StateEquivalent # maybe == with Arrays too?
@@ -96,4 +96,3 @@ module Numerals
   end
 
 end
-

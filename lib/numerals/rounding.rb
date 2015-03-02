@@ -2,19 +2,19 @@
 class Rounding
 
   # Rounding is defined by the rounding mode and the precision,
-  # and is used to stablish the desired accuracy of a Numeral result.
+  # and is used to establish the desired accuracy of a Numeral result.
   #
   # The rounding mode may be any of the valid Flt rounding modes
   # (:half_even, :half_down, :half_up, :floor, :ceiling, :down, :up or :up05)
   # or :exact for no rounding at all (to represent the situation where
-  # we want to get an exact numeral result.
+  # we want to get an exact numeral result).
   #
   # The precision may be defined either as a relative :precision value
-  # (number of significant digits of the result numeral) or as an :absolute
-  # :places that indicate the number of digits to the right of the fractional
+  # (number of significant digits of the result numeral) or as an absolute
+  # :places value that indicate the number of digits to the right of the fractional
   # point. Negative values of :places will round to digits in integral positions.
   #
-  # The base of the numerals to be rounded must also be defined (10 by default)
+  # The base of the numerals to be rounded can also be defined (is 10 by default)
   #
   def initialize(*args)
     if Hash === args.last
@@ -144,7 +144,7 @@ class Rounding
   # Truncate a numeral and return also a round_up value with information about
   # the digits beyond the truncation point that can be used to round the truncated
   # numeral. If the numeral has already been truncated, the round_up result of
-  # that truncation should be passed as the second argument.
+  # that prior truncation should be passed as the second argument.
   def truncate(numeral, round_up=nil)
     check_base numeral
     if exact?

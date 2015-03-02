@@ -22,15 +22,15 @@ module Numerals
   #
   # A Numeral is equivalent to a Rational number; a quotient of integers
   # can be converted to a Numeral in any base and back to a quotient without
-  # altering its value (though the fraction might be simplified).
+  # altering its value (although the fraction might be simplified).
   #
   # By default a Numeral represents an exact quantity (rational number).
-  # A numeral can alo represent an approximate value given with a certain
-  # precision, the number of significant digits (numeral.digits.size)
+  # A numeral can also represent an approximate value with a specific
+  # precision: the number of significant digits (numeral.digits.size),
   # which can include significant trailing zeros. Approximate numerals
   # are never repeating.
   #
-  # Exact numerals are always repeating, but when the repeating digits are
+  # Exact numerals are always repeating, but, when the repeating digits are
   # just zeros, the repeating? method returns false.
   #
   class Numeral
@@ -44,24 +44,25 @@ module Numerals
     def self.maximum_number_of_digits=(n)
       @maximum_number_of_digits = [n, 2048].max
     end
+
     # Return the maximum number of digits that Numeral objects
     # can handle.
     def self.maximum_number_of_digits
       @maximum_number_of_digits
     end
 
-    # Special nomerals may be contructed with the symbols :nan, :infinity,
-    # :negative_infinity, :positive_infinity. Or also with :infinity and the
-    # :sign option which should be either +1 or -1:
+    # Special numerals may be constructed with the symbols :nan, :infinity,
+    # :negative_infinity, :positive_infinity (or with :infinity and the
+    # :sign option which should be either +1 or -1)
     #
     # Examples:
     #
     #   Numeral[:nan]
     #   Numeral[:infinity, sign: -1]
     #
-    # For nonspecial numerals, the first argument may be a Digits object or
-    # an Array of digits, and the rest parameters (:base, :sign, :point and
-    # :repeat) are passed as options.
+    # For non-special numerals, the first argument may be a Digits object or
+    # an Array of digits, and the remaining parameters (:base, :sign, :point
+    # and :repeat) are passed as options.
     #
     # Examples:
     #
@@ -69,10 +70,10 @@ module Numerals
     #   Numeral[1,2,3,4, point: 1, repeat: 2] # 1.234343434...
     #
     # The :normalize option can be used to specify the kind of normalization
-    # applied to the numeral:
+    # to be applied to the numeral:
     #
-    # * :exact, the default produces a normalized :exact number,
-    #   where no trailing zeros are kept and there are always a repeat point
+    # * :exact, the default, produces a normalized :exact number
+    #   where no trailing zeros are kept and there is always a repeat point
     #   (which may just repeat trailing zeros)
     # * :approximate produces a non-repeating numeral with a fixed number of
     #   digits (where trailing zeros are significant)
@@ -383,9 +384,10 @@ module Numerals
       Numeral[digits, sign: sign]
     end
 
-    # Create a Numeral from a quotient (Rational number)
-    # The quotient can be passed as an Array, so that fractions with a zero denominator
-    # can be handled (represented indefinite or infinite numbers).
+    # Create a Numeral from a quotient (Rational number).
+    # The quotient can be passed as an Array [numerator, denomnator];
+    # to allow fractions with a zero denominator
+    # (representing indefinite or infinite numbers).
     def self.from_quotient(*args)
       r = args.shift
       if Integer === args.first
@@ -451,7 +453,7 @@ module Numerals
 
     # Return a quotient (Rational) that represents the exact value of the numeral.
     # The quotient is returned as an Array, so that fractions with a zero denominator
-    # can be handled (represented indefinite or infinite numbers).
+    # can be handled (representing indefinite or infinite numbers).
     def to_quotient
       if @special
         y = 0
@@ -581,7 +583,7 @@ module Numerals
     end
 
     # An exact Numeral represents exactly a rational number.
-    # It always has a repeat position, althugh the repeated digits
+    # It always has a repeat position, although the repeated digits
     # may all be zero.
     def exact?
       !!@repeat

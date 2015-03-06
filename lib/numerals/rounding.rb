@@ -6,8 +6,16 @@ class Rounding
   #
   # The rounding mode may be any of the valid Flt rounding modes
   # (:half_even, :half_down, :half_up, :floor, :ceiling, :down, :up or :up05)
-  # or :exact for no rounding at all (to represent the situation where
-  # we want to get an exact numeral result).
+  # or one of these special values:
+  # * :exact for no rounding at all (to represent the situation where
+  #   we want to get an exact numeral result).
+  # * :simplify, which is a variant of :exact where no rounding occurs, but
+  #   we want to represent the result as simply (with as few digits) as
+  #   possible (mantaining its value within the original precision).
+  # * :preserve, which is another variant of :exact which tries tro preserve
+  #   the original precision (i.e. information given by trailing zeros)
+  # :preserve and :simplify are meaningful when applied to approximate
+  # numerals, which have some specific precision.
   #
   # The precision may be defined either as a relative :precision value
   # (number of significant digits of the result numeral) or as an absolute
@@ -65,7 +73,7 @@ class Rounding
 
   def parameters
     if exact?
-      { mode: :exact }
+      { mode: @mode }
     elsif relative?
       { mode: @mode, precision: @precision }
     elsif absolute?
@@ -75,7 +83,7 @@ class Rounding
 
   def to_s
     if exact?
-      "Rounding[:exact]"
+      "Rounding[#{@mode.inspect}]"
     elsif relative?
       "Rounding[#{@mode.inspect}, precision: #{@precision}]"
     elsif absolute?
@@ -88,7 +96,7 @@ class Rounding
   end
 
   def exact?
-    @mode == :exact
+    [:exact, :simplify, :preserve].include?(@mode)
   end
 
   def absolute?
@@ -97,6 +105,14 @@ class Rounding
 
   def relative?
     !exact? && !absolute?
+  end
+
+  def simplifying?
+    @mode == :simplify
+  end
+
+  def preserving?
+    @mode == :preserve
   end
 
   # Number of significant digits for a given numerical/numeral value

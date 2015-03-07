@@ -42,6 +42,57 @@ class Numerals::BigDecimalConversion
     end
   end
 
+  def write(number, exact_input, output_rounding)
+    output_base = output_rounding.base
+    input_base = @context.radix
+
+    if @context.special?(number)
+      special_num_to_numeral number
+    elsif exact_input
+      if output_base == input_base
+        # akin to number.format(base: output_base, simplified: true)
+        if true
+          # ALT.1 just like approximate :simplify
+          general_num_to_numeral number, output_rounding, false
+        else
+          # ALT.2 just like different bases
+          exact_num_to_numeral number, output_rounding
+        end
+      else
+        # akin to number.format(base: output_base, exact: true)
+        exact_num_to_numeral number, output_rounding
+      end
+    else
+      if output_base == input_base && output_rounding.preserving?
+        # akin to number.format(base: output_base)
+        Numeral.from_coefficient_scale number.sign*number.coefficient, number.integral_exponent, approximate: true
+      elsif output_rounding.simplifying?
+        # akin to number.forma(base: output_base, simplify: true)
+        general_num_to_numeral number, output_rounding, false
+      else
+        # akin to number.forma(base: output_base, all_digits: true)
+        general_num_to_numeral number, output_rounding, true
+      end
+    end
+  end
+
+  def read(numeral, exact_input, approximate_simplified)
+    if numeral.special?
+      special_numeral_to_num numeral
+    elsif numeral.approximate? && !exact_input
+      if approximate_simplified
+        # akin to @context.Num(numeral_text, :short)
+        short_numeral_to_num numeral
+      else
+        # akin to @context.Num(numeral_text, :free)
+        free_numeral_to_num numeral
+      end
+    else
+      # akin to @context.Num(numeral_text, :fixed)
+      fixed_numeral_to_num numeral
+    end
+  end
+
   private
 
   def special_num_to_numeral(x)
@@ -91,7 +142,7 @@ class Numerals::BigDecimalConversion
     dec_pos, digits = formatter.digits
     numeral = Numeral[digits, sign: sign, point: dec_pos, rep_pos: formatter.repeat, base: output_base]
     if all_digits
-      numeral = rounding.round(numeral, formatter.round_up)
+      numeral = rounding.round(numeral, round_up: formatter.round_up)
     end
     numeral
   end
@@ -137,7 +188,7 @@ class Numerals::BigDecimalConversion
     else
       rounding_mode = @rounding_mode
     end
-    dec_num_context = DecNum::Context(
+    dec_num_context = Flt::DecNum::Context(
       precision: @context.precision,
       rounding:  @context.rounding
     )

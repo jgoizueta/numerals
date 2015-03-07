@@ -70,7 +70,7 @@ module Numerals::Conversions
     #   but taken into consideration so that if the result is converted back
     #   with that rounding mode to the input precision and base, the same input
     #   is obtained.
-    #   The :fixed mode is meaningless for destination types with fixed
+    #   The :free mode is meaningless for destination types with fixed
     #   precision such as Float.
     def numeral_to_number(numeral, type, *args)
       # TODO: either add :short mode or some other way to trigger that option;
@@ -79,6 +79,71 @@ module Numerals::Conversions
       # precision value that can produce back the input as described above.
       mode = extract_mode_from_args!(args) || :fixed
       self[type].numeral_to_number(numeral, mode, *args)
+    end
+
+    # Convert Numeral to Number, new interface
+    #
+    #   read numeral, options={}
+    #
+    # If the input numeral is approximate and the destination type
+    # allows for arbitrary precision, then the destination context
+    # precision will be ignored and the precision of the input will be
+    # preserved. The :simplify option affects this case by generating
+    # only the mininimun number of digits needed.
+    #
+    # The :exact option will prevent this behaviour and always treat
+    # input as exact.
+    #
+    # Valid output options:
+    #
+    # * :type class of the output number
+    # * :context context (in the case of Flt::Num, Float) for the output
+    # * :simplify (for approximate input numeral/arbitrary precision type only)
+    # * :exact treat input numeral as if exact
+    #
+    def read(numeral, options={})
+      selector = options[:context] || options[:type]
+      exact_input = options[:exact]
+      approximate_simplified = options[:simplify]
+      self[selector].read(numeral, exact_input, approximate_simplified)
+    end
+
+    # Convert Number to Numeral, new interface
+    #
+    #   write number, options={}
+    #
+    # Valid options:
+    #
+    # * :rounding (a Rounding) (which defines output base as well)
+    # * :exact (exact input indicator)
+    #
+    # Approximate mode:
+    #
+    # If the input is treated as an approximation
+    # (which is the case for types such as Flt::Num, Float,...
+    # unless the :exact option is true) then no 'spurious' digits
+    # will be shown (digits that can take any value and the numeral
+    # still would convert to the original number if rounded to the same precision)
+    #
+    # In approximate mode, if rounding is :simplify, the shortest representation
+    # which rounds back to the origina number with the same precision is used.
+    # If rounding is :preserve and the output base is the same as the number
+    # internal radix, the exact precision (trailing zeros) of the number
+    # is represented.
+    #
+    # Exact mode:
+    #
+    # Is used for 'exact' types (such as Integer, Rational) or when the :exact
+    # option is defined to be true.
+    #
+    # The number is treated as an exact value, and converted according to
+    # Rounding. (in this case the :simplify and :preserve roundings are
+    # equivalent to :exact)
+    #
+    def write(number, options = {})
+      output_rounding = Rounding[options[:rounding] || Rounding[:exact]]
+      exact_input = options[:exact]
+      self[number.class].write(number, exact_input, output_rounding)
     end
 
     private

@@ -25,6 +25,18 @@ class Numerals::RationalConversion
     Rational(*numeral.to_quotient)
   end
 
+  def write(number, exact_input, output_rounding)
+    output_base = output_rounding.base
+    q = [number.numerator, number.denominator]
+    numeral = Numeral.from_quotient(q, base: output_base)
+    numeral = output_rounding.round(numeral) unless output_rounding.exact?
+    numeral
+  end
+
+  def read(numeral, exact_input, approximate_simplified)
+    Rational(*numeral.to_quotient)
+  end
+
 end
 
 def Rational.numerals_conversion

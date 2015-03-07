@@ -49,6 +49,58 @@ class Numerals::FloatConversion
     end
   end
 
+  def write(number, exact_input, output_rounding)
+    output_base = output_rounding.base
+    input_base = @context.radix
+
+    if @context.special?(number)
+      special_float_to_numeral number
+    elsif exact_input
+      if output_base == input_base
+        # akin to number.format(base: output_base, simplified: true)
+        if true
+          # ALT.1 just like approximate :simplify
+          general_float_to_numeral number, output_rounding, false
+        else
+          # ALT.2 just like different bases
+          exact_float_to_numeral number, output_rounding
+        end
+      else
+        # akin to number.format(base: output_base, exact: true)
+        exact_float_to_numeral number, output_rounding
+      end
+    else
+      if output_base == input_base && output_rounding.preserving?
+        # akin to number.format(base: output_base)
+        sign, coefficient, exp = number.split
+        Numeral.from_coefficient_scale sign*coefficient, exp, approximate: true
+      elsif output_rounding.simplifying?
+        # akin to number.forma(base: output_base, simplify: true)
+        general_float_to_numeral number, output_rounding, false
+      else
+        # akin to number.forma(base: output_base, all_digits: true)
+        general_float_to_numeral number, output_rounding, true
+      end
+    end
+  end
+
+  def read(numeral, exact_input, approximate_simplified)
+    if numeral.special?
+      special_numeral_to_float numeral
+    # elsif numeral.approximate? && !exact_input
+    #   if approximate_simplified
+    #     # akin to @context.Num(numeral_text, :short)
+    #     short_numeral_to_float numeral
+    #   else
+    #     # akin to @context.Num(numeral_text, :free)
+    #     free_numeral_to_float numeral
+    #   end
+    else
+      # akin to @context.Num(numeral_text, :fixed)
+      fixed_numeral_to_float numeral
+    end
+  end
+
   private
 
   def special_float_to_numeral(x)
@@ -124,7 +176,7 @@ class Numerals::FloatConversion
     rep_pos = formatter.repeat
     numeral = Numeral[digits, sign: sign, point: dec_pos, rep_pos: rep_pos, base: output_base]
     if all_digits
-      numeral = rounding.round(numeral, formatter.round_up)
+      numeral = rounding.round(numeral, round_up: formatter.round_up)
     end
     numeral
   end
@@ -170,6 +222,12 @@ class Numerals::FloatConversion
     # consider:
     # return general_numeral_to_float(numeral, :short) if numeral.exact?
     general_numeral_to_float numeral, :free
+  end
+
+  def short_numeral_to_float(numeral)
+    # raise "Invalid Conversion" # Float does not support short (arbitrary precision)
+    # fixed_numeral_to_float numeral
+    general_numeral_to_float numeral, :short
   end
 
   def same_base_numeral_to_float(numeral)

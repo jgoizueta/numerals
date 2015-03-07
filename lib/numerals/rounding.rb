@@ -59,11 +59,11 @@ class Rounding
 
     if (@precision == 0 || @precision.nil?) && @places.nil?
       @precision = 0
-      @mode = :exact
+      @mode = :exact unless exact?
     else
       @mode ||= :half_even
     end
-    if @mode == :exact
+    if exact?
       @precision = 0
       @places    = nil
     end

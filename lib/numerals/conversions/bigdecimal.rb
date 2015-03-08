@@ -65,7 +65,7 @@ class Numerals::BigDecimalConversion
     else
       if output_base == input_base && output_rounding.preserving?
         # akin to number.format(base: output_base)
-        Numeral.from_coefficient_scale number.sign*number.coefficient, number.integral_exponent, approximate: true
+        Numerals::Numeral.from_coefficient_scale number.sign*number.coefficient, number.integral_exponent, approximate: true
       elsif output_rounding.simplifying?
         # akin to number.forma(base: output_base, simplify: true)
         general_num_to_numeral number, output_rounding, false
@@ -97,15 +97,15 @@ class Numerals::BigDecimalConversion
 
   def special_num_to_numeral(x)
     if x.nan?
-      Numeral.nan
+      Numerals::Numeral.nan
     elsif x.infinite?
-      Numeral.infinity @context.sign(x)
+      Numerals::Numeral.infinity @context.sign(x)
     end
   end
 
   def exact_num_to_numeral(number, rounding)
     quotient = number.to_r
-    numeral = Numeral.from_quotient(quotient, base: rounding.base)
+    numeral = Numerals::Numeral.from_quotient(quotient, base: rounding.base)
     unless rounding.exact?
       numeral = rounding.round(numeral)
     end
@@ -140,7 +140,7 @@ class Numerals::BigDecimalConversion
     )
 
     dec_pos, digits = formatter.digits
-    numeral = Numeral[digits, sign: sign, point: dec_pos, rep_pos: formatter.repeat, base: output_base]
+    numeral = Numerals::Numeral[digits, sign: sign, point: dec_pos, rep_pos: formatter.repeat, base: output_base]
     if all_digits
       numeral = rounding.round(numeral, round_up: formatter.round_up)
     end

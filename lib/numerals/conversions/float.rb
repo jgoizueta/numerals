@@ -73,7 +73,7 @@ class Numerals::FloatConversion
       if output_base == input_base && output_rounding.preserving?
         # akin to number.format(base: output_base)
         sign, coefficient, exp = number.split
-        Numeral.from_coefficient_scale sign*coefficient, exp, approximate: true
+        Numerals::Numeral.from_coefficient_scale sign*coefficient, exp, approximate: true
       elsif output_rounding.simplifying?
         # akin to number.forma(base: output_base, simplify: true)
         general_float_to_numeral number, output_rounding, false
@@ -105,15 +105,15 @@ class Numerals::FloatConversion
 
   def special_float_to_numeral(x)
     if x.nan?
-      Numeral.nan
+      Numerals::Numeral.nan
     elsif x.infinite?
-      Numeral.infinity @context.sign(x)
+      Numerals::Numeral.infinity @context.sign(x)
     end
   end
 
   def exact_float_to_numeral(number, rounding)
     quotient = number.to_r
-    numeral = Numeral.from_quotient(quotient, base: rounding.base)
+    numeral = Numerals::Numeral.from_quotient(quotient, base: rounding.base)
     unless rounding.exact?
       numeral = rounding.round(numeral)
     end
@@ -174,7 +174,7 @@ class Numerals::FloatConversion
 
     dec_pos, digits = formatter.digits
     rep_pos = formatter.repeat
-    numeral = Numeral[digits, sign: sign, point: dec_pos, rep_pos: rep_pos, base: output_base]
+    numeral = Numerals::Numeral[digits, sign: sign, point: dec_pos, rep_pos: rep_pos, base: output_base]
     if all_digits
       numeral = rounding.round(numeral, round_up: formatter.round_up)
     end

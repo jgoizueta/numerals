@@ -118,7 +118,7 @@ class Numerals::FltConversion
 
   def exact_num_to_numeral(number, rounding)
     quotient = number.to_r
-    numeral = Numeral.from_quotient(quotient, base: rounding.base)
+    numeral = Numerals::Numeral.from_quotient(quotient, base: rounding.base)
     unless rounding.exact?
       numeral = rounding.round(numeral)
     end
@@ -147,7 +147,7 @@ class Numerals::FltConversion
 
     dec_pos, digits = formatter.digits
     rep_pos = formatter.repeat
-    numeral = Numeral[digits, sign: sign, point: dec_pos, rep_pos: formatter.repeat, base: output_base]
+    numeral = Numerals::Numeral[digits, sign: sign, point: dec_pos, rep_pos: formatter.repeat, base: output_base]
     if all_digits
       numeral = rounding.round(numeral, round_up: formatter.round_up)
     end

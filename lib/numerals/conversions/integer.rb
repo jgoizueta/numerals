@@ -19,7 +19,7 @@ class Numerals::IntegerConversion
 
   def number_to_numeral(number, mode, rounding)
     # Rational.numerals_conversion Rational(number), mode, rounding
-    numeral = Numeral.from_quotient(number, 1)
+    numeral = Numerals::Numeral.from_quotient(number, 1)
     numeral = rounding.round(numeral) unless rounding.exact?
     numeral
   end
@@ -34,7 +34,7 @@ class Numerals::IntegerConversion
 
   def write(number, exact_input, output_rounding)
     output_base = output_rounding.base
-    numeral = Numeral.from_quotient(number, 1, base: output_base)
+    numeral = Numerals::Numeral.from_quotient(number, 1, base: output_base)
     numeral = output_rounding.round(numeral) unless output_rounding.exact?
     numeral
   end

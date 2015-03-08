@@ -16,7 +16,7 @@ class Numerals::RationalConversion
 
   def number_to_numeral(number, mode, rounding)
     q = [number.numerator, number.denominator]
-    numeral = Numeral.from_quotient(q)
+    numeral = Numerals::Numeral.from_quotient(q)
     numeral = rounding.round(numeral) unless rounding.exact?
     numeral
   end
@@ -28,7 +28,7 @@ class Numerals::RationalConversion
   def write(number, exact_input, output_rounding)
     output_base = output_rounding.base
     q = [number.numerator, number.denominator]
-    numeral = Numeral.from_quotient(q, base: output_base)
+    numeral = Numerals::Numeral.from_quotient(q, base: output_base)
     numeral = output_rounding.round(numeral) unless output_rounding.exact?
     numeral
   end

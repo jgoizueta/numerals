@@ -73,7 +73,12 @@ class ExpSetter
 
   def repeat_part
     if @numeral.repeating?
-      @digits[@numeral.repeat..-1]
+      if @repeat_phase != 0
+        start = @numeral.repeat + @repeat_phase
+        (start...start+repeat_part_size).map{|i| @numeral.digit_value_at(i)}
+      else
+        @digits[@numeral.repeat..-1]
+      end
     else
       []
     end
@@ -125,21 +130,17 @@ class ExpSetter
       @integer_start = @integer_end = @digits.size
       @fractional_start = 0
       @fractional_end   = @numeral.repeat || @digits.size
+      @repeat_phase = 0
     elsif @integer_part_size >= @digits.size
       @trailing_size = @integer_part_size - @digits.size
       @leading_size = 0
       @integer_start = 0
       @integer_end = @digits.size
       if @numeral.repeating?
-        phase = @trailing_size % repeat_part_size
-        if phase > 0
-          @fractional_start = @numeral.repeat + phase
-          @fractional_end   = @digits.size
-        else
-          @fractional_start = @fractional_end = @digits.size
-        end
+        @repeat_phase = @trailing_size % repeat_part_size
+        @fractional_start = @fractional_end = @digits.size
       else
-        # frational_part == []
+        @repeat_phase = 0
         @fractional_start = @fractional_end = @digits.size
       end
     else
@@ -147,9 +148,10 @@ class ExpSetter
       @integer_start = 0
       @integer_end   = @integer_part_size
       if @numeral.repeating? && @numeral.repeat < @integer_part_size
-        @fractional_start = @integer_part_size
-        @fractional_end   = @digits.size
+        @repeat_phase = @integer_end % repeat_part_size
+        @fractional_start = @fractional_end = @digits.size
       else
+        @repeat_phase = 0
         @fractional_start = @integer_part_size
         @fractional_end   = @numeral.repeat || @digits.size
       end

@@ -7,7 +7,7 @@
 #   # To use scientific notation:
 #   setter.integer_part_size = 1
 #   # To adjust scientific notation to engineering mode:
-#   setter.integer_part_size += 1 (while setter.exponent % e) != 0
+#   setter.integer_part_size += 1 (while setter.exponent % 3) != 0
 #   # To automatically choose between fixed/scientific format:
 #   setter.exponent = 0 # fixed
 #   if setter.leading_size > 6 || setter.trailing_size > 0
@@ -32,6 +32,8 @@ class ExpSetter
     @repeat_size = @numeral.repeating? ? @digits.size - @numeral.repeat : 0
     adjust
   end
+
+  attr_reader :numeral
 
   include ModalSupport::BracketConstructor
   attr_reader :integer_part_size, :exponent
@@ -91,7 +93,10 @@ class ExpSetter
 
   def integer_part
     @digits[@integer_start...@integer_end] + trailing
-    # Note: up to the renderer to use [0] for []
+  end
+
+  def fractional_part_size
+    @fractional_end - @fractional_start + @leading_size
   end
 
   private

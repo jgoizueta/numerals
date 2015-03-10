@@ -84,7 +84,7 @@ class TestBaseScaler <  Test::Unit::TestCase # < Minitest::Test
 
   def test_repeating_4
     # 4 repeating bits
-    numeral = Numeral[1, 0, 1, 1, 1, 0, base: 2, point: 2, repeat: 2]
+    numeral = Numeral[1, 0, 1, 1, 1, 0, base: 2, point: 2, repeat: 2, normalize: false]
     setter = ExpSetter[numeral]
     setter.integer_part_size = 2
     scaler = BaseScaler[setter, 4]

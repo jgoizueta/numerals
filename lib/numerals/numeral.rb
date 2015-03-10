@@ -250,6 +250,16 @@ module Numerals
               @digits.replace @digits[0...-rep_length]
             end
           end
+          # remove unneeded partial repetitions
+          if rep_length > 0 && @digits.size > rep_length
+            removed = 0
+            while @repeat > 0 && @digits[@repeat-1] == @digits[@repeat-1+rep_length]
+              @repeat -= 1
+              removed += 1
+            end
+            @digits.replace @digits[0...-removed] if removed > 0
+          end
+
         end
 
         # Replace 'nines' repetition 0.999... -> 1

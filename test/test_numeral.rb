@@ -245,7 +245,18 @@ class TestNumeral <  Test::Unit::TestCase # < Minitest::Test
 
     assert_equal Numeral.integer(1), Numeral[9, point: 0, repeat: 0]
     assert_equal Numeral[2, point: 0], Numeral[1,9, point: 0, repeat: 1]
+  end
 
+  def test_partial_unneeded_rep_normalization
+    numeral = Numeral[1, 0, 1, 1, 1, 0, base: 2, point: 2, repeat: 2]
+    assert_equal Numeral[1, 0, 1, 1, 1, base: 2, point: 2, repeat: 1, normalize: false], numeral
+    assert_equal Numeral[1,2,3,4,5, point: 1, repeat: 3, normalize: false], Numeral[1,2,3,4,5, point: 1, repeat: 3]
+    assert_equal Numeral[1,2,3,4,5, point: 1, repeat: 3, normalize: false], Numeral[1,2,3,4,5,4, point: 1, repeat: 4]
+    assert_equal Numeral[1,2,3,4,5, point: 1, repeat: 3, normalize: false], Numeral[1,2,3,4,5,4,5, point: 1, repeat: 5]
+    assert_equal Numeral[1,2,3,4,5,6,7,8, point: 1, repeat: 3, normalize: false], Numeral[1,2,3,4,5,6,7,8,4, point: 1, repeat: 4]
+    assert_equal Numeral[1,2,3,4,5,6,7,8, point: 1, repeat: 3, normalize: false], Numeral[1,2,3,4,5,6,7,8,4,5, point: 1, repeat: 5]
+    assert_equal Numeral[1,2,3,4,5,6,7,8, point: 1, repeat: 3, normalize: false], Numeral[1,2,3,4,5,6,7,8,4,5,6, point: 1, repeat: 6]
+    assert_equal Numeral[1,2,3,4,5,6,7,8,4,6, point: 1, repeat: 5, normalize: false], Numeral[1,2,3,4,5,6,7,8,4,6, point: 1, repeat: 5]
   end
 
   def test_quotient_conversion

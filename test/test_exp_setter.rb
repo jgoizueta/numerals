@@ -339,25 +339,25 @@ class TestExpSetter <  Test::Unit::TestCase # < Minitest::Test
                  check_setter(Numeral[digits_1_9, point: 5, repeat: 6], nil)
     assert_equal "123456.<789>E0",
                  check_setter(Numeral[digits_1_9, point: 6, repeat: 6], nil)
-    assert_equal "1234567.89<789>E0",
+    assert_equal "1234567.<897>E0",
                  check_setter(Numeral[digits_1_9, point: 7, repeat: 6], nil)
-    assert_equal "12345678.9<789>E0",
+    assert_equal "12345678.<978>E0",
                  check_setter(Numeral[digits_1_9, point: 8, repeat: 6], nil)
     assert_equal "123456789.<789>E0",
                  check_setter(Numeral[digits_1_9, point: 9, repeat: 6], nil)
-    assert_equal "1234567897.89<789>E0",
+    assert_equal "1234567897.<897>E0",
                  check_setter(Numeral[digits_1_9, point: 10, repeat: 6], nil)
-    assert_equal "12345678978.9<789>E0",
+    assert_equal "12345678978.<978>E0",
                  check_setter(Numeral[digits_1_9, point: 11, repeat: 6], nil)
     assert_equal "123456789789.<789>E0",
                  check_setter(Numeral[digits_1_9, point: 12, repeat: 6], nil)
-    assert_equal "1234567897897.89<789>E0",
+    assert_equal "1234567897897.<897>E0",
                  check_setter(Numeral[digits_1_9, point: 13, repeat: 6], nil)
-    assert_equal "12345678978978.9<789>E0",
+    assert_equal "12345678978978.<978>E0",
                  check_setter(Numeral[digits_1_9, point: 14, repeat: 6], nil)
-    assert_equal "1234567897897897897897897.89<789>E0",
+    assert_equal "1234567897897897897897897.<897>E0",
                  check_setter(Numeral[digits_1_9, point: 25, repeat: 6], nil)
-    assert_equal "12345678978978978978978978978978978978978978978978.9<789>E0",
+    assert_equal "12345678978978978978978978978978978978978978978978.<978>E0",
                  check_setter(Numeral[digits_1_9, point: 50, repeat: 6], nil)
   end
 

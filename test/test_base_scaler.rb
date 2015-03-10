@@ -13,6 +13,19 @@ class TestBaseScaler <  Test::Unit::TestCase # < Minitest::Test
     "#{digits_string(scaler.integer_part, scaler.scaled_base)}.#{digits_string(scaler.fractional_part, scaler.scaled_base)}<#{digits_string(scaler.repeat_part, scaler.scaled_base)}>E#{scaler.exponent}"
   end
 
+  def test_special
+    numeral = Numeral[:nan]
+    setter = ExpSetter[numeral]
+    scaler = BaseScaler[setter, 4]
+
+    assert_equal setter.base, scaler.exponent_base
+    assert_equal setter.sign, scaler.sign
+    assert_equal setter.exponent, scaler.exponent
+    assert_equal setter.special?, scaler.special?
+    assert_equal setter.special, scaler.special
+  end
+
+
   def test_non_repeat
     digits = [1,1,0,0]*12 + [1,1,0,1,0]
     numeral = Numeral[digits, base: 2, point: -3]
@@ -32,6 +45,13 @@ class TestBaseScaler <  Test::Unit::TestCase # < Minitest::Test
     setter.integer_part_size = 4
     scaler = BaseScaler[setter, 4]
     assert_equal "c.cccccccccccd<>E-7", check_scaler(scaler)
+
+    assert_equal 16, scaler.scaled_base
+    assert_equal setter.base, scaler.exponent_base
+    assert_equal setter.sign, scaler.sign
+    assert_equal setter.exponent, scaler.exponent
+    assert_equal setter.special?, scaler.special?
+    assert_equal setter.special, scaler.special
   end
 
   def test_approx
@@ -53,6 +73,13 @@ class TestBaseScaler <  Test::Unit::TestCase # < Minitest::Test
     setter.integer_part_size = 4
     scaler = BaseScaler[setter, 4]
     assert_equal "c.cccccccccccd0<>E-7", check_scaler(scaler)
+
+    assert_equal 16, scaler.scaled_base
+    assert_equal setter.base, scaler.exponent_base
+    assert_equal setter.sign, scaler.sign
+    assert_equal setter.exponent, scaler.exponent
+    assert_equal setter.special?, scaler.special?
+    assert_equal setter.special, scaler.special
   end
 
   def test_repeating_4
@@ -112,6 +139,13 @@ class TestBaseScaler <  Test::Unit::TestCase # < Minitest::Test
     setter.integer_part_size = 1
     scaler = BaseScaler[setter, 4]
     assert_equal '1.3<b>E0', check_scaler(scaler)
+
+    assert_equal 16, scaler.scaled_base
+    assert_equal setter.base, scaler.exponent_base
+    assert_equal setter.sign, scaler.sign
+    assert_equal setter.exponent, scaler.exponent
+    assert_equal setter.special?, scaler.special?
+    assert_equal setter.special, scaler.special
   end
 
   def test_repeating_2
@@ -124,6 +158,13 @@ class TestBaseScaler <  Test::Unit::TestCase # < Minitest::Test
     setter.integer_part_size = 1
     scaler = BaseScaler[setter, 4]
     assert_equal '1.7<5>E1', check_scaler(scaler)
+
+    assert_equal 16, scaler.scaled_base
+    assert_equal setter.base, scaler.exponent_base
+    assert_equal setter.sign, scaler.sign
+    assert_equal setter.exponent, scaler.exponent
+    assert_equal setter.special?, scaler.special?
+    assert_equal setter.special, scaler.special
   end
 
   def test_repeating_3
@@ -136,6 +177,13 @@ class TestBaseScaler <  Test::Unit::TestCase # < Minitest::Test
     setter.integer_part_size = 1
     scaler = BaseScaler[setter, 4]
     assert_equal '1.7<6db>E1', check_scaler(scaler)
+
+    assert_equal 16, scaler.scaled_base
+    assert_equal setter.base, scaler.exponent_base
+    assert_equal setter.sign, scaler.sign
+    assert_equal setter.exponent, scaler.exponent
+    assert_equal setter.special?, scaler.special?
+    assert_equal setter.special, scaler.special
   end
 
 end

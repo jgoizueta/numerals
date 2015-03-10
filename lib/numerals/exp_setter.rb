@@ -123,7 +123,12 @@ class ExpSetter
   end
 
   def adjust
-    if @integer_part_size <= 0
+    if special?
+      @leading_size = @trailing_size = 0
+      @integer_start = @integer_end = 0
+      @fractional_start = @fractional_end = 0
+      @repeat_phase = 0
+    elsif @integer_part_size <= 0
       @leading_size = -@integer_part_size
       @trailing_size = 0
       # integer_part == []

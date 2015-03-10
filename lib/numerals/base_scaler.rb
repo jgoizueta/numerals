@@ -39,6 +39,18 @@ class BaseScaler
     @setter.exponent
   end
 
+  def special?
+    @setter.special?
+  end
+
+  def special
+    @setter.special
+  end
+
+  def sign
+    @setter.sign
+  end
+
   def fractional_part
     ungrouped = @setter.fractional_part + (0...@scaling_trailing_size).map{|i| repeat_digit(i)}
     grouped_digits ungrouped
@@ -97,6 +109,7 @@ class BaseScaler
   end
 
   def adjust
+    return if special?
     @setter_repeat_part = @setter.repeat_part
     @setter_repeat_part_size = @setter.repeat_part_size
 

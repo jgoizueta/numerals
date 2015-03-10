@@ -148,7 +148,7 @@ class ExpSetter
       @integer_start = 0
       @integer_end   = @integer_part_size
       if @numeral.repeating? && @numeral.repeat < @integer_part_size
-        @repeat_phase = @integer_end % repeat_part_size
+        @repeat_phase = (@integer_end - @numeral.repeat) % repeat_part_size
         @fractional_start = @fractional_end = @digits.size
       else
         @repeat_phase = 0

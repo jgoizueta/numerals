@@ -361,6 +361,61 @@ class TestExpSetter <  Test::Unit::TestCase # < Minitest::Test
                  check_setter(Numeral[digits_1_9, point: 50, repeat: 6], nil)
   end
 
+
+  def test_repeating_no_exp_2
+    digits_2_9 = (2..9).to_a
+
+    assert_equal ".0000000000000000000000000000000000000000000000000023456<789>E0",
+                 check_setter(Numeral[digits_2_9, point: -50, repeat: 5], nil)
+    assert_equal ".000000000000000000000000023456<789>E0",
+                 check_setter(Numeral[digits_2_9, point: -25, repeat: 5], nil)
+    assert_equal ".00000023456<789>E0",
+                 check_setter(Numeral[digits_2_9, point: -6, repeat: 5], nil)
+    assert_equal ".0000023456<789>E0",
+                 check_setter(Numeral[digits_2_9, point: -5, repeat: 5], nil)
+    assert_equal ".000023456<789>E0",
+                 check_setter(Numeral[digits_2_9, point: -4, repeat: 5], nil)
+    assert_equal ".00023456<789>E0",
+                 check_setter(Numeral[digits_2_9, point: -3, repeat: 5], nil)
+    assert_equal ".0023456<789>E0",
+                 check_setter(Numeral[digits_2_9, point: -2, repeat: 5], nil)
+    assert_equal ".023456<789>E0",
+                 check_setter(Numeral[digits_2_9, point: -1, repeat: 5], nil)
+    assert_equal ".23456<789>E0",
+                 check_setter(Numeral[digits_2_9, point: 0, repeat: 5], nil)
+    assert_equal "2.3456<789>E0",
+                 check_setter(Numeral[digits_2_9, point: 1, repeat: 5], nil)
+    assert_equal "23.456<789>E0",
+                 check_setter(Numeral[digits_2_9, point: 2, repeat: 5], nil)
+    assert_equal "234.56<789>E0",
+                 check_setter(Numeral[digits_2_9, point: 3, repeat: 5], nil)
+    assert_equal "2345.6<789>E0",
+                 check_setter(Numeral[digits_2_9, point: 4, repeat: 5], nil)
+    assert_equal "23456.<789>E0",
+                 check_setter(Numeral[digits_2_9, point: 5, repeat: 5], nil)
+    assert_equal "234567.<897>E0",
+                 check_setter(Numeral[digits_2_9, point: 6, repeat: 5], nil)
+    assert_equal "2345678.<978>E0",
+                 check_setter(Numeral[digits_2_9, point: 7, repeat: 5], nil)
+    assert_equal "23456789.<789>E0",
+                 check_setter(Numeral[digits_2_9, point: 8, repeat: 5], nil)
+    assert_equal "234567897.<897>E0",
+                 check_setter(Numeral[digits_2_9, point: 9, repeat: 5], nil)
+    assert_equal "2345678978.<978>E0",
+                 check_setter(Numeral[digits_2_9, point: 10, repeat: 5], nil)
+    assert_equal "23456789789.<789>E0",
+                 check_setter(Numeral[digits_2_9, point: 11, repeat: 5], nil)
+    assert_equal "234567897897.<897>E0",
+                 check_setter(Numeral[digits_2_9, point: 12, repeat: 5], nil)
+    assert_equal "2345678978978.<978>E0",
+                 check_setter(Numeral[digits_2_9, point: 13, repeat: 5], nil)
+    assert_equal "234567897897897897897897.<897>E0",
+                 check_setter(Numeral[digits_2_9, point: 24, repeat: 5], nil)
+    assert_equal "2345678978978978978978978978978978978978978978978.<978>E0",
+                 check_setter(Numeral[digits_2_9, point: 49, repeat: 5], nil)
+  end
+
+
   def test_repeating_exp_1
     digits_1_9 = (1..9).to_a
 

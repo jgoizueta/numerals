@@ -35,6 +35,10 @@ class BaseScaler
     @setter.base
   end
 
+  def base
+    scaled_base
+  end
+
   def exponent
     @setter.exponent
   end

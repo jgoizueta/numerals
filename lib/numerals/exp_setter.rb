@@ -43,6 +43,10 @@ class ExpSetter
     @numeral.base
   end
 
+  def exponent_base
+    base
+  end
+
   def special?
     @numeral.special?
   end

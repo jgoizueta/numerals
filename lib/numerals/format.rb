@@ -1,5 +1,16 @@
 module Numerals
 
+  # A Format object holds formatting options and performs
+  # formatted input/output operations on numbers.
+  #
+  # Formatting options are grouped into aspects:
+  #
+  # * Exact input
+  # * Rounding
+  # * ...
+  #
+  # Some aspects (Rounding, ...) are handled with aspect-definining classes.
+  #
   class Format
 
     def initialize(*args)

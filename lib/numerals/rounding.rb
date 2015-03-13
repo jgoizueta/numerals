@@ -116,8 +116,8 @@ class Rounding
   end
 
   # Number of significant digits for a given numerical/numeral value
-  def precision(value)
-    if relative? || exact?
+  def precision(value = nil)
+    if value.nil? || relative? || exact?
       @precision
     else
       @places + num_integral_digits(value)
@@ -125,8 +125,8 @@ class Rounding
   end
 
   # Number of fractional placesfor a given numerical/numeral value
-  def places(value)
-    if absolute? || exact?
+  def places(value = nil)
+    if value.nil? || absolute? || exact?
       @places
     else
       @precision - num_integral_digits(value)

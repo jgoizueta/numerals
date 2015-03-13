@@ -9,6 +9,11 @@ module Numerals
 
     attr_reader :rounding
 
+    def base
+      @rounding.base
+    end
+
+
     include ModalSupport::StateEquivalent
 
     def [](*args)
@@ -21,6 +26,7 @@ module Numerals
 
     def set!(*args)
       options = extract_options(*args)
+      @rounding.set! base: options[:base] if options[:base]
       @rounding.set! options[:rounding] if options[:rounding]
       normalize!
     end
@@ -39,6 +45,14 @@ module Numerals
 
     def set_rounding!(*args)
       set! rounding: args
+    end
+
+    def set_base!(base)
+      set! base: base
+    end
+
+    def set_base(base)
+      dup.set_base(base)
     end
 
     def dup

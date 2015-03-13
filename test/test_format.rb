@@ -36,5 +36,15 @@ class TestNumeral <  Test::Unit::TestCase # < Minitest::Test
     assert_equal Rounding[:simplify, base: 10], f2.rounding
   end
 
-
+  def test_set_base
+    f = Format[base: 2, rounding: :exact]
+    assert_equal 2, f.base
+    assert_equal Rounding[:exact, base: 2], f.rounding
+    f.set_base! 5
+    assert_equal 5, f.base
+    assert_equal Rounding[:exact, base: 5], f.rounding
+    f = f[base: 6]
+    assert_equal 6, f.base
+    assert_equal Rounding[:exact, base: 6], f.rounding
+  end
 end

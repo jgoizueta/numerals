@@ -3,6 +3,7 @@ require 'modalsupport'
 require "numerals/version"
 require 'numerals/numeral'
 require 'numerals/rounding'
+require 'numerals/format'
 require 'numerals/conversions/float'
 require 'numerals/conversions/integer'
 require 'numerals/conversions/rational'

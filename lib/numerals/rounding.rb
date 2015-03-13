@@ -1,245 +1,295 @@
-# Rounding of Numerals
-class Rounding
+module Numerals
 
-  # Rounding is defined by the rounding mode and the precision,
-  # and is used to establish the desired accuracy of a Numeral result.
-  #
-  # The rounding mode may be any of the valid Flt rounding modes
-  # (:half_even, :half_down, :half_up, :floor, :ceiling, :down, :up or :up05)
-  # or one of these special values:
-  # * :exact for no rounding at all (to represent the situation where
-  #   we want to get an exact numeral result).
-  # * :simplify, which is a variant of :exact where no rounding occurs, but
-  #   we want to represent the result as simply (with as few digits) as
-  #   possible (mantaining its value within the original precision).
-  # * :preserve, which is another variant of :exact which tries tro preserve
-  #   the original precision (i.e. information given by trailing zeros)
-  # :preserve and :simplify are meaningful when applied to approximate
-  # numerals, which have some specific precision.
-  #
-  # The precision may be defined either as a relative :precision value
-  # (number of significant digits of the result numeral) or as an absolute
-  # :places value that indicate the number of digits to the right of the fractional
-  # point. Negative values of :places will round to digits in integral positions.
-  #
-  # The base of the numerals to be rounded can also be defined (is 10 by default)
-  #
-  def initialize(*args)
-    if Hash === args.last
-      options = args.pop.dup
-    else
-      options = {}
+  # Rounding of Numerals
+  class Rounding
+
+    # Rounding is defined by the rounding mode and the precision,
+    # and is used to establish the desired accuracy of a Numeral result.
+    #
+    # The rounding mode may be any of the valid Flt rounding modes
+    # (:half_even, :half_down, :half_up, :floor, :ceiling, :down, :up or :up05)
+    # or one of these special values:
+    # * :exact for no rounding at all (to represent the situation where
+    #   we want to get an exact numeral result).
+    # * :simplify, which is a variant of :exact where no rounding occurs, but
+    #   we want to represent the result as simply (with as few digits) as
+    #   possible (mantaining its value within the original precision).
+    # * :preserve, which is another variant of :exact which tries tro preserve
+    #   the original precision (i.e. information given by trailing zeros)
+    # :preserve and :simplify are meaningful when applied to approximate
+    # numerals, which have some specific precision.
+    #
+    # The precision may be defined either as a relative :precision value
+    # (number of significant digits of the result numeral) or as an absolute
+    # :places value that indicate the number of digits to the right of the fractional
+    # point. Negative values of :places will round to digits in integral positions.
+    #
+    # The base of the numerals to be rounded can also be defined (is 10 by default)
+    #
+    def initialize(*args)
+      @mode = :exact
+      @precision = 0
+      @places = nil
+      @base = 10
+      set! *args
     end
-    args.each do |arg|
-      if Symbol === arg
-        options[:mode] = arg
-      elsif Integer === arg
-        options[:precision] = arg
-      else
-        raise "Invalid Rounding definition"
+
+    attr_reader :mode, :base
+
+    include ModalSupport::StateEquivalent
+
+    def [](*args)
+      set *args
+    end
+
+    def self.[](*args)
+      Rounding.new *args
+    end
+
+    def set!(*args)
+      options = extract_options(*args)
+      options.each do |option, value|
+        send :"#{option}=", value
+      end
+      normalize!
+    end
+
+    def base=(v)
+      @base = v
+    end
+
+    def mode=(mode)
+      @mode = mode
+      if exact?
+        @precision = 0
+        @places = nil
       end
     end
-    assign! options
-  end
 
-  attr_reader :mode, :base
-
-  include ModalSupport::BracketConstructor
-  include ModalSupport::StateEquivalent
-
-  def [](options={})
-    assign! options
-  end
-
-  def assign!(options)
-    @mode      = options[:mode]      || @mode
-    @precision = options[:precision] || @precision
-    @places    = options[:places]    || @places
-    @base      = options[:base]      || @base
-
-    if (@precision == 0 || @precision.nil?) && @places.nil?
-      @precision = 0
-      @mode = :exact unless exact?
-    else
-      @mode ||= :half_even
+    def precision=(v)
+      v ||= 0
+      if v != 0
+        @mode = :half_even if exact?
+      else
+        @mode = :exact unless exact?
+      end
+      @precision = v
     end
-    if exact?
-      @precision = 0
-      @places    = nil
+
+    def places=(v)
+      @places = v
+      if v # && v != 0
+        @mode = :half_even if exact?
+        @precision = nil
+      end
     end
-    @base ||= 10
-    self
-  end
 
-  def parameters
-    if exact?
-      { mode: @mode }
-    elsif relative?
-      { mode: @mode, precision: @precision }
-    elsif absolute?
-      { mode: @mode, places: @places }
+    def set(*args)
+      dup.set! *args
     end
-  end
 
-  def to_s
-    if exact?
-      "Rounding[#{@mode.inspect}]"
-    elsif relative?
-      "Rounding[#{@mode.inspect}, precision: #{@precision}]"
-    elsif absolute?
-      "Rounding[#{@mode.inspect}, places: #{@places}]"
+    def parameters
+      if exact?
+        { mode: @mode, base: @base }
+      elsif relative?
+        { mode: @mode, precision: @precision, base: @base }
+      elsif absolute?
+        { mode: @mode, places: @places, base: @base }
+      end
     end
-  end
 
-  def inspect
-    to_s
-  end
-
-  def exact?
-    [:exact, :simplify, :preserve].include?(@mode)
-  end
-
-  def absolute?
-    !exact? && !@precision
-  end
-
-  def relative?
-    !exact? && !absolute?
-  end
-
-  def simplifying?
-    @mode == :simplify
-  end
-
-  def preserving?
-    @mode == :preserve
-  end
-
-  # Number of significant digits for a given numerical/numeral value
-  def precision(value = nil)
-    if value.nil? || relative? || exact?
-      @precision
-    else
-      @places + num_integral_digits(value)
+    def to_s
+      base_value = ", base: #{@base}" if @base != 10
+      if exact?
+        "Rounding[#{@mode.inspect}#{base_value}]"
+      elsif relative?
+        "Rounding[#{@mode.inspect}, precision: #{@precision}#{base_value}]"
+      elsif absolute?
+        "Rounding[#{@mode.inspect}, places: #{@places}#{base_value}]"
+      end
     end
-  end
 
-  # Number of fractional placesfor a given numerical/numeral value
-  def places(value = nil)
-    if value.nil? || absolute? || exact?
-      @places
-    else
-      @precision - num_integral_digits(value)
+    def inspect
+      to_s
     end
-  end
 
-  # Round a numeral. If the numeral has been truncated
-  # the :round_up option must be used to pass the information
-  # about the discarded digits:
-  # * nil if all discarded digits where 0 (the truncated value is exact)
-  # * :lo if there where non-zero discarded digits, but the first discarded digit
-  #   is below half the base.
-  # * :tie if the first discarded was half the base and there where no more nonzero digits,
-  #   i.e. the original value was a 'tie', exactly halfway between the truncated value
-  #   and the next value with the same number of digits.
-  # * :hi if the original value was above the tie value.
-  def round(numeral, options={})
-    round_up = options[:round_up]
-    numeral, round_up = truncate(numeral, round_up)
-    adjust(numeral, round_up)
-  end
-
-  private
-
-  def check_base(numeral)
-    if numeral.base != @base
-      raise "Invalid Numeral (base #{numeral.base}) for a base #{@base} Rounding"
+    def exact?
+      [:exact, :simplify, :preserve].include?(@mode)
     end
-  end
 
-  # Truncate a numeral and return also a round_up value with information about
-  # the digits beyond the truncation point that can be used to round the truncated
-  # numeral. If the numeral has already been truncated, the round_up result of
-  # that prior truncation should be passed as the second argument.
-  def truncate(numeral, round_up=nil)
-    check_base numeral
-    if exact?
-      round_up = nil
-    else
-      n = precision(numeral)
-      unless n==numeral.digits.size && numeral.approximate?
-        if n < numeral.digits.size - 1
-          rest_digits = numeral.digits[n+1..-1]
-        else
-          rest_digits = []
-        end
-        if numeral.repeating? && numeral.repeat < numeral.digits.size && n >= numeral.repeat
-          rest_digits += numeral.digits[numeral.repeat..-1]
-        end
-        digits = numeral.digits[0, n]
-        if digits.size < n
-          digits += (digits.size...n).map{|i| numeral.digit_value_at(i)}
-        end
-        if numeral.base % 2 == 0
-          tie_digit = numeral.base / 2
-          max_lo = tie_digit - 1
-        else
-          max_lo = numeral.base / 2
-        end
-        next_digit = numeral.digit_value_at(n)
-        if next_digit == 0
-          unless round_up.nil? && rest_digits.all?{|d| d == 0}
-            round_up = :lo
-          end
-        elsif next_digit <= max_lo # next_digit < tie_digit
-          round_up = :lo
-        elsif next_digit == tie_digit
-          if round_up || rest_digits.any?{|d| d != 0}
-            round_up = :hi
+    def absolute?
+      !exact? && !@precision
+    end
+
+    def relative?
+      !exact? && !absolute?
+    end
+
+    def simplifying?
+      @mode == :simplify
+    end
+
+    def preserving?
+      @mode == :preserve
+    end
+
+    # Number of significant digits for a given numerical/numeral value
+    def precision(value = nil)
+      if value.nil? || relative? || exact?
+        @precision
+      else
+        @places + num_integral_digits(value)
+      end
+    end
+
+    # Number of fractional placesfor a given numerical/numeral value
+    def places(value = nil)
+      if value.nil? || absolute? || exact?
+        @places
+      else
+        @precision - num_integral_digits(value)
+      end
+    end
+
+    # Round a numeral. If the numeral has been truncated
+    # the :round_up option must be used to pass the information
+    # about the discarded digits:
+    # * nil if all discarded digits where 0 (the truncated value is exact)
+    # * :lo if there where non-zero discarded digits, but the first discarded digit
+    #   is below half the base.
+    # * :tie if the first discarded was half the base and there where no more nonzero digits,
+    #   i.e. the original value was a 'tie', exactly halfway between the truncated value
+    #   and the next value with the same number of digits.
+    # * :hi if the original value was above the tie value.
+    def round(numeral, options={})
+      round_up = options[:round_up]
+      numeral, round_up = truncate(numeral, round_up)
+      adjust(numeral, round_up)
+    end
+
+    # Note: since Rounding has no mutable attributes, default dup is OK
+    # otherwise we'd need to redefine it:
+    # def dup
+    #   Rounding[parameters]
+    # end
+
+    private
+
+    def check_base(numeral)
+      if numeral.base != @base
+        raise "Invalid Numeral (base #{numeral.base}) for a base #{@base} Rounding"
+      end
+    end
+
+    # Truncate a numeral and return also a round_up value with information about
+    # the digits beyond the truncation point that can be used to round the truncated
+    # numeral. If the numeral has already been truncated, the round_up result of
+    # that prior truncation should be passed as the second argument.
+    def truncate(numeral, round_up=nil)
+      check_base numeral
+      if exact?
+        round_up = nil
+      else
+        n = precision(numeral)
+        unless n==numeral.digits.size && numeral.approximate?
+          if n < numeral.digits.size - 1
+            rest_digits = numeral.digits[n+1..-1]
           else
-            round_up = :tie
+            rest_digits = []
           end
-        else # next_digit > tie_digit
-          round_up = :hi
+          if numeral.repeating? && numeral.repeat < numeral.digits.size && n >= numeral.repeat
+            rest_digits += numeral.digits[numeral.repeat..-1]
+          end
+          digits = numeral.digits[0, n]
+          if digits.size < n
+            digits += (digits.size...n).map{|i| numeral.digit_value_at(i)}
+          end
+          if numeral.base % 2 == 0
+            tie_digit = numeral.base / 2
+            max_lo = tie_digit - 1
+          else
+            max_lo = numeral.base / 2
+          end
+          next_digit = numeral.digit_value_at(n)
+          if next_digit == 0
+            unless round_up.nil? && rest_digits.all?{|d| d == 0}
+              round_up = :lo
+            end
+          elsif next_digit <= max_lo # next_digit < tie_digit
+            round_up = :lo
+          elsif next_digit == tie_digit
+            if round_up || rest_digits.any?{|d| d != 0}
+              round_up = :hi
+            else
+              round_up = :tie
+            end
+          else # next_digit > tie_digit
+            round_up = :hi
+          end
+          numeral = Numeral[digits, point: numeral.point, sign: numeral.sign, normalize: :approximate]
         end
-        numeral = Numeral[digits, point: numeral.point, sign: numeral.sign, normalize: :approximate]
       end
+      [numeral, round_up]
     end
-    [numeral, round_up]
-  end
 
-  # Adjust a truncated numeral using the round-up information
-  def adjust(numeral, round_up)
-    check_base numeral
-    point, digits = Flt::Support.adjust_digits(
-      numeral.point, numeral.digits.digits_array,
-      round_mode: @mode,
-      negative: numeral.sign == -1,
-      round_up: round_up,
-      base: numeral.base
-    )
-    Numeral[digits, point: point, base: numeral.base, sign: numeral.sign, normalize: :approximate]
-  end
+    # Adjust a truncated numeral using the round-up information
+    def adjust(numeral, round_up)
+      check_base numeral
+      point, digits = Flt::Support.adjust_digits(
+        numeral.point, numeral.digits.digits_array,
+        round_mode: @mode,
+        negative: numeral.sign == -1,
+        round_up: round_up,
+        base: numeral.base
+      )
+      Numeral[digits, point: point, base: numeral.base, sign: numeral.sign, normalize: :approximate]
+    end
 
-  ZERO_DIGITS = 0 # 1?
+    ZERO_DIGITS = 0 # 1?
 
-  # Number of digits in the integer part of the value (excluding leading zeros).
-  def num_integral_digits(value)
-    case value
-    when 0
-      ZERO_DIGITS
-    when Numeral
-      if value.zero?
+    # Number of digits in the integer part of the value (excluding leading zeros).
+    def num_integral_digits(value)
+      case value
+      when 0
         ZERO_DIGITS
-      else
-        if @base != value.base
-          value = value.to_base(@base)
+      when Numeral
+        if value.zero?
+          ZERO_DIGITS
+        else
+          if @base != value.base
+            value = value.to_base(@base)
+          end
+          value.normalized(remove_trailing_zeros: true).point
         end
-        value.normalized(remove_trailing_zeros: true).point
+      else
+        Conversions.order_of_magnitude(value, base: @base)
       end
-    else
-      Conversions.order_of_magnitude(value, base: @base)
     end
+
+    def extract_options(*args)
+      options = {}
+      args = args.first if args.size == 1 && args.first.kind_of?(Array)
+      args.each do |arg|
+        case arg
+        when Hash
+          options.merge! arg
+        when Symbol
+          options[:mode] = arg
+        when Integer
+          options[:precision] = arg
+        when Rounding
+          options.merge! arg.parameters
+        else
+          raise "Invalid Rounding definition"
+        end
+      end
+      options
+    end
+
+    def normalize!
+      self
+    end
+
   end
 
 end

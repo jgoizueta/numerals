@@ -47,4 +47,35 @@ class TestNumeral <  Test::Unit::TestCase # < Minitest::Test
     assert_equal 6, f.base
     assert_equal Rounding[:exact, base: 6], f.rounding
   end
+
+  def test_aspects
+    f = Format[exact_input: true, rounding: Rounding[precision: 5]]
+    assert_equal true, f.exact_input
+    assert_equal Rounding[precision: 5], f.rounding
+
+    f = Format[:exact_input, Rounding[precision: 5]]
+    assert_equal true, f.exact_input
+    assert_equal Rounding[precision: 5], f.rounding
+
+    f = Format[Rounding[precision: 5], exact_input: false]
+    assert_equal false, f.exact_input
+    assert_equal Rounding[precision: 5], f.rounding
+
+    f = f[exact_input: true]
+    assert_equal true, f.exact_input
+    assert_equal Rounding[precision: 5], f.rounding
+
+    f = f[rounding: { precision: 6 }]
+    assert_equal true, f.exact_input
+    assert_equal Rounding[precision: 6], f.rounding
+
+    f = f.set_exact_input(false)
+    assert_equal false, f.exact_input
+    assert_equal Rounding[precision: 6], f.rounding
+
+    f = f.set_rounding(precision: 10)
+    assert_equal false, f.exact_input
+    assert_equal Rounding[precision: 10], f.rounding
+  end
+
 end

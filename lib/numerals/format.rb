@@ -3,16 +3,16 @@ module Numerals
   class Format
 
     def initialize(*args)
+      @exact_input = false
       @rounding = Rounding[]
       set! *args
     end
 
-    attr_reader :rounding
+    attr_reader :rounding, :exact_input
 
     def base
       @rounding.base
     end
-
 
     include ModalSupport::StateEquivalent
 
@@ -26,6 +26,7 @@ module Numerals
 
     def set!(*args)
       options = extract_options(*args)
+      @exact_input = options[:exact_input] if options.has_key?(:exact_input)
       @rounding.set! base: options[:base] if options[:base]
       @rounding.set! options[:rounding] if options[:rounding]
       normalize!
@@ -36,7 +37,10 @@ module Numerals
     end
 
     def parameters
-      { rounding: @rounding }
+      {
+        rounding: @rounding,
+        exact_input: @exact_input
+      }
     end
 
     def set_rounding(*args)
@@ -53,6 +57,15 @@ module Numerals
 
     def set_base(base)
       dup.set_base(base)
+    end
+
+    def set_exact_input!(value)
+      @exact_input = value
+      normalize!
+    end
+
+    def set_exact_input(value)
+      dup.set_exact_input!(value)
     end
 
     def dup
@@ -73,6 +86,8 @@ module Numerals
           options[:rounding] = arg
         when Format
           options.merge arg.parameters
+        when :exact_input
+          options[:exact_input] = true
         else
           raise "Invalid Format definition"
         end

@@ -15,11 +15,11 @@ class TestDigitsDefinition < Test::Unit::TestCase
   end
 
   def define_from_digits(b)
-    DigitsDefinition[default_digits(b)]
+    Format::Format::DigitsDefinition[default_digits(b)]
   end
 
   def define_from_base(b)
-    DigitsDefinition[base: b]
+    Format::DigitsDefinition[base: b]
   end
 
   def check_base(b, digits)
@@ -53,7 +53,7 @@ class TestDigitsDefinition < Test::Unit::TestCase
   end
 
   def test_digits_case
-    uppercase_digits = DigitsDefinition[base: 16, downcase: false]
+    uppercase_digits = Format::DigitsDefinition[base: 16, downcase: false]
 
     assert_equal 10, uppercase_digits.digit_value('A')
     assert_equal 11, uppercase_digits.digit_value('B')
@@ -67,7 +67,7 @@ class TestDigitsDefinition < Test::Unit::TestCase
     assert_equal 'B', uppercase_digits.digit_char(11)
     assert_equal 'F', uppercase_digits.digit_char(15)
 
-    downcase_digits = DigitsDefinition[base: 16, downcase: true]
+    downcase_digits = Format::DigitsDefinition[base: 16, downcase: true]
 
     assert_equal 10, downcase_digits.digit_value('A')
     assert_equal 11, downcase_digits.digit_value('B')
@@ -82,7 +82,7 @@ class TestDigitsDefinition < Test::Unit::TestCase
     assert_equal 'f', downcase_digits.digit_char(15)
 
 
-    cs_uppercase_digits = DigitsDefinition[base: 16, downcase: false, case_sensitive: true]
+    cs_uppercase_digits = Format::DigitsDefinition[base: 16, downcase: false, case_sensitive: true]
 
     assert_equal 10,  cs_uppercase_digits.digit_value('A')
     assert_equal 11,  cs_uppercase_digits.digit_value('B')
@@ -94,7 +94,7 @@ class TestDigitsDefinition < Test::Unit::TestCase
     assert_equal 'B', cs_uppercase_digits.digit_char(11)
     assert_equal 'F', cs_uppercase_digits.digit_char(15)
 
-    cs_downcase_digits = DigitsDefinition[base: 16, downcase: true, case_sensitive: true]
+    cs_downcase_digits = Format::DigitsDefinition[base: 16, downcase: true, case_sensitive: true]
 
     assert_equal 10,  cs_downcase_digits.digit_value('a')
     assert_equal 11,  cs_downcase_digits.digit_value('b')

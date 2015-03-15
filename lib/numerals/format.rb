@@ -7,6 +7,7 @@ module Numerals
   #
   # * Exact input
   # * Rounding
+  # * Format::Mode
   # * ...
   #
   # Some aspects (Rounding, ...) are handled with aspect-definining classes.
@@ -16,10 +17,11 @@ module Numerals
     def initialize(*args)
       @exact_input = false
       @rounding = Rounding[]
+      @mode = Mode[]
       set! *args
     end
 
-    attr_reader :rounding, :exact_input
+    attr_reader :rounding, :exact_input, :mode
 
     def base
       @rounding.base
@@ -40,6 +42,7 @@ module Numerals
       @exact_input = options[:exact_input] if options.has_key?(:exact_input)
       @rounding.set! base: options[:base] if options[:base]
       @rounding.set! options[:rounding] if options[:rounding]
+      @mode.set! options[:mode] if options[:mode] # :format ?
       normalize!
     end
 
@@ -50,7 +53,8 @@ module Numerals
     def parameters
       {
         rounding: @rounding,
-        exact_input: @exact_input
+        exact_input: @exact_input,
+        mode: @mode
       }
     end
 
@@ -79,6 +83,14 @@ module Numerals
       dup.set_exact_input!(value)
     end
 
+    def set_mode(*args)
+      dup.set_mode!(*args)
+    end
+
+    def set_mode!(*args)
+      set! mode: args
+    end
+
     def dup
       # we need deep copy
       Format[parameters]
@@ -95,6 +107,8 @@ module Numerals
           options.merge! arg
         when Rounding
           options[:rounding] = arg
+        when Mode
+          options[:mode] = arg
         when Format
           options.merge arg.parameters
         when :exact_input

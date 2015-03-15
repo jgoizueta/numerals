@@ -52,30 +52,47 @@ class TestNumeral <  Test::Unit::TestCase # < Minitest::Test
     f = Format[exact_input: true, rounding: Rounding[precision: 5]]
     assert_equal true, f.exact_input
     assert_equal Rounding[precision: 5], f.rounding
+    assert_equal Format::Mode[], f.mode
 
     f = Format[:exact_input, Rounding[precision: 5]]
     assert_equal true, f.exact_input
     assert_equal Rounding[precision: 5], f.rounding
+    assert_equal Format::Mode[], f.mode
 
     f = Format[Rounding[precision: 5], exact_input: false]
     assert_equal false, f.exact_input
     assert_equal Rounding[precision: 5], f.rounding
+    assert_equal Format::Mode[], f.mode
+
+    f = Format[Rounding[precision: 5], mode: :fixed]
+    assert_equal false, f.exact_input
+    assert_equal Rounding[precision: 5], f.rounding
+    assert_equal Format::Mode[:fixed], f.mode
 
     f = f[exact_input: true]
     assert_equal true, f.exact_input
     assert_equal Rounding[precision: 5], f.rounding
+    assert_equal Format::Mode[:fixed], f.mode
 
     f = f[rounding: { precision: 6 }]
     assert_equal true, f.exact_input
     assert_equal Rounding[precision: 6], f.rounding
+    assert_equal Format::Mode[:fixed], f.mode
 
     f = f.set_exact_input(false)
     assert_equal false, f.exact_input
     assert_equal Rounding[precision: 6], f.rounding
+    assert_equal Format::Mode[:fixed], f.mode
 
     f = f.set_rounding(precision: 10)
     assert_equal false, f.exact_input
     assert_equal Rounding[precision: 10], f.rounding
+    assert_equal Format::Mode[:fixed], f.mode
+
+    f = f.set_rounding(precision: 10).set_mode(:engineering)
+    assert_equal false, f.exact_input
+    assert_equal Rounding[precision: 10], f.rounding
+    assert_equal Format::Mode[:engineering], f.mode
   end
 
 end

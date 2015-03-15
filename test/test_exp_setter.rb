@@ -6,7 +6,7 @@ include Numerals
 class TestExpSetter <  Test::Unit::TestCase # < Minitest::Test
 
   def check_setter(numeral, n=nil)
-    adjust = ExpSetter[numeral]
+    adjust = Format::ExpSetter[numeral]
     adjust.integer_part_size = n if n
     "#{adjust.integer_part.join}.#{adjust.fractional_part.join}<#{adjust.repeat_part.join}>E#{adjust.exponent}"
   end

@@ -96,6 +96,9 @@ module Numerals
       Format[parameters]
     end
 
+    include Output
+    include Input
+
     private
 
     def extract_options(*args)

@@ -1,6 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'helper.rb'))
 include Numerals
 require 'yaml'
+require 'tempfile'
 
 class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
 
@@ -13,6 +14,14 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
     grouping = Format::Symbols[grouping: [3]]
     assert_equal '1,234,567.123', Format[Rounding[places: 3], grouping].write(1234567.1234)
     # TODO: proper coverage
+  end
+
+  def test_write_to_file
+    file = Tempfile.new('numerals')
+    Format[Rounding[places: 3]].write(1.0, output: file)
+    file.close
+    assert_equal '1.000', File.read(file.path)
+    file.unlink
   end
 
 end

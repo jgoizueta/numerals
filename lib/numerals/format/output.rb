@@ -14,7 +14,7 @@ module Numerals
       text_parts = symbolize_out(num_parts)
       output = options[:output] || StringIO.new
       assemble_out(output, text_parts)
-      output.string
+      options[:output] ? output : output.string
     end
 
     private

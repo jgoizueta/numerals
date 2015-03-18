@@ -66,8 +66,8 @@ class TestFormatMode <  Test::Unit::TestCase # < Minitest::Test
     assert mode.general?
     assert_equal :general, mode.mode
     assert_equal 1, mode.sci_int_digits
-    assert_equal Format::Mode::DEFAULT_MAX_LEADING, mode.max_leading
-    assert_equal Format::Mode::DEFAULT_MAX_TRAILING, mode.max_trailing
+    assert_equal Format::Mode::DEFAULTS[:max_leading], mode.max_leading
+    assert_equal Format::Mode::DEFAULTS[:max_trailing], mode.max_trailing
     assert_equal 1, mode.base_scale
     assert_equal Format::Mode[:general], Format::Mode[]
     assert_equal Format::Mode[:general], Format::Mode[:gen]

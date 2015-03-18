@@ -95,4 +95,30 @@ class TestNumeral <  Test::Unit::TestCase # < Minitest::Test
     assert_equal Format::Mode[:engineering], f.mode
   end
 
+  def test_redefine_aspects
+    f = Format[Format::Mode[max_leading: 10]]
+    f2 = f[Format::Mode[:scientific]]
+    assert_equal :scientific, f2.mode.mode
+    assert_equal Format[].mode.max_leading, f2.mode.max_leading
+    f2 = f[mode: :scientific]
+    assert_equal :scientific, f2.mode.mode
+    assert_equal 10, f2.mode.max_leading
+
+    f = Format[Rounding[base: 2]]
+    f2 = f[Rounding[:simplify]]
+    assert_equal :simplify, f2.rounding.mode
+    assert_equal 10, f2.rounding.base
+    f2 = f[rounding: :simplify]
+    assert_equal :simplify, f2.rounding.mode
+    assert_equal 2, f2.rounding.base
+
+    f = Format[Format::Symbols[plus: 'PLUS']]
+    f2 = f[Format::Symbols[nan: 'Not a Number']]
+    assert_equal 'Not a Number', f2.symbols.nan
+    assert_equal '+', f2.symbols.plus
+    f2 = f[symbols: { nan: 'Not a Number' }]
+    assert_equal 'Not a Number', f2.symbols.nan
+    assert_equal 'PLUS', f2.symbols.plus
+  end
+
 end

@@ -4,20 +4,54 @@ module Numerals
   end
 
   # Formatting mode
+  #
+  # * :scientific use scientific notation.
+  # * :fixed used fixed notation.
+  # * :general (the default) uses :fixed notation unless
+  #   it would produce trailing zeros in the integer part
+  #   or too many leading zeros in the fractional part.
+  #   The intent is to produced the simplest or more natural
+  #   output and it's regulated by the :max_leading and
+  #  :max_trailing parameters.
+  #
+  # The special value :engineering can be used as a shortcut
+  # for :scientific mode with :engineering :sci_int_digits.
+  #
+  # The modes can be abbreviated as :sci, :fix, :gen and :end.
+  #
+  # * :sci_int_digits numbe of digits to the left of the point
+  #   in scientific notation. By default 1. The special value
+  #   :engineering can be used for engineering notation, i.e.
+  #   the number of digits will be between one and 3 so that the
+  #   exponent is a multiple of 3.
+  #   The special value :all is used to make the significand an
+  #   integer value.
+  #
+  # * :max_leading (maximum number of leading zeros) determines
+  #   when :scientific is chosen instead of :fixed when the mode is
+  #   :general.
+  #   The default value, 5 is that of the General Decimal Arithmetic
+  #   'to-scientific-string' number to text conversion, and also used
+  #   by the .NET General ("G") format specifier. To reproduce the
+  #   behaviour of the C %g format specifier the value should be 3.
+  #   The special value :all can be used to reproduce the behaviour
+  #   of some calculators, where scientific notation is used when
+  #   more digits than the specified precision would be needed.
+  #
   class Format::Mode
 
-    DEFAULT_MODE = :general
-    DEFAULT_SCI_INT_DIGITS = 1
-    DEFAULT_MAX_LEADING = 6
-    DEFAULT_MAX_TRAILING = 0
-    DEFAULT_BASE_SCALE = 1
+    DEFAULTS = {
+      mode: :general,
+      sci_int_digits: 1,
+      max_leading: 5,
+      max_trailing: 0,
+      base_scale: 1
+    }
 
     def initialize(*args)
-      @mode = :general
-      @sci_int_digits = DEFAULT_SCI_INT_DIGITS
-      @max_leading = DEFAULT_MAX_LEADING
-      @max_trailing = DEFAULT_MAX_TRAILING
-      @base_scale = DEFAULT_BASE_SCALE
+      DEFAULTS.each do |param, value|
+        instance_variable_set "@#{param}", value
+      end
       set! *args
     end
 
@@ -85,21 +119,23 @@ module Numerals
       @mode == :general
     end
 
-    def parameters
-      p = { mode: @mode }
-      if engineering?
-        p[:mode] = :engineering
-      elsif scientific?
-        p[:sci_int_digits] = @sci_int_digits unless @sci_int_digits == DEFAULT_SCI_INT_DIGITS
+    def parameters(abbreviated=false)
+      params = {}
+      DEFAULTS.each do |param, default|
+        value = instance_variable_get("@#{param}")
+        if !abbreviated || value != default
+          params[param] = value
+        end
       end
-      p[:base_scale] = @base_scale unless @base_scale == DEFAULT_BASE_SCALE
-      p[:max_leading] = @max_leading unless @max_leading == DEFAULT_MAX_LEADING
-      p[:max_trailing] = @max_trailing unless @max_trailing == DEFAULT_MAX_TRAILING
-      p
+      if abbreviated && engineering?
+        params[:mode] = :engineering
+        params.delete :sci_int_digits
+      end
+      params
     end
 
     def to_s
-      "Mode[#{parameters.inspect.unwrap('{}')}]"
+      "Mode[#{parameters(true).inspect.unwrap('{}')}]"
     end
 
     def inspect

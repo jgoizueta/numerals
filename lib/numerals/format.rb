@@ -8,7 +8,7 @@ module Numerals
   # * Exact input
   # * Rounding
   # * Format::Mode
-  # * ...
+  # * Format::Symbols
   #
   # Some aspects (Rounding, ...) are handled with aspect-definining classes.
   #
@@ -18,10 +18,12 @@ module Numerals
       @exact_input = false
       @rounding = Rounding[]
       @mode = Mode[]
+      @symbols = Symbols[]
+      @assembler = :text
       set! *args
     end
 
-    attr_reader :rounding, :exact_input, :mode
+    attr_reader :rounding, :exact_input, :mode, :symbols, :assembler
 
     def base
       @rounding.base
@@ -43,6 +45,9 @@ module Numerals
       @rounding.set! base: options[:base] if options[:base]
       @rounding.set! options[:rounding] if options[:rounding]
       @mode.set! options[:mode] if options[:mode] # :format ?
+      @symbols.set! digits: options[:digits] if options[:digits]
+      @symbols.set! options[:symbols] if options[:symbols]
+      @assembler = options[:assembler] if options[:assembler]
       normalize!
     end
 
@@ -54,8 +59,24 @@ module Numerals
       {
         rounding: @rounding,
         exact_input: @exact_input,
-        mode: @mode
+        mode: @mode,
+        symbols: @symbols,
+        assembler: @assembler
       }
+    end
+
+    def to_s
+      args = []
+      args << "exact_input: true" if @exact_input
+      args << "rounding: #{@rounding}"
+      args << "mode: #{@mode}"
+      args << "symbols: #{@symbols}"
+      args << "assembler: #{@assembler.inspect}" if @assembler != :text
+      "Format[#{args.join(', ')}]"
+    end
+
+    def inspect
+      to_s
     end
 
     def set_rounding(*args)
@@ -91,6 +112,30 @@ module Numerals
       set! mode: args
     end
 
+    def set_symbols(*args)
+      dup.set_symbols!(*args)
+    end
+
+    def set_symbols!(*args)
+      set! symbols: args
+    end
+
+    def set_assembler!(assembler)
+      set! assembler: assembler
+    end
+
+    def set_assembler(assembler)
+      dup.set_assembler(assembler)
+    end
+
+    def set_digits!(digits)
+      set! digits: digits
+    end
+
+    def set_digits(digits)
+      dup.set_digits(digits)
+    end
+
     def dup
       # we need deep copy
       Format[parameters]
@@ -112,10 +157,18 @@ module Numerals
           options[:rounding] = arg
         when Mode
           options[:mode] = arg
+        when Symbols
+          options[:symbols] = arg
+        when Symbols::Digits
+          options[:digits] = arg
         when Format
           options.merge arg.parameters
         when :exact_input
           options[:exact_input] = true
+        when Symbol
+          options[:assembler] = arg
+        when Integer
+          options[:base] = arg
         else
           raise "Invalid Format definition"
         end

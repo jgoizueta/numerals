@@ -1,3 +1,5 @@
+require 'forwardable'
+
 module Numerals
 
   class Format
@@ -36,28 +38,13 @@ module Numerals
 
     attr_reader :base_scale, :scaled_base
 
-    def exponent_base
-      @setter.base
-    end
+    extend Forwardable
+    def_delegators :@setter,
+                   :exponent_base, :exponent, :special?, :special,
+                   :repeating?, :sign
 
     def base
       scaled_base
-    end
-
-    def exponent
-      @setter.exponent
-    end
-
-    def special?
-      @setter.special?
-    end
-
-    def special
-      @setter.special
-    end
-
-    def sign
-      @setter.sign
     end
 
     def fractional_part

@@ -93,6 +93,10 @@ module Numerals
     def truncate!(n)
       @digits_array.slice! n..-1
     end
+
+    def valid?
+      @digits_array.none? { |x| !x.kind_of?(Integer) || x < 0 || x >= @radix }
+    end
   end
 
 end

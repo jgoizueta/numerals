@@ -60,6 +60,10 @@ module Numerals
       @numeral.special
     end
 
+    def repeating?
+      @numeral.repeating?
+    end
+
     def sign
       @numeral.sign
     end

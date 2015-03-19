@@ -62,15 +62,9 @@ class Numerals::FltConversion
     if number.special? # @context.special?(number)
       special_num_to_numeral number
     elsif exact_input
-      if output_base == input_base
+      if output_base == input_base && output_rounding.exact?
         # akin to number.format(base: output_base, simplified: true)
-        if true
-          # ALT.1 just like approximate :simplify
-          general_num_to_numeral number, output_rounding, false
-        else
-          # ALT.2 just like different bases
-          exact_num_to_numeral number, output_rounding
-        end
+        general_num_to_numeral number, output_rounding, false
       else
         # akin to number.format(base: output_base, exact: true)
         exact_num_to_numeral number, output_rounding
@@ -78,7 +72,10 @@ class Numerals::FltConversion
     else
       if output_base == input_base && output_rounding.preserving?
         # akin to number.format(base: output_base)
-        Numeral.from_coefficient_scale number.sign*number.coefficient, number.integral_exponent, approximate: true
+        Numeral.from_coefficient_scale(
+          number.sign*number.coefficient, number.integral_exponent,
+          approximate: true, base: output_base
+        )
       elsif output_rounding.simplifying?
         # akin to number.forma(base: output_base, simplify: true)
         general_num_to_numeral number, output_rounding, false
@@ -147,7 +144,8 @@ class Numerals::FltConversion
 
     dec_pos, digits = formatter.digits
     rep_pos = formatter.repeat
-    numeral = Numerals::Numeral[digits, sign: sign, point: dec_pos, rep_pos: formatter.repeat, base: output_base]
+    normalization ||= rounding.exact? ? :exact : :approximate
+    numeral = Numerals::Numeral[digits, sign: sign, point: dec_pos, rep_pos: formatter.repeat, base: output_base, normalize: normalization]
     if all_digits
       numeral = rounding.round(numeral, round_up: formatter.round_up)
     end

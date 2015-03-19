@@ -75,6 +75,14 @@ class TestRounding <  Test::Unit::TestCase # < Minitest::Test
     assert_equal Numeral[1,0,0, point: 3, sign: -1, normalize: :approximate], r.round(Numeral[1,0,0,4,9,9,9,9,9,9,9,9,9,9,9,9, point: 3, sign: -1])
   end
 
+  def test_extended_rounding
+    # Rounding past the precision of a number
+    r = Rounding[:half_up, precision: 5]
+    assert_equal Numeral[1, 2, 3, 0, 0, point: 1, normalize: :approximate], r.round(Numeral[1, 2, 3, point: 1, normalize: :exact])
+    # currently, approximate numerals cannot be extended
+    assert_equal Numeral[1, 2, 3, point: 1, normalize: :approximate], r.round(Numeral[1, 2, 3, point: 1, normalize: :approximate])
+  end
+
   def test_constructor
     r = Rounding[:exact]
     assert r.exact?

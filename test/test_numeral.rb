@@ -196,6 +196,8 @@ class TestNumeral <  Test::Unit::TestCase # < Minitest::Test
     assert_equal Numeral[1,2,3,4,5,4,5, point: 1, repeat: 1], Numeral.from_quotient(1234544, 999999)
     assert_equal Numeral[1,2,3,4,5,4,5,2,3,4,5, point: 1, repeat: 9], Numeral.from_quotient(678999879, 550000000)
     assert_equal Numeral[1,2,3,4,5,4,5,2,3,4,5, point: 1, repeat: 9], Numeral.from_quotient(678999879, 550000000)
+    assert_equal Numeral[1, 1, point: -3, repeat: -2, base: 2],
+                 Numeral.from_quotient(Rational(1,10), base:2)
   end
 
   def test_numeral_to_quotient

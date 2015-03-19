@@ -17,8 +17,15 @@ Done:
 
 * Rounding can be applied to Numerals (with rounding options)
 
-Pending:
-
 * Numerals can be written into text form using Formatting options
 
+Pending:
+
 * Numerals con be read from text form using Formatting options
+
+* Padding aspect of formatting on output
+
+* Show base indicators on output
+
+* Handling of 'unsignificant' digits: show them either as special
+  symbol, as zeros or omit them (comfigured in Symbols)

@@ -67,7 +67,7 @@ module Numerals
         end
       end
       if @mode.base_scale > 1 && !num_parts.special?
-        num_parts = BaseScale[num_parts, @mode.base_scale]
+        num_parts = Format::BaseScaler[num_parts, @mode.base_scale]
       end
 
       num_parts

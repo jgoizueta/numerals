@@ -86,7 +86,7 @@ module Numerals
 
     def repeat_part
       if @numeral.repeating?
-        if @repeat_phase != 0
+        if @repeat_phase != 0 || @numeral.repeat < 0
           start = @numeral.repeat + @repeat_phase
           (start...start+repeat_part_size).map{|i| @numeral.digit_value_at(i)}
         else
@@ -128,8 +128,12 @@ module Numerals
     end
 
     def leading
-      if @leading_size > 0
-        [0]*@leading_size
+      n = @leading_size
+      if @fractional_end < @fractional_start
+        n += @fractional_end - @fractional_start
+      end
+      if n > 0
+        [0]*n
       else
         []
       end

@@ -37,15 +37,15 @@ Numerals::Format.output_assembler :text do |output, format, text_parts|
     end
     output << text_parts.fractional
     if text_parts.repeat?
-      if format.symbols.rep_delimited
-        output << format.symbols.rep_begin
+      if format.symbols.repeat_delimited
+        output << format.symbols.repeat_begin
         output << text_parts.repeat
-        output << format.symbols.rep_end
+        output << format.symbols.repeat_end
       else
         format.symbols.repeat_count.times do
-          ouput << text_parts.repeat
+          output << text_parts.repeat
         end
-        output << format.symbols.rep_suffix
+        output << format.symbols.repeat_suffix
       end
     end
     if text_parts.exponent_value != 0 || format.mode.mode == :scientific

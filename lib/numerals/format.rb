@@ -165,6 +165,18 @@ module Numerals
           options.merge arg.parameters
         when :exact_input
           options[:exact_input] = true
+        when :hexbin
+          options.merge!(
+            base: 2,
+            mode: {
+              base_scale: 4,
+              mode: :scientific,
+              sci_int_digits: 1
+            },
+            symbols: {
+              exponent: 'p'
+            }
+          )
         when Symbol
           options[:assembler] = arg
         when Integer

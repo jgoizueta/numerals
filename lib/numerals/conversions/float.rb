@@ -56,15 +56,9 @@ class Numerals::FloatConversion
     if @context.special?(number)
       special_float_to_numeral number
     elsif exact_input
-      if output_base == input_base
+      if output_base == input_base && output_rounding.exact?
         # akin to number.format(base: output_base, simplified: true)
-        if true
-          # ALT.1 just like approximate :simplify
-          general_float_to_numeral number, output_rounding, false
-        else
-          # ALT.2 just like different bases
-          exact_float_to_numeral number, output_rounding
-        end
+        general_float_to_numeral number, output_rounding, false
       else
         # akin to number.format(base: output_base, exact: true)
         exact_float_to_numeral number, output_rounding
@@ -72,8 +66,11 @@ class Numerals::FloatConversion
     else
       if output_base == input_base && output_rounding.preserving?
         # akin to number.format(base: output_base)
-        sign, coefficient, exp = number.split
-        Numerals::Numeral.from_coefficient_scale sign*coefficient, exp, approximate: true
+        sign, coefficient, exp = @context.split(number)
+        Numerals::Numeral.from_coefficient_scale(
+          sign*coefficient, exp,
+          approximate: true, base: output_base
+        )
       elsif output_rounding.simplifying?
         # akin to number.forma(base: output_base, simplify: true)
         general_float_to_numeral number, output_rounding, false
@@ -174,7 +171,11 @@ class Numerals::FloatConversion
 
     dec_pos, digits = formatter.digits
     rep_pos = formatter.repeat
-    numeral = Numerals::Numeral[digits, sign: sign, point: dec_pos, rep_pos: rep_pos, base: output_base]
+    normalization = rounding.exact? ? :exact : :approximate # ? => :exact rounding 1.0 -> 1; otherwise 1.0000000000000000
+    # but should't :simplify be used to get 1? rather than :exact (note that the number is considered approximate here)
+    # normalization = :approximate
+    numeral = Numerals::Numeral[digits, sign: sign, point: dec_pos, rep_pos: rep_pos, base: output_base,
+                                normalize: normalization]
     if all_digits
       numeral = rounding.round(numeral, round_up: formatter.round_up)
     end

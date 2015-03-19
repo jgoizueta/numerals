@@ -277,6 +277,11 @@ module Numerals
       end
     end
 
+    def set_group_thousands(sep = nil)
+      @group_separator = sep if sep
+      @grouping = [3]
+    end
+
     def set_signs(plus, minus)
       @plus = plus
       @minus = minus
@@ -348,6 +353,8 @@ module Numerals
           options[:digits] = arg
         when Format::Symbols
           options.merge! arg.parameters
+        when :group_thousands
+          options[:grouping] = [3]
         else
           raise "Invalid Symbols definition"
         end

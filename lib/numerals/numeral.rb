@@ -515,7 +515,7 @@ module Numerals
       else
         sign = +1
       end
-      digits = Digits[radix]
+      digits = Digits[base: radix]
       digits.value = coefficient
       point = scale + digits.size
       normalization = options[:normalize] || :exact

@@ -52,7 +52,7 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
     assert_equal '1.00', Format[rounding: :preserve].write(Flt::DecNum('1.00'))
     assert_equal '1', Format[].write(Flt::DecNum('1.00'))
 
-    # Note that currently, insignificant digits are not shown
+    # Note that insignificant digits are not shown by default
     # (note also the 'additional' 0 is not insignificant, since it could only
     # be 0-5 without altering the rounded value 1.00)
     assert_equal '1.000', Format[Rounding[precision: 10]].write(Flt::DecNum('1.00'))
@@ -217,6 +217,80 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
     assert_equal '12.345E3', f.write(Flt::DecNum('12345.0'))
     assert_equal '123.45E3', f.write(Flt::DecNum('12345E1'))
     assert_equal '1.2345E6', f.write(Flt::DecNum('12345E2'))
+  end
+
+  def test_insignificant_fractional
+    fmt = Format[symbols: [insignificant_digit: '?']]
+
+    assert_equal '1.000??????', fmt[Rounding[precision: 10]].write(Flt::DecNum('1.00'))
+    assert_equal '1.000??', fmt[Rounding[places: 5]].write(Flt::DecNum('1.00'))
+    assert_equal '1.000', fmt[Rounding[precision: 4]].write(Flt::DecNum('1.00'))
+    assert_equal '1.00', fmt[Rounding[precision: 3]].write(Flt::DecNum('1.00'))
+
+    assert_equal '1.000??', fmt[Rounding[places: 5]].write(Flt::DecNum('1.00'))
+    assert_equal '1.000?', fmt[Rounding[places: 4]].write(Flt::DecNum('1.00'))
+    assert_equal '1.000', fmt[Rounding[places: 3]].write(Flt::DecNum('1.00'))
+    assert_equal '1.00', fmt[Rounding[places: 2]].write(Flt::DecNum('1.00'))
+    assert_equal '1.0', fmt[Rounding[places: 1]].write(Flt::DecNum('1.00'))
+
+    assert_equal '1.000?', fmt[Rounding[precision: 5]].write(Flt::DecNum('1.00'))
+    assert_equal '1.000', fmt[Rounding[precision: 4]].write(Flt::DecNum('1.00'))
+    assert_equal '1.00', fmt[Rounding[precision: 3]].write(Flt::DecNum('1.00'))
+    assert_equal '1.0', fmt[Rounding[precision: 2]].write(Flt::DecNum('1.00'))
+    assert_equal '1.000', fmt[Rounding[places: 3]].write(Flt::DecNum('1.00'))
+    assert_equal '1.00', fmt[Rounding[places: 2]].write(Flt::DecNum('1.00'))
+    assert_equal '1.0', fmt[Rounding[places: 1]].write(Flt::DecNum('1.00'))
+
+    fmt = Format[symbols: [insignificant_digit: 0]]
+
+    assert_equal '1.000000000', fmt[Rounding[precision: 10]].write(Flt::DecNum('1.00'))
+    assert_equal '1.00000', fmt[Rounding[places: 5]].write(Flt::DecNum('1.00'))
+    assert_equal '1.000', fmt[Rounding[precision: 4]].write(Flt::DecNum('1.00'))
+    assert_equal '1.00', fmt[Rounding[precision: 3]].write(Flt::DecNum('1.00'))
+
+    assert_equal '1.00000', fmt[Rounding[places: 5]].write(Flt::DecNum('1.00'))
+    assert_equal '1.0000', fmt[Rounding[places: 4]].write(Flt::DecNum('1.00'))
+    assert_equal '1.000', fmt[Rounding[places: 3]].write(Flt::DecNum('1.00'))
+    assert_equal '1.00', fmt[Rounding[places: 2]].write(Flt::DecNum('1.00'))
+    assert_equal '1.0', fmt[Rounding[places: 1]].write(Flt::DecNum('1.00'))
+
+    assert_equal '1.0000', fmt[Rounding[precision: 5]].write(Flt::DecNum('1.00'))
+    assert_equal '1.000', fmt[Rounding[precision: 4]].write(Flt::DecNum('1.00'))
+    assert_equal '1.00', fmt[Rounding[precision: 3]].write(Flt::DecNum('1.00'))
+    assert_equal '1.0', fmt[Rounding[precision: 2]].write(Flt::DecNum('1.00'))
+    assert_equal '1.000', fmt[Rounding[places: 3]].write(Flt::DecNum('1.00'))
+    assert_equal '1.00', fmt[Rounding[places: 2]].write(Flt::DecNum('1.00'))
+    assert_equal '1.0', fmt[Rounding[places: 1]].write(Flt::DecNum('1.00'))
+
+    fmt = Format[symbols: [insignificant_digit: '?']]
+    context = Flt::BinNum::IEEEDoubleContext
+    x = Flt::BinNum('0.1', :fixed, context: context)
+    assert_equal '0.100000000000000', fmt[rounding: [precision: 15]].write(x)
+    assert_equal '0.1000000000000000', fmt[rounding: [precision: 16]].write(x)
+    assert_equal '0.10000000000000001', fmt[rounding: [precision: 17]].write(x)
+    assert_equal '0.10000000000000001?', fmt[rounding: [precision: 18]].write(x)
+    assert_equal '0.10000000000000001??', fmt[rounding: [precision: 19]].write(x)
+    assert_equal '0.10000000000000001???', fmt[rounding: [precision: 20]].write(x)
+
+    fmt = fmt[exact_input: true]
+    assert_equal '0.100000000000000', fmt[rounding: [precision: 15]].write(x)
+    assert_equal '0.1000000000000000', fmt[rounding: [precision: 16]].write(x)
+    assert_equal '0.10000000000000001', fmt[rounding: [precision: 17]].write(x)
+    assert_equal '0.100000000000000006', fmt[rounding: [precision: 18]].write(x)
+    assert_equal '0.1000000000000000056', fmt[rounding: [precision: 19]].write(x)
+    assert_equal '0.10000000000000000555', fmt[rounding: [precision: 20]].write(x)
+  end
+
+  def test_insignificant_integral
+    fmt = Format[mode: :fixed]
+    x = Flt::DecNum('1234E5')
+    assert_equal '123400000', fmt[rounding: [precision: 7]].write(x)
+    assert_equal '123400000', fmt[rounding: [precision: 15]].write(x)
+    fmt = fmt[symbols: [insignificant_digit: '?']]
+    assert_equal '1234?????.??????', fmt[rounding: [precision: 15]].write(x)
+    assert_equal '1234?????', fmt[rounding: [precision: 7]].write(x)
+    fmt = fmt[symbols: [grouping: [3]]]
+    assert_equal '123,4??,???.??????', fmt[rounding: [precision: 15]].write(x)
   end
 
 end

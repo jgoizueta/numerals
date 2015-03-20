@@ -22,6 +22,7 @@ class TextParts
 
  text_part :special
  text_part :sign, :integer, :fractional, :repeat, :exponent, :exponent_base
+ text_part :insignificant
 
  attr_accessor :integer_value, :exponent_value, :exponent_base_value
 

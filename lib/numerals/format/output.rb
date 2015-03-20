@@ -10,8 +10,11 @@ module Numerals
 
     def write(number, options={})
       numeral = conversion_out(number)
+      if numeral.approximate?
+        insignificant_digits = @rounding.precision(numeral) - numeral.digits.size
+      end
       num_parts = partition_out(numeral)
-      text_parts = symbolize_out(num_parts)
+      text_parts = symbolize_out(num_parts, insignificant_digits: insignificant_digits)
       output = options[:output] || StringIO.new
       assemble_out(output, text_parts)
       options[:output] ? output : output.string
@@ -75,7 +78,8 @@ module Numerals
       num_parts
     end
 
-    def symbolize_out(num_parts) # => text_parts Hash
+    def symbolize_out(num_parts, options={}) # => text_parts Hash
+      insignificant_digits = options[:insignificant_digits] || 0
       text_parts = TextParts.new
       if num_parts.special?
         case num_parts.special
@@ -113,6 +117,9 @@ module Numerals
         # end
         text_parts.exponent_base = num_parts.exponent_base.to_s(10) # use digits_definition ?
         text_parts.exponent_base_value = num_parts.exponent_base
+        if insignificant_digits > 0
+          text_parts.insignificant = @symbols.insignificant_digits_text(insignificant_digits)
+        end
       end
       # TODO: justification
       # TODO: base indicator for significand? significand_bas?

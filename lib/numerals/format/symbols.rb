@@ -1,5 +1,12 @@
 module Numerals
 
+  #
+  # * insignificant_digit : symbol to represent insignificant digits;
+  #   use nil (the default) to omit insignificant digits and 0
+  #   for a zero digit. Insignificant digits are digits which, in an
+  #   approximate value, are not determined: they could change to any
+  #   other digit and the approximated value would be the same.
+  #
   class Format::Symbols
 
 
@@ -171,7 +178,8 @@ module Numerals
       show_point: false,
       repeat_delimited: false,
       repeat_count: 3,
-      grouping: []
+      grouping: [],
+      insignificant_digit: nil
     }
 
     def initialize(*args)
@@ -190,7 +198,7 @@ module Numerals
     # TODO: transmit uppercase/lowercase to digits
 
     attr_reader :digits, :nan, :infinity, :plus, :minus, :exponent, :point,
-                :group_separator, :zero
+                :group_separator, :zero, :insignificant_digit
     attr_reader :repeat_begin, :repeat_end, :repeat_suffix, :repeat_delimited
     attr_reader :show_plus, :show_exponent_plus, :uppercase, :lowercase,
                 :show_zero, :show_point
@@ -200,7 +208,8 @@ module Numerals
                 :minus, :exponent, :point, :group_separator, :zero,
                 :repeat_begin, :repeat_end, :repeat_suffix,
                 :show_plus, :show_exponent_plus, :show_zero, :show_point,
-                :repeat_delimited, :repeat_count, :grouping
+                :repeat_delimited, :repeat_count, :grouping,
+                :insignificant_digit
 
     include ModalSupport::StateEquivalent
 
@@ -342,6 +351,16 @@ module Numerals
         digit_values = group_digits(digit_values)
       end
       @digits.digits_text(digit_values, options.merge(separator: @group_separator))
+    end
+
+    def insignificant_digits_text(num_digits)
+      if @insignificant_digit.nil?
+        ''
+      else
+        symbol = @insignificant_digit
+        symbol = zero if symbol == 0
+        symbol*num_digits
+      end
     end
 
     private

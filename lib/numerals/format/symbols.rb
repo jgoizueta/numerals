@@ -95,11 +95,21 @@ module Numerals
       # The nil value can be used in the digits sequence to
       # represent the group separator.
       def digits_text(digit_values, options={})
+        insignificant_digits = options[:insignificant_digits] || 0
+        num_digits = digit_values.reduce(0) { |num, digit|
+          digit.nil? ? num : num + 1
+        }
+        num_digits -= insignificant_digits
         digit_values.map { |d|
           if d.nil?
             options[:separator]
           else
-            digit_symbol(d, options)
+            num_digits -= 1
+            if num_digits >= 0
+              digit_symbol(d, options)
+            else
+              options[:insignificant_symbol]
+            end
           end
         }.join
       end
@@ -350,17 +360,15 @@ module Numerals
       if options[:with_grouping]
         digit_values = group_digits(digit_values)
       end
-      @digits.digits_text(digit_values, options.merge(separator: @group_separator))
-    end
-
-    def insignificant_digits_text(num_digits)
-      if @insignificant_digit.nil?
-        ''
-      else
-        symbol = @insignificant_digit
-        symbol = zero if symbol == 0
-        symbol*num_digits
-      end
+      insignificant_symbol = @insignificant_digit
+      insignificant_symbol = zero if insignificant_symbol == 0
+      @digits.digits_text(
+        digit_values,
+        options.merge(
+          separator: @group_separator,
+          insignificant_symbol: insignificant_symbol
+        )
+      )
     end
 
     private

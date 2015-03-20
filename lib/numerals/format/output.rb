@@ -10,11 +10,14 @@ module Numerals
 
     def write(number, options={})
       numeral = conversion_out(number)
-      if numeral.approximate?
+      if numeral.approximate? && !@rounding.exact?
         insignificant_digits = @rounding.precision(numeral) - numeral.digits.size
+        if insignificant_digits > 0
+          numeral.expand! @rounding.precision(numeral)
+        end
       end
-      num_parts = partition_out(numeral)
-      text_parts = symbolize_out(num_parts, insignificant_digits: insignificant_digits)
+      num_parts = partition_out(numeral, insignificant_digits: insignificant_digits)
+      text_parts = symbolize_out(num_parts)
       output = options[:output] || StringIO.new
       assemble_out(output, text_parts)
       options[:output] ? output : output.string
@@ -22,12 +25,12 @@ module Numerals
 
     private
 
-    def digits_text(part, base)
-      @symbols.digits_text(part, base: base)
+    def digits_text(part, options = {})
+      @symbols.digits_text(part, options)
     end
 
-    def grouped_digits_text(part, base)
-      @symbols.digits_text(part, base: base, with_grouping: true)
+    def grouped_digits_text(part, options = {})
+      @symbols.digits_text(part, options.merge(with_grouping: true))
     end
 
     def conversion_out(number) # => Numeral
@@ -35,8 +38,8 @@ module Numerals
       Conversions.write(number, conversion_options)
     end
 
-    def partition_out(numeral) # => num_parts (ExpSetting/BaseScaler)
-      num_parts = Format::ExpSetter[numeral]
+    def partition_out(numeral, options={}) # => num_parts (ExpSetting/BaseScaler)
+      num_parts = Format::ExpSetter[numeral, options]
       return num_parts if numeral.special?
       mode = @mode.mode
       if mode == :general
@@ -78,8 +81,7 @@ module Numerals
       num_parts
     end
 
-    def symbolize_out(num_parts, options={}) # => text_parts Hash
-      insignificant_digits = options[:insignificant_digits] || 0
+    def symbolize_out(num_parts) # => text_parts Hash
       text_parts = TextParts.new
       if num_parts.special?
         case num_parts.special
@@ -104,12 +106,30 @@ module Numerals
           end
           text_parts.integer_value = 0
         else
-          text_parts.integer = grouped_digits_text(num_parts.integer_part, num_parts.base)
+          if @symbols.insignificant_digit.nil?
+            # we can't just omit integer part symbols
+            integer_insignificant_digits = 0
+          else
+            integer_insignificant_digits = num_parts.integer_insignificant_size
+          end
+          text_parts.integer = grouped_digits_text(
+                                 num_parts.integer_part,
+                                 insignificant_digits: integer_insignificant_digits,
+                                 base: num_parts.base
+                               )
           text_parts.integer_value = Numerals::Digits[num_parts.integer_part, base: num_parts.base].value
         end
-        text_parts.fractional = digits_text(num_parts.fractional_part, num_parts.base)
+        text_parts.fractional = digits_text(
+                                  num_parts.fractional_part,
+                                  insignificant_digits: num_parts.fractional_insignificant_size,
+                                  baseL: num_parts.base
+                                )
         if num_parts.repeating?
-          text_parts.repeat = digits_text(num_parts.repeat_part, num_parts.base)
+          text_parts.repeat = digits_text(
+                                num_parts.repeat_part,
+                                insignificant_digits: num_parts.repeat_insignificant_size,
+                                base: num_parts.base
+                              )
         end
         text_parts.exponent_value = num_parts.exponent
         # if num_parts.exponent != 0 || @mode.mode == :scientific
@@ -117,9 +137,6 @@ module Numerals
         # end
         text_parts.exponent_base = num_parts.exponent_base.to_s(10) # use digits_definition ?
         text_parts.exponent_base_value = num_parts.exponent_base
-        if insignificant_digits > 0
-          text_parts.insignificant = @symbols.insignificant_digits_text(insignificant_digits)
-        end
       end
       # TODO: justification
       # TODO: base indicator for significand? significand_bas?

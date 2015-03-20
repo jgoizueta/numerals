@@ -287,10 +287,10 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
     assert_equal '123400000', fmt[rounding: [precision: 7]].write(x)
     assert_equal '123400000', fmt[rounding: [precision: 15]].write(x)
     fmt = fmt[symbols: [insignificant_digit: '?']]
-    assert_equal '1234?????.??????', fmt[rounding: [precision: 15]].write(x)
-    assert_equal '1234?????', fmt[rounding: [precision: 7]].write(x)
+    assert_equal '12340????.??????', fmt[rounding: [precision: 15]].write(x)
+    assert_equal '12340????', fmt[rounding: [precision: 7]].write(x)
     fmt = fmt[symbols: [grouping: [3]]]
-    assert_equal '123,4??,???.??????', fmt[rounding: [precision: 15]].write(x)
+    assert_equal '123,40?,???.??????', fmt[rounding: [precision: 15]].write(x)
   end
 
 end

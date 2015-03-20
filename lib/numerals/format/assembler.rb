@@ -48,9 +48,6 @@ Numerals::Format.output_assembler :text do |output, format, text_parts|
         output << format.symbols.repeat_suffix
       end
     end
-    if text_parts.insignificant?
-      output << text_parts.insignificant
-    end
     if text_parts.exponent_value != 0 || format.mode.mode == :scientific
       output << format.symbols.exponent
       output << text_parts.exponent
@@ -73,9 +70,6 @@ Numerals::Format.output_assembler :latex do |output, format, text_parts|
     output << text_parts.fractional
     if text_parts.repeat?
       output << "\\overline{#{text_parts.repeat}}"
-    end
-    if text_parts.insignificant?
-      output << text_parts.insignificant
     end
     if text_parts.exponent_value != 0 || format.mode.mode == :scientific
       output << "\\times"
@@ -105,9 +99,6 @@ Numerals::Format.output_assembler :html do |output, format, text_parts|
     output << text_parts.fractional
     if text_parts.repeat
       output << %(<span style="text-decoration: overline">#{text_parts.repeat}</span>)
-    end
-    if text_parts.insignificant?
-      output << text_parts.insignificant
     end
     if text_parts.exponent_value != 0 || format.mode.mode == :scientific
       output << "&times;"

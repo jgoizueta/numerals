@@ -56,6 +56,14 @@ module Numerals
       (@setter.fractional_part_size + @scaling_trailing_size)/@base_scale
     end
 
+    def fractional_insignificant_size
+      if @setter.numeral.approximate?
+        (@setter.fractional_insignificant_size + @scaling_trailing_size)/@base_scale
+      else
+        0
+      end
+    end
+
     def integer_part
       ungrouped = [0]*@scaling_leading_size + @setter.integer_part
       grouped_digits ungrouped
@@ -65,8 +73,20 @@ module Numerals
       (@setter.integer_part_size + @scaling_leading_size)/@base_scale
     end
 
+    def integer_insignificant_size
+      if @setter.numeral.approximate?
+        (@setter.integer_insignificant_size + @scaling_leading_size)/@base_scale
+      else
+        0
+      end
+    end
+
     def repeat_size_size
       @repeat_length/@base_scale
+    end
+
+    def repeat_insignificant_size
+      0
     end
 
     def repeat_part

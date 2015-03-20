@@ -29,7 +29,8 @@ module Numerals
   #
   class Format::ExpSetter
 
-    def initialize(numeral)
+    def initialize(numeral, options={})
+      @insignificant_digits = options[:insignificant_digits] || 0
       @numeral = numeral
       @integer_part_size = @numeral.point
       @digits = @numeral.digits
@@ -117,6 +118,12 @@ module Numerals
       @fractional_end - @fractional_start + @leading_size
     end
 
+    attr_reader :integer_insignificant_size, :fractional_insignificant_size
+
+    def repeat_insignificant_size
+      0
+    end
+
     private
 
     def trailing
@@ -140,15 +147,18 @@ module Numerals
     end
 
     def adjust
+      raise "Inconsistet number of insignficant digits" if @numeral.repeating? && @insignificant_digits > 0
       if special?
         @leading_size = @trailing_size = 0
         @integer_start = @integer_end = 0
         @fractional_start = @fractional_end = 0
         @repeat_phase = 0
+        @integer_insignificant_size = @fractional_insignificant_size = 0
       elsif @integer_part_size <= 0
         @trailing_size = 0
         # integer_part == []
         @integer_start = @integer_end = @digits.size
+        @integer_insignificant_size = 0
         if !@numeral.repeating? || @numeral.repeat >= 0 || @integer_part_size >= @numeral.repeat
           @leading_size = -@integer_part_size
           @fractional_start = 0
@@ -158,14 +168,17 @@ module Numerals
             else
               @fractional_end = @digits.size
             end
+            @fractional_insignificant_size = 0
           else
             @fractional_end = @digits.size
+            @fractional_insignificant_size = [@insignificant_digits, @digits.size].min
           end
           @repeat_phase = 0
         else
           @leading_size = @numeral.repeat - @integer_part_size
           @trailing_size = 0
           @fractional_start = @fractional_end = @digits.size
+          @fractional_insignificant_size = 0
           @repeat_phase = 0
         end
       elsif @integer_part_size >= @digits.size
@@ -173,6 +186,11 @@ module Numerals
         @leading_size = 0
         @integer_start = 0
         @integer_end = @digits.size
+        @integer_insignificant_size = @insignificant_digits
+        if @numeral.approximate?
+          @integer_insignificant_size += @trailing_size
+        end
+        @fractional_insignificant_size = 0
         if @numeral.repeating?
           @repeat_phase = @trailing_size % repeat_part_size
           @fractional_start = @fractional_end = @digits.size
@@ -184,13 +202,16 @@ module Numerals
         @trailing_size = @leading_size = 0
         @integer_start = 0
         @integer_end   = @integer_part_size
+        @integer_insignificant_size = [@insignificant_digits - (@digits.size - @integer_part_size), 0].max
         if @numeral.repeating? && @numeral.repeat < @integer_part_size
           @repeat_phase = (@integer_end - @numeral.repeat) % repeat_part_size
           @fractional_start = @fractional_end = @digits.size
+          @fractional_insignificant_size = 0
         else
           @repeat_phase = 0
           @fractional_start = @integer_part_size
           @fractional_end   = @numeral.repeat || @digits.size
+          @fractional_insignificant_size = [@insignificant_digits, @fractional_end - @fractional_start].min
         end
       end
     end

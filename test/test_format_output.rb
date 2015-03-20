@@ -150,7 +150,6 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
 
     assert_equal '0.00011001100110011001100110011001100110011001100110011010',
                   Format[base: 2, rounding: :preserve].write(x)
-
   end
 
   def test_write_binnum_bin
@@ -161,7 +160,6 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
 
     assert_equal '0.00011001100110011001100110011001100110011001100110011010',
                   Format[base: 2, rounding: :preserve].write(x)
-
   end
 
 
@@ -171,14 +169,54 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
     assert_equal "1.999999999999Ap-4", Format[:hexbin].write(x)
   end
 
-
-
   def test_write_to_file
     file = Tempfile.new('numerals')
     Format[Rounding[places: 3]].write(1.0, output: file)
     file.close
     assert_equal '1.000', File.read(file.path)
     file.unlink
+  end
+
+  def test_modes
+    f = Format[mode: [:general, max_leading: 3, max_trailing: 0], symbols: [uppercase: true]]
+    assert_equal '123.45', f.write(Flt::DecNum('123.45'))
+    assert_equal '0.00012345', f.write(Flt::DecNum('0.00012345'))
+    assert_equal '1.2345E-5', f.write(Flt::DecNum('0.000012345'))
+    assert_equal '1.2345E-6', f.write(Flt::DecNum('0.0000012345'))
+    assert_equal '1234.5', f.write(Flt::DecNum('1234.5'))
+    assert_equal '12345', f.write(Flt::DecNum('12345.0'))
+    assert_equal '1.2345E5', f.write(Flt::DecNum('12345E1'))
+    assert_equal '1.2345E6', f.write(Flt::DecNum('12345E2'))
+
+    f = Format[mode: [:scientific, max_leading: 3, max_trailing: 0], symbols: [uppercase: true]]
+    assert_equal '1.2345E2', f.write(Flt::DecNum('123.45'))
+    assert_equal '1.2345E-4', f.write(Flt::DecNum('0.00012345'))
+    assert_equal '1.2345E-5', f.write(Flt::DecNum('0.000012345'))
+    assert_equal '1.2345E-6', f.write(Flt::DecNum('0.0000012345'))
+    assert_equal '1.2345E3', f.write(Flt::DecNum('1234.5'))
+    assert_equal '1.2345E4', f.write(Flt::DecNum('12345.0'))
+    assert_equal '1.2345E5', f.write(Flt::DecNum('12345E1'))
+    assert_equal '1.2345E6', f.write(Flt::DecNum('12345E2'))
+
+    f = Format[mode: [:fixed, max_leading: 3, max_trailing: 0], symbols: [uppercase: true]]
+    assert_equal '123.45', f.write(Flt::DecNum('123.45'))
+    assert_equal '0.00012345', f.write(Flt::DecNum('0.00012345'))
+    assert_equal '0.000012345', f.write(Flt::DecNum('0.000012345'))
+    assert_equal '0.0000012345', f.write(Flt::DecNum('0.0000012345'))
+    assert_equal '1234.5', f.write(Flt::DecNum('1234.5'))
+    assert_equal '12345', f.write(Flt::DecNum('12345.0'))
+    assert_equal '123450', f.write(Flt::DecNum('12345E1'))
+    assert_equal '1234500', f.write(Flt::DecNum('12345E2'))
+
+    f = Format[mode: :engineering, symbols: [uppercase: true]]
+    assert_equal '123.45E0', f.write(Flt::DecNum('123.45'))
+    assert_equal '123.45E-6', f.write(Flt::DecNum('0.00012345'))
+    assert_equal '12.345E-6', f.write(Flt::DecNum('0.000012345'))
+    assert_equal '1.2345E-6', f.write(Flt::DecNum('0.0000012345'))
+    assert_equal '1.2345E3', f.write(Flt::DecNum('1234.5'))
+    assert_equal '12.345E3', f.write(Flt::DecNum('12345.0'))
+    assert_equal '123.45E3', f.write(Flt::DecNum('12345E1'))
+    assert_equal '1.2345E6', f.write(Flt::DecNum('12345E2'))
   end
 
 end

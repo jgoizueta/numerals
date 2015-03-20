@@ -47,7 +47,9 @@ module Numerals
         else
           max_leading = @mode.max_leading
         end
-        if num_parts.leading_size > max_leading || num_parts.trailing_size > @mode.max_trailing
+        check_trailing = !numeral.repeating?
+        if num_parts.leading_size > max_leading ||
+           check_trailing && (num_parts.trailing_size > @mode.max_trailing)
           mode = :scientific
         end
       end
@@ -56,7 +58,7 @@ module Numerals
       when :fixed
         num_parts.exponent = 0
       when :scientific
-        if @mode.sci_int_digits == :eng
+        if @mode.sci_int_digits == :engineering
           num_parts.integer_part_size = 1
           num_parts.integer_part_size += 1 while (num_parts.exponent % 3) != 0
         elsif @mode.sci_int_digits == :all

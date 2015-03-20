@@ -38,6 +38,10 @@ module Numerals
       attr_reader :digits, :max_base, :case_sensitive, :uppercase, :lowercase
       attr_writer :case_sensitive
 
+      def set(*args)
+        dup.set! *args
+      end
+
       def digits=(digits)
         @digits = digits
         @max_base = @digits.size
@@ -367,7 +371,7 @@ module Numerals
         @nan = @nan.upcase
         @infinity = @infinity.upcase
         @plus = @plus.upcase
-        @exponent = @exponent.upcae
+        @exponent = @exponent.upcase
         @point = @point.upcase
         @group_separator = @group_separator.upcase
         @zero = @zero.upcase if @zero

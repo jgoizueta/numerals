@@ -691,4 +691,42 @@ class TestExpSetter <  Test::Unit::TestCase # < Minitest::Test
                  check_setter(Numeral[digits_1_9, point: 50, repeat: 6], -2)
   end
 
+  def test_special_cases
+    # 0.0123<0000000000123>
+    num = Numeral[1,2,3, repeat: -10, point: -1]
+    assert_equal ".0123<0000000000123>E0", check_setter(num, nil)
+    parts = Format::ExpSetter[num]
+    assert_equal -1, parts.integer_part_size
+    assert_equal 0, parts.integer_part.size
+    assert_equal 4, parts.fractional_part_size
+    assert_equal 13, parts.repeat_part_size
+    assert_equal [], parts.integer_part.to_a
+    assert_equal [0,1,2,3], parts.fractional_part.to_a
+    assert_equal [0,0,0,0,0,0,0,0,0,0,1,2,3], parts.repeat_part.to_a
+
+    # 0.123<0000000000123>
+    num = Numeral[1,2,3, repeat: -10, point: 0]
+    assert_equal ".123<0000000000123>E0", check_setter(num, nil)
+    parts = Format::ExpSetter[num]
+    assert_equal 0, parts.integer_part_size
+    assert_equal 0, parts.integer_part.size
+    assert_equal 3, parts.fractional_part_size
+    assert_equal 13, parts.repeat_part_size
+    assert_equal [], parts.integer_part.to_a
+    assert_equal [1,2,3], parts.fractional_part.to_a
+    assert_equal [0,0,0,0,0,0,0,0,0,0,1,2,3], parts.repeat_part.to_a
+
+    # 1.<23<0000000001>
+    num = Numeral[1,2,3, repeat: -10, point: 1]
+    assert_equal "1.<2300000000001>E0", check_setter(num, nil)
+    parts = Format::ExpSetter[num]
+    assert_equal 1, parts.integer_part_size
+    assert_equal 1, parts.integer_part.size
+    assert_equal 0, parts.fractional_part_size
+    assert_equal 13, parts.repeat_part_size
+    assert_equal [1], parts.integer_part.to_a
+    assert_equal [], parts.fractional_part.to_a
+    assert_equal [2,3,0,0,0,0,0,0,0,0,0,0,1], parts.repeat_part.to_a
+  end
+
 end

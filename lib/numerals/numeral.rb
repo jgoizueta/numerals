@@ -214,7 +214,8 @@ module Numerals
       else
         repeated_length = @digits.size - @repeat
         i = (i - @repeat) % repeated_length
-        @digits[i + @repeat]
+        i += @repeat
+        i < 0 ? 0 : @digits[i]
       end
     end
 

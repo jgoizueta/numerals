@@ -376,4 +376,26 @@ class TestNumeral <  Test::Unit::TestCase # < Minitest::Test
     assert_equal Digits[1,2,3,4,5], exact.digits
   end
 
+  def test_digit_value_at
+    n = Numeral[1,2,3, repeat: -10, point: 1]
+    (-20...0).each do |i|
+      assert_equal 0, n.digit_value_at(i)
+    end
+    assert_equal 1, n.digit_value_at(0)
+    assert_equal 2, n.digit_value_at(1)
+    assert_equal 3, n.digit_value_at(2)
+    (3...13).each do |i|
+      assert_equal 0, n.digit_value_at(i)
+    end
+    assert_equal 1, n.digit_value_at(13)
+    assert_equal 2, n.digit_value_at(14)
+    assert_equal 3, n.digit_value_at(15)
+    (16...26).each do |i|
+      assert_equal 0, n.digit_value_at(i)
+    end
+    assert_equal 1, n.digit_value_at(26)
+    assert_equal 2, n.digit_value_at(27)
+    assert_equal 3, n.digit_value_at(28)
+  end
+
 end

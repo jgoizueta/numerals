@@ -146,13 +146,28 @@ module Numerals
         @fractional_start = @fractional_end = 0
         @repeat_phase = 0
       elsif @integer_part_size <= 0
-        @leading_size = -@integer_part_size
         @trailing_size = 0
         # integer_part == []
         @integer_start = @integer_end = @digits.size
-        @fractional_start = 0
-        @fractional_end   = @numeral.repeat || @digits.size
-        @repeat_phase = 0
+        if !@numeral.repeating? || @numeral.repeat >= 0 || @integer_part_size >= @numeral.repeat
+          @leading_size = -@integer_part_size
+          @fractional_start = 0
+          if @numeral.repeat
+            if @numeral.repeat >= 0
+              @fractional_end  = @numeral.repeat
+            else
+              @fractional_end = @digits.size
+            end
+          else
+            @fractional_end = @digits.size
+          end
+          @repeat_phase = 0
+        else
+          @leading_size = @numeral.repeat - @integer_part_size
+          @trailing_size = 0
+          @fractional_start = @fractional_end = @digits.size
+          @repeat_phase = 0
+        end
       elsif @integer_part_size >= @digits.size
         @trailing_size = @integer_part_size - @digits.size
         @leading_size = 0
@@ -177,7 +192,6 @@ module Numerals
           @fractional_start = @integer_part_size
           @fractional_end   = @numeral.repeat || @digits.size
         end
-
       end
     end
 

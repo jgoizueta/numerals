@@ -191,18 +191,18 @@ module Numerals
         round_up = nil
       else
         n = precision(numeral)
-        # TODO: now if we try to round an approximate numeral
+        # Now if we try to round an approximate numeral
         # to more precision than is present, i.e. if
         # n > numeral.digits.size && numeral.approximate?
         # no additional digits are generated (they're considered
-        # unknown or insignificant)
-        # We could generate some special digit value (nil, -1, :unknown)
-        # to stand for those digits so they can be shown with some special
-        # character, as zeros or ignored.
-        # Alternatively we could store 0s (just change the next >= to ==)
-        # and add an attribute to Numeral for the position of the last
-        # significant digit. Or we could not generate de digits and add
-        # an attribute for the number of additional unknown digits requested.
+        # unknown or insignificant).
+        # TODO: when rounding past the precision of the numeral,
+        # keep reconrd in the numeral of the number of insignificant digits
+        # requested. (must decide what to do with the last possibly
+        # partially significant digit, i.e. with round_up)
+        #  if n > numeral.digits.size && numeral.approximate?
+        #    numeral.insignificant = n - numeral.digits.size
+        #  end
         unless n >= numeral.digits.size && numeral.approximate?
           if n < numeral.digits.size - 1
             rest_digits = numeral.digits[n+1..-1]

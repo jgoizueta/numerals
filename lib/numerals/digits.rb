@@ -68,7 +68,7 @@ module Numerals
 
     def zero?
       # value == 0
-      @digits && @digits.all?{|d| d==0 }
+      !@digits_array || @digits_array.empty? || @digits_array.all?{|d| d==0 }
     end
 
     # Deep copy

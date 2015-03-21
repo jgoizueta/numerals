@@ -577,6 +577,7 @@ module Numerals
           'Numeral[:inf]'
         end
       else
+        args = ''
         if @digits.size > 0
           args = @digits.digits_array.to_s.unwrap('[]')
           args << ', '

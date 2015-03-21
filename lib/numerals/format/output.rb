@@ -96,7 +96,7 @@ module Numerals
         end
       else
         if num_parts.sign == -1
-          text_part.sign = @symbols.minus
+          text_parts.sign = @symbols.minus
         elsif @symbols.show_plus
           text_parts.sign = @symbols.plus
         end

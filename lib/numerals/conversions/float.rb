@@ -26,6 +26,19 @@ class Numerals::FloatConversion
     end
   end
 
+  def number_of_digits(value, options={})
+    base = options[:base] || 10
+    if base == @context.radix
+      @context.precision
+    else
+      @context.necessary_digits(base)
+    end
+  end
+
+  def exact?(value, options={})
+    options[:exact]
+  end
+
   # mode is either :exact or :approximate
   def number_to_numeral(number, mode, rounding)
     if @context.special?(number)
@@ -171,14 +184,17 @@ class Numerals::FloatConversion
 
     dec_pos, digits = formatter.digits
     rep_pos = formatter.repeat
-    normalization = rounding.exact? ? :exact : :approximate # ? => :exact rounding 1.0 -> 1; otherwise 1.0000000000000000
-    # but should't :simplify be used to get 1? rather than :exact (note that the number is considered approximate here)
-    # normalization = :approximate
+    if rounding.preserving? || !rounding.exact?
+      normalization = :approximate
+    else
+      normalization = :exact
+    end
+
     numeral = Numerals::Numeral[digits, sign: sign, point: dec_pos, rep_pos: rep_pos, base: output_base,
                                 normalize: normalization]
-    if all_digits
-      numeral = rounding.round(numeral, round_up: formatter.round_up)
-    end
+
+    numeral = rounding.round(numeral, round_up: formatter.round_up)
+
     numeral
   end
 

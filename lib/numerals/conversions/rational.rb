@@ -14,6 +14,14 @@ class Numerals::RationalConversion
     end
   end
 
+  def number_of_digits(value, options={})
+    return 0 # this is needed only for non-exact values
+  end
+
+  def exact?(value, options={})
+    true
+  end
+
   def number_to_numeral(number, mode, rounding)
     q = [number.numerator, number.denominator]
     numeral = Numerals::Numeral.from_quotient(q)

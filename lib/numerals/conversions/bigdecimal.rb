@@ -20,6 +20,22 @@ class Numerals::BigDecimalConversion
     end
   end
 
+  def number_of_digits(value, options={})
+    base = options[:base] || 10
+    precision = x.precs.first
+    decimal_digits = x.split[1].size
+    n = decimal_digits # or use precision?
+    if base == 10
+      n
+    else
+      Flt::DecNum.context[precision: n].necessary_digits(base)
+    end
+  end
+
+  def exact?(value, options={})
+    options[:exact]
+  end
+
   def number_to_numeral(number, mode, rounding)
     if @context.special?(number)
       special_num_to_numeral number

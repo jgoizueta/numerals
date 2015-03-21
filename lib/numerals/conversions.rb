@@ -11,6 +11,10 @@ module Numerals::Conversions
       self[number.class].order_of_magnitude(number, options)
     end
 
+    def number_of_digits(number, options={})
+      self[number.class].number_of_digits(number, options)
+    end
+
     # Convert Numeral to Number
     #
     #   read numeral, options={}
@@ -72,8 +76,13 @@ module Numerals::Conversions
     #
     def write(number, options = {})
       output_rounding = Rounding[options[:rounding] || Rounding[:exact]]
-      exact_input = options[:exact]
-      self[number.class].write(number, exact_input, output_rounding)
+      conversion = self[number.class]
+      exact_input = conversion.exact?(number, options)
+      conversion.write(number, exact_input, output_rounding)
+    end
+
+    def exact?(number, options = {})
+      self[number.class].exact?(number, options)
     end
 
     private

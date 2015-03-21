@@ -134,8 +134,12 @@ module Numerals
     end
 
     # Number of significant digits for a given numerical/numeral value
-    def precision(value = nil)
-      if value.nil? || relative? || exact?
+    def precision(value = nil, options = {})
+      if value.nil?
+        @precision
+      elsif preserving? && !is_exact?(value, options)
+        num_digits(value, options)
+      elsif relative? || exact?
         @precision
       else
         @places + num_integral_digits(value)
@@ -143,8 +147,12 @@ module Numerals
     end
 
     # Number of fractional placesfor a given numerical/numeral value
-    def places(value = nil)
-      if value.nil? || absolute? || exact?
+    def places(value = nil, options = {})
+      if value.nil?
+        @places
+      elsif preserving? && !is_exact?(value, options)
+        num_digits(value, options) - num_integral_digits(value)
+      elsif absolute? || exact?
         @places
       else
         @precision - num_integral_digits(value)
@@ -187,7 +195,7 @@ module Numerals
     # that prior truncation should be passed as the second argument.
     def truncate(numeral, round_up=nil)
       check_base numeral
-      if exact?
+      if exact? && !preserving?
         round_up = nil
       else
         n = precision(numeral)
@@ -242,6 +250,10 @@ module Numerals
         round_up: round_up,
         base: numeral.base
       )
+      if numeral.zero? && point != 0 && exact? && !preserving?
+        digits = []
+        point = 0
+      end
       Numeral[digits, point: point, base: numeral.base, sign: numeral.sign, normalize: :approximate]
     end
 
@@ -263,6 +275,37 @@ module Numerals
         end
       else
         Conversions.order_of_magnitude(value, base: @base)
+      end
+    end
+
+    def num_digits(value, options)
+      case value
+      when 0
+        ZERO_DIGITS
+      when Numeral
+        if value.zero?
+          ZERO_DIGITS
+        else
+          if @base != value.base
+            value = value.to_base(@base)
+          end
+          if value.repeating?
+            0
+          else
+            value.digits.size
+          end
+        end
+      else
+        Conversions.number_of_digits(value, options.merge(base: @base))
+      end
+    end
+
+    def is_exact?(value, options={})
+      case value
+      when Numeral
+        value.exact?
+      else
+        Conversions.exact?(value, options)
       end
     end
 

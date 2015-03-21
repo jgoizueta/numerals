@@ -17,6 +17,15 @@ class Numerals::IntegerConversion
     end
   end
 
+  def number_of_digits(value, options={})
+    # order_of_magnitude(value, options)
+    0 # this is needed only for non-exact values
+  end
+
+  def exact?(value, options={})
+    true
+  end
+
   def number_to_numeral(number, mode, rounding)
     # Rational.numerals_conversion Rational(number), mode, rounding
     numeral = Numerals::Numeral.from_quotient(number, 1)

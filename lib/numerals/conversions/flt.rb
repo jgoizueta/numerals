@@ -32,6 +32,19 @@ class Numerals::FltConversion
     end
   end
 
+  def number_of_digits(value, options={})
+    base = options[:base] || 10
+    if base == @context.radix
+      value.number_of_digits
+    else
+      x.class.context[precision: value.number_of_digits].necessary_digits(base)
+    end
+  end
+
+  def exact?(value, options={})
+    options[:exact]
+  end
+
   # mode is either :exact or :approximate
   def number_to_numeral(number, mode, rounding)
     if number.special? # @context.special?(number)
@@ -144,11 +157,17 @@ class Numerals::FltConversion
 
     dec_pos, digits = formatter.digits
     rep_pos = formatter.repeat
-    normalization ||= rounding.exact? ? :exact : :approximate
-    numeral = Numerals::Numeral[digits, sign: sign, point: dec_pos, rep_pos: formatter.repeat, base: output_base, normalize: normalization]
-    if all_digits
-      numeral = rounding.round(numeral, round_up: formatter.round_up)
+
+    if rounding.preserving? || !rounding.exact?
+      normalization = :approximate
+    else
+      normalization = :exact
     end
+
+    numeral = Numerals::Numeral[digits, sign: sign, point: dec_pos, rep_pos: formatter.repeat, base: output_base, normalize: normalization]
+
+    numeral = rounding.round(numeral, round_up: formatter.round_up)
+
     numeral
   end
 

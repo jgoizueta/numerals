@@ -593,4 +593,50 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
     assert_equal "-64.09999999999999", fmt[rounding: :half_down].write(-lo)
   end
 
+  def test_special
+    fmt = Format[]
+    assert_equal 'NaN', fmt.write(Float.context.nan)
+    assert_equal 'NaN', fmt.write(Flt::DecNum.context.nan)
+    assert_equal 'NaN', fmt.write(BigDecimal.context.nan)
+    assert_equal 'Infinity', fmt.write(Float.context.infinity)
+    assert_equal 'Infinity', fmt.write(Flt::DecNum.context.infinity)
+    assert_equal 'Infinity', fmt.write(BigDecimal.context.infinity)
+    assert_equal '-Infinity', fmt.write(Float.context.infinity(-1))
+    assert_equal '-Infinity', fmt.write(Flt::DecNum.context.infinity(-1))
+    assert_equal '-Infinity', fmt.write(BigDecimal.context.infinity(-1))
+
+    fmt = fmt[symbols: [uppercase: true]]
+    assert_equal 'NAN', fmt.write(Float.context.nan)
+    assert_equal 'NAN', fmt.write(Flt::DecNum.context.nan)
+    assert_equal 'NAN', fmt.write(BigDecimal.context.nan)
+    assert_equal 'INFINITY', fmt.write(Float.context.infinity)
+    assert_equal 'INFINITY', fmt.write(Flt::DecNum.context.infinity)
+    assert_equal 'INFINITY', fmt.write(BigDecimal.context.infinity)
+    assert_equal '-INFINITY', fmt.write(Float.context.infinity(-1))
+    assert_equal '-INFINITY', fmt.write(Flt::DecNum.context.infinity(-1))
+    assert_equal '-INFINITY', fmt.write(BigDecimal.context.infinity(-1))
+
+    fmt = fmt[symbols: [show_plus: true]]
+    assert_equal 'NAN', fmt.write(Float.context.nan)
+    assert_equal 'NAN', fmt.write(Flt::DecNum.context.nan)
+    assert_equal 'NAN', fmt.write(BigDecimal.context.nan)
+    assert_equal '+INFINITY', fmt.write(Float.context.infinity)
+    assert_equal '+INFINITY', fmt.write(Flt::DecNum.context.infinity)
+    assert_equal '+INFINITY', fmt.write(BigDecimal.context.infinity)
+    assert_equal '-INFINITY', fmt.write(Float.context.infinity(-1))
+    assert_equal '-INFINITY', fmt.write(Flt::DecNum.context.infinity(-1))
+    assert_equal '-INFINITY', fmt.write(BigDecimal.context.infinity(-1))
+
+    fmt = Format[symbols: [nan: '??', infinity: 'oo', show_plus: true]]
+    assert_equal '??', fmt.write(Float.context.nan)
+    assert_equal '??', fmt.write(Flt::DecNum.context.nan)
+    assert_equal '??', fmt.write(BigDecimal.context.nan)
+    assert_equal '+oo', fmt.write(Float.context.infinity)
+    assert_equal '+oo', fmt.write(Flt::DecNum.context.infinity)
+    assert_equal '+oo', fmt.write(BigDecimal.context.infinity)
+    assert_equal '-oo', fmt.write(Float.context.infinity(-1))
+    assert_equal '-oo', fmt.write(Flt::DecNum.context.infinity(-1))
+    assert_equal '-oo', fmt.write(BigDecimal.context.infinity(-1))
+  end
+
 end

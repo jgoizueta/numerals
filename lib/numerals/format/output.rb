@@ -91,7 +91,7 @@ module Numerals
         case num_parts.special
         when :nan
           text_parts.special = @symbols.nan
-        when :infinity
+        when :inf
           if num_parts.sign == -1
             text_parts.special = @symbols.negative_infinity
           else

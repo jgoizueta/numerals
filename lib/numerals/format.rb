@@ -20,16 +20,26 @@ module Numerals
       @mode = Mode[]
       @symbols = Symbols[]
       @assembler = :text
+      @input_rounding = Rounding[] # equivalent to nil here
       set! *args
     end
 
-    attr_reader :rounding, :exact_input, :mode, :symbols, :assembler
+    attr_reader :rounding, :exact_input, :mode, :symbols, :assembler,
+                :input_rounding
 
     def base
       @rounding.base
     end
 
     include ModalSupport::StateEquivalent
+
+    def input_rounding?
+      !@input_rounding.exact?
+    end
+
+    def input_rounding_mode
+      input_rounding? ? @input_rounding.mode : nil
+    end
 
     def [](*args)
       set *args
@@ -44,6 +54,7 @@ module Numerals
       @exact_input = options[:exact_input] if options.has_key?(:exact_input)
       @rounding.set! base: options[:base] if options[:base]
       @rounding.set! options[:rounding] if options[:rounding]
+      @input_rounding.set! options[:input_rounding] if options[:input_rounding]
       @mode.set! options[:mode] if options[:mode] # :format ?
       @symbols.set! digits: options[:digits] if options[:digits]
       @symbols.set! options[:symbols] if options[:symbols]
@@ -61,7 +72,8 @@ module Numerals
         exact_input: @exact_input,
         mode: @mode,
         symbols: @symbols,
-        assembler: @assembler
+        assembler: @assembler,
+        input_rounding: input_rounding? ? @input_rounding : nil
       }
     end
 
@@ -72,6 +84,7 @@ module Numerals
       args << "mode: #{@mode}"
       args << "symbols: #{@symbols}"
       args << "assembler: #{@assembler.inspect}" if @assembler != :text
+      args << "input_rounding: #{input_rounding_mode.inspect}" if input_rounding?
       "Format[#{args.join(', ')}]"
     end
 
@@ -125,7 +138,7 @@ module Numerals
     end
 
     def set_assembler(assembler)
-      dup.set_assembler(assembler)
+      dup.set_assembler!(assembler)
     end
 
     def set_digits!(digits)
@@ -133,7 +146,15 @@ module Numerals
     end
 
     def set_digits(digits)
-      dup.set_digits(digits)
+      dup.set_digits!(digits)
+    end
+
+    def set_input_rounding!(input_roundig)
+      set! input_rounding: input_rounding
+    end
+
+    def set_input_rounding(input_roundig)
+      dup.set_input_rounding(input_rounding)
     end
 
     def dup

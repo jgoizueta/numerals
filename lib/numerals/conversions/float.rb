@@ -8,13 +8,24 @@ class Numerals::FloatConversion
     @context = @type.context
     options = { use_native_float: true }.merge(options)
     @use_native_float = options[:use_native_float]
-    # @rounding_mode if used for :free numeral to number conversion
-    # and should be the implied rounding mode of the invers conversion
-    # (number to numeral);
-    # TODO: it should be possible to assign it for higher level
-    # formatting handling.
-    @rounding_mode = @context.rounding
-    @honor_rounding = true
+    # @input_rounding if used for :free numeral to number conversion
+    # and should be the implied rounding mode of the inverse conversion
+    @input_rounding = options[:input_rounding]
+  end
+
+  attr_reader :context, :type, :rounding_mode
+
+  def input_rounding=(rounding)
+    if rounding
+      rounding = Rounding[rounding]
+      if rounding.exact?
+        @input_rounding = nil
+      else
+        @input_rounding = rounding.mode
+      end
+    else
+      @input_rounding = nil
+    end
   end
 
   def order_of_magnitude(value, options={})
@@ -62,7 +73,8 @@ class Numerals::FloatConversion
     end
   end
 
-  def write(number, exact_input, output_rounding)
+  def write(number, exact_input, output_rounding, input_rounding = nil)
+    self.input_rounding = input_rounding
     output_base = output_rounding.base
     input_base = @context.radix
 
@@ -94,7 +106,8 @@ class Numerals::FloatConversion
     end
   end
 
-  def read(numeral, exact_input, approximate_simplified)
+  def read(numeral, exact_input, approximate_simplified, input_rounding = nil)
+    self.input_rounding = input_rounding
     if numeral.special?
       special_numeral_to_float numeral
     # elsif numeral.approximate? && !exact_input
@@ -172,9 +185,9 @@ class Numerals::FloatConversion
     precision = @context.precision
     output_base = rounding.base
 
-    # here rounding_mode should be not the output rounding mode, but the rounding mode used for input
-    # we'll assume rounding.mode will be used for input unless it is exact
-    rounding_mode = rounding.exact? ? @context.rounding : rounding.mode
+    # here rounding_mode is not the output rounding mode, but the rounding mode used for input
+    rounding_mode = @input_rounding ||
+                    (rounding.exact? ? @context.rounding : rounding.mode)
     formatter = Flt::Support::Formatter.new(
       @context.radix, @context.etiny, output_base, raise_on_repeat: false
     )
@@ -217,9 +230,9 @@ class Numerals::FloatConversion
       # to a numeral preserving its value.
       representable_digits = @context.representable_digits(numeral.base)
       k = numeral.scale
-      if !@honor_rounding && numeral.digits.size <= representable_digits && k.abs <= representable_digits
+      if !@input_rounding && numeral.digits.size <= representable_digits && k.abs <= representable_digits
         representable_numeral_to_float numeral
-      elsif !@honor_rounding && (k > 0 && numeral.point < 2*representable_digits)
+      elsif !@input_rounding && (k > 0 && numeral.point < 2*representable_digits)
         near_representable_numeral_to_float numeral
       elsif numeral.base.modulo(@context.radix) == 0
         conmensurable_base_numeral_to_float numeral
@@ -278,11 +291,7 @@ class Numerals::FloatConversion
   def general_numeral_to_float(numeral, mode)
     sign, coefficient, scale = numeral.split
     reader = Flt::Support::Reader.new(mode: mode)
-    if mode == :fixed
-      rounding_mode = @context.rounding
-    else
-      rounding_mode = @rounding_mode
-    end
+    rounding_mode = @input_rounding || @context.rounding
     reader.read(@context, rounding_mode, sign, coefficient, scale, numeral.base).tap do
       # @exact = reader.exact?
     end

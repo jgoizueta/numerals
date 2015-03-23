@@ -41,14 +41,14 @@ class Numerals::IntegerConversion
     rational.numerator
   end
 
-  def write(number, exact_input, output_rounding)
+  def write(number, exact_input, output_rounding, input_rounding = nil)
     output_base = output_rounding.base
     numeral = Numerals::Numeral.from_quotient(number, 1, base: output_base)
     numeral = output_rounding.round(numeral) unless output_rounding.exact?
     numeral
   end
 
-  def read(numeral, exact_input, approximate_simplified)
+  def read(numeral, exact_input, approximate_simplified, input_rounding = nil)
     rational = Rational.numerals_conversion.read numeral, exact_input, approximate_simplified
     if rational.denominator != 1
       raise InvalidConversion, "Invalid numeral to rational conversion"

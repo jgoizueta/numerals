@@ -372,4 +372,225 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
   end
 
 
+  def test_float_nonsig
+    fmt = Format[symbols: [insignificant_digit: '#', uppercase: true], exact_input: false]
+    assert_equal "100.000000000000000##", fmt[mode: :fixed, rounding: [precision: 20]].write(100.0)
+    assert_equal "100.000000000000000#####", fmt[mode: :fixed, rounding: [places: 20]].write(100.0)
+
+    unless Float::RADIX == 2 && Float::MANT_DIG == 53
+      skip "Non IEEE Float unsupported for some tests"
+      return
+    end
+
+    fmt = fmt[mode: :scientific, rounding: [precision: 20]]
+    assert_equal "3.3333333333333331###E-1", fmt.write(1.0/3)
+    assert_equal "3.3333333333333335###E6", fmt.write(1E7/3)
+    assert_equal "3.3333333333333334###E-8", fmt.write(1E-7/3)
+    assert_equal "3.3333333333333333333E-1",  fmt.write(Rational(1,3))
+    assert_equal "3.3333333333333331###E-1", fmt[mode: [sci_int_digits: 1]].write(1.0/3)
+    assert_equal "33333333333333331###E-20", fmt[mode: [sci_int_digits: :all]].write(1.0/3)
+    assert_equal "33333333333333331###.E-20", fmt[mode: [sci_int_digits: :all], symbols: [show_point: true]].write(1.0/3)
+    assert_equal "33333333333333333333E-20", fmt[mode: [sci_int_digits: :all]].write(Rational(1,3))
+
+    fmt = fmt[mode: [sci_int_digits: :eng]]
+    assert_equal "333.33333333333331###E-3", fmt.write(1.0/3)
+    assert_equal "3.3333333333333335###E6", fmt.write(1E7/3)
+    assert_equal "33.333333333333334###E-9",fmt.write(1E-7/3)
+
+    fmt = fmt[symbols: [point: ','], mode: [:scientific, sci_int_digits: 0], rounding: [precision: 20]]
+    assert_equal "0,33333333333333331###E0",fmt.write(1.0/3)
+    assert_equal "0,33333333333333335###E7",fmt.write(1E7/3)
+    assert_equal "0,33333333333333334###E-7",fmt.write(1E-7/3)
+
+    fmt = fmt[mode: [sci_int_digits: 0], symbols: [point: '.']]
+    assert_equal "0.10000000000000001###E0",fmt.write(1E-1)
+    assert_equal "0.50000000000000000###E0",fmt.write(0.5)
+    assert_equal "0.49999999999999994###E0",fmt.write(Float.context.next_minus(0.5))
+    assert_equal "0.50000000000000011###E0",fmt.write(Float.context.next_plus(0.5))
+    assert_equal "0.22250738585072014###E-307",fmt.write(Float.context.minimum_normal)
+    assert_equal "0.22250738585072009###E-307",fmt.write(Float.context.maximum_subnormal)
+    assert_equal "0.5###################E-323",fmt.write(Float.context.minimum_nonzero)
+    assert_equal "0.64000000000000000###E2",fmt.write(64.0)
+    assert_equal "0.6400000000000001####E2",fmt.write(Float.context.next_plus(64.0))
+    assert_equal "0.6409999999999999####E2",fmt.write(64.1)
+    assert_equal "0.6412312300000001####E2",fmt.write(64.123123)
+    assert_equal "0.10000000000000001###E0",fmt.write(0.1)
+    assert_equal "0.6338253001141148####E30", fmt.write(Float.context.next_plus(Math.ldexp(0.5,100)))
+    assert_equal "0.39443045261050599###E-30",fmt.write(Float.context.next_plus(Math.ldexp(0.5,-100)))
+    assert_equal "0.10##################E-322",fmt.write(Float.context.next_plus(Float.context.minimum_nonzero))
+    assert_equal "0.15##################E-322",fmt.write(Float.context.next_plus(Float.context.next_plus(Float.context.minimum_nonzero)))
+  end
+
+  def test_flt_equidistant_nearest
+    # In IEEEDoubleContext
+    # 1E23 is equidistant from 2 Floats: lo & hi
+    # one or the other will be chosen based on the rounding mode
+
+    context = Flt::BinNum::IEEEDoubleContext
+
+    lo = hi = nil
+    Flt::BinNum.context(context) do
+      lo = Flt::BinNum('0x1.52d02c7e14af6p+76', :fixed) # 9.999999999999999E22
+      hi = Flt::BinNum('0x1.52d02c7e14af7p+76', :fixed) # 1.0000000000000001E23
+    end
+
+    fmt = Format[rounding: :simplify, exact_input: false, mode: :general, symbols: [uppercase: true]]
+
+
+    Flt::BinNum.context(context, rounding: :half_down) do
+      assert_equal "1E23", fmt.write(lo)
+    end
+
+    Flt::BinNum.context(context, rounding: :half_up) do
+      assert_equal "9.999999999999999E22", fmt.write(lo)
+    end
+
+    Flt::BinNum.context(context, rounding: :half_even) do
+      assert_equal "1E23", fmt.write(lo)
+    end
+
+    Flt::BinNum.context(context, rounding: :half_up) do
+      assert_equal "1E23", fmt.write(hi)
+    end
+
+    Flt::BinNum.context(context, rounding: :half_down) do
+      assert_equal "1.0000000000000001E23", fmt.write(hi)
+    end
+
+    Flt::BinNum.context(context, rounding: :half_even) do
+      assert_equal "1.0000000000000001E23", fmt.write(hi)
+    end
+
+    Flt::BinNum.context(context, rounding: :half_down) do
+      assert_equal "-1E23", fmt.write(-lo)
+    end
+
+    Flt::BinNum.context(context, rounding: :half_up) do
+      assert_equal "-9.999999999999999E22", fmt.write(-lo)
+    end
+
+    Flt::BinNum.context(context, rounding: :half_even) do
+      assert_equal "-1E23", fmt.write(-lo)
+    end
+
+    Flt::BinNum.context(context, rounding: :half_up) do
+      assert_equal "-1E23", fmt.write(-hi)
+    end
+
+    Flt::BinNum.context(context, rounding: :half_down) do
+      assert_equal "-1.0000000000000001E23", fmt.write(-hi)
+    end
+
+    Flt::BinNum.context(context, rounding: :half_even) do
+      assert_equal "-1.0000000000000001E23", fmt.write(-hi)
+    end
+
+    assert_equal "1E23", fmt[input_rounding: :half_down].write(lo)
+    assert_equal "9.999999999999999E22", fmt[input_rounding: :half_up].write(lo)
+    assert_equal "1E23", fmt[input_rounding: :half_even].write(lo)
+
+    assert_equal "1E23", fmt[input_rounding: :half_up].write(hi)
+    assert_equal "1.0000000000000001E23", fmt[input_rounding: :half_down].write(hi)
+    assert_equal "1.0000000000000001E23", fmt[input_rounding: :half_even].write(hi)
+
+    assert_equal "-1E23", fmt[input_rounding: :half_down].write(-lo)
+    assert_equal "-9.999999999999999E22", fmt[input_rounding: :half_up].write(-lo)
+    assert_equal "-1E23", fmt[input_rounding: :half_even].write(-lo)
+
+    assert_equal "-1E23", fmt[input_rounding: :half_up].write(-hi)
+    assert_equal "-1.0000000000000001E23", fmt[input_rounding: :half_down].write(-hi)
+    assert_equal "-1.0000000000000001E23", fmt[input_rounding: :half_even].write(-hi)
+  end
+
+  def test_float_equidistiant_nearest
+    unless Float::RADIX == 2 && Float::MANT_DIG == 53
+      skip "Non IEEE Float unsupported for some tests"
+      return
+    end
+
+    context = Float.context
+
+    lo = Float('0x1.52d02c7e14af6p+76')
+    hi = Float('0x1.52d02c7e14af7p+76')
+
+    txt = '1E23'
+    txt_lo = '9.999999999999999E22'
+    txt_hi = '1.0000000000000001E23'
+
+    fmt = Format[rounding: :simplify, exact_input: false, mode: :general]
+    fmt = fmt[symbols: [uppercase: true]]
+    assert_equal txt, fmt[input_rounding: :half_down].write(lo)
+    assert_equal txt_lo, fmt[input_rounding: :half_up].write(lo)
+    assert_equal txt, fmt[input_rounding: :half_even].write(lo)
+
+    assert_equal txt, fmt[input_rounding: :half_up].write(hi)
+    assert_equal txt_hi, fmt[input_rounding: :half_down].write(hi)
+    assert_equal txt_hi, fmt[input_rounding: :half_even].write(hi)
+
+    assert_equal "-#{txt}", fmt[input_rounding: :half_down].write(-lo)
+    assert_equal "-#{txt_lo}", fmt[input_rounding: :half_up].write(-lo)
+    assert_equal "-#{txt}", fmt[input_rounding: :half_even].write(-lo)
+
+    assert_equal "-#{txt}", fmt[input_rounding: :half_up].write(-hi)
+    assert_equal "-#{txt_hi}", fmt[input_rounding: :half_down].write(-hi)
+    assert_equal "-#{txt_hi}", fmt[input_rounding: :half_even].write(-hi)
+  end
+
+  def test_flt_single_nearest
+
+    # In IEEEDoubleContext
+    # 64.1 between the floats lo, hi, but is closer to lo
+    # So there's a closet Float that should be chosen for rounding
+
+    context = Flt::BinNum::IEEEDoubleContext
+
+    lo = hi = nil
+    Flt::BinNum.context(context) do
+      lo = Flt::BinNum('0x1.0066666666666p+6', :fixed) # this is nearer to the 64.1 Float
+      hi = Flt::BinNum('0x1.0066666666667p+6', :fixed)
+    end
+
+    fmt = Format[mode: :general, rounding: :exact, exact_input: true]
+    assert_equal '64.099999999999994315658113919198513031005859375', fmt.write(lo)
+    fmt = fmt[exact_input: false]
+    assert_equal "64.09999999999999", fmt.write(lo)
+    assert_equal "64.1", fmt[rounding: :simplify].write(lo)
+    assert_equal "64.09999999999999", fmt[rounding: :half_even].write(lo)
+    assert_equal "64.09999999999999", fmt[rounding: :half_up].write(lo)
+    assert_equal "64.09999999999999", fmt[rounding: :half_down].write(lo)
+
+    assert_equal "-64.09999999999999", fmt.write(-lo)
+    assert_equal "-64.1", fmt[rounding: :simplify].write(-lo)
+    assert_equal "-64.09999999999999", fmt[rounding: :half_even].write(-lo)
+    assert_equal "-64.09999999999999", fmt[rounding: :half_up].write(-lo)
+    assert_equal "-64.09999999999999", fmt[rounding: :half_down].write(-lo)
+  end
+
+
+  def test_float_single_nearest
+    unless Float::RADIX == 2 && Float::MANT_DIG == 53
+      skip "Non IEEE Float unsupported for some tests"
+      return
+    end
+
+    context = Float.context
+
+    lo = Float('0x1.0066666666666p+6') # this is nearer to the 64.1 Float
+    hi = Float('0x1.0066666666667p+6')
+    fmt = Format[mode: :general, rounding: :exact, exact_input: true]
+    assert_equal '64.099999999999994315658113919198513031005859375', fmt.write(lo)
+    fmt = fmt[exact_input: false]
+    assert_equal "64.09999999999999", fmt.write(lo)
+    assert_equal "64.1", fmt[rounding: :simplify].write(lo)
+    assert_equal "64.09999999999999", fmt[rounding: :half_even].write(lo)
+    assert_equal "64.09999999999999", fmt[rounding: :half_up].write(lo)
+    assert_equal "64.09999999999999", fmt[rounding: :half_down].write(lo)
+
+    assert_equal "-64.09999999999999", fmt.write(-lo)
+    assert_equal "-64.1", fmt[rounding: :simplify].write(-lo)
+    assert_equal "-64.09999999999999", fmt[rounding: :half_even].write(-lo)
+    assert_equal "-64.09999999999999", fmt[rounding: :half_up].write(-lo)
+    assert_equal "-64.09999999999999", fmt[rounding: :half_down].write(-lo)
+  end
+
 end

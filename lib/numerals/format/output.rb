@@ -34,7 +34,11 @@ module Numerals
     end
 
     def conversion_out(number) # => Numeral
-      conversion_options = { exact: exact_input, rounding: rounding }
+      conversion_options = {
+        exact: exact_input,
+        rounding: rounding,
+        input_rounding: input_rounding_mode
+      }
       Conversions.write(number, conversion_options)
     end
 

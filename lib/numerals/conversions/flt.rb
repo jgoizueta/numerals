@@ -3,7 +3,7 @@ require 'flt'
 
 class Numerals::FltConversion
 
-  def initialize(context_or_type)
+  def initialize(context_or_type, options={})
     if Class === context_or_type && context_or_type < Flt::Num
       @type = context_or_type
       @context = @type.context
@@ -13,15 +13,25 @@ class Numerals::FltConversion
     else
       raise "Invalid FltConversion definition"
     end
-    # @rounding_mode is used for :free numeral to number conversion
-    # and should be the implied rounding mode of the invers conversion
-    # (number to numeral);
-    # TODO: it should be possible to assign it for higher level
-    # formatting handling.
-    @rounding_mode = @context.rounding
+    # @input_rounding if used for :free numeral to number conversion
+    # and should be the implied rounding mode of the inverse conversion
+    @input_rounding = options[:input_rounding]
   end
 
-  attr_reader :context, :type
+  attr_reader :context, :type, :rounding_mode
+
+  def input_rounding=(rounding)
+    if rounding
+      rounding = Rounding[rounding]
+      if rounding.exact?
+        @input_rounding = nil
+      else
+        @input_rounding = rounding.mode
+      end
+    else
+      @input_rounding = nil
+    end
+  end
 
   def order_of_magnitude(value, options={})
     base = options[:base] || 10 # value.num_class.radix
@@ -68,7 +78,8 @@ class Numerals::FltConversion
     end
   end
 
-  def write(number, exact_input, output_rounding)
+  def write(number, exact_input, output_rounding, input_rounding = nil)
+    self.input_rounding = input_rounding
     output_base = output_rounding.base
     input_base = @context.radix
 
@@ -99,7 +110,8 @@ class Numerals::FltConversion
     end
   end
 
-  def read(numeral, exact_input, approximate_simplified)
+  def read(numeral, exact_input, approximate_simplified, input_rounding = nil)
+    self.input_rounding = input_rounding
     if numeral.special?
       special_numeral_to_num numeral
     elsif numeral.approximate? && !exact_input
@@ -145,9 +157,9 @@ class Numerals::FltConversion
     precision = x.number_of_digits
     output_base = rounding.base
 
-    # here rounding_mode should be not the output rounding mode, but the rounding mode used for input
-    # we'll assume rounding.mode will be used for input unless it is exact
-    rounding_mode = rounding.exact? ? @context.rounding : rounding.mode
+    # here rounding_mode is not the output rounding mode, but the rounding mode used for input
+    rounding_mode = @input_rounding ||
+                    (rounding.exact? ? @context.rounding : rounding.mode)
     formatter = Flt::Support::Formatter.new(
       @context.radix, @context.etiny, output_base, raise_on_repeat: false
     )
@@ -211,11 +223,7 @@ class Numerals::FltConversion
   def general_numeral_to_num(numeral, mode)
     sign, coefficient, scale = numeral.split
     reader = Flt::Support::Reader.new(mode: mode)
-    if mode == :fixed
-      rounding_mode = @context.rounding
-    else
-      rounding_mode = @rounding_mode
-    end
+    rounding_mode = @input_rounding || @context.rounding
     reader.read(@context, rounding_mode, sign, coefficient, scale, numeral.base).tap do
       # @exact = reader.exact?
     end

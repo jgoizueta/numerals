@@ -8,6 +8,7 @@ module Numerals
 
     def read(text, options={})
       # TODO: implement
+      # input_rounding = @input_rounding || @rounding ??
     end
 
   end

@@ -132,7 +132,6 @@ class TestFltConversions <  Test::Unit::TestCase # < Minitest::Test
       hi = Flt::BinNum('0x1.52d02c7e14af7p+76', :fixed)
     end
 
-
     Flt::BinNum.context(context, rounding: :half_even) do
       x = Conversions.read(numeral, type: Flt::BinNum)
       assert_equal lo, x
@@ -206,6 +205,36 @@ class TestFltConversions <  Test::Unit::TestCase # < Minitest::Test
     Flt::BinNum.context(context, rounding: :half_even) do
       assert_equal -numeral_hi, Conversions.write(-hi, rounding: rounding)
     end
+
+    # now avoiding Flt contexts by using the :input_rounding option
+
+    x = Conversions.read(numeral, type: Flt::BinNum, rounding: :half_even)
+    assert_equal lo, x
+    x = Conversions.read(numeral, type: Flt::BinNum, rounding: :half_down)
+    assert_equal lo, x
+    x = Conversions.read(numeral, type: Flt::BinNum, rounding: :half_up)
+    assert_equal hi, x
+    x = Conversions.read(-numeral, type: Flt::BinNum, rounding: :half_even)
+    assert_equal -lo, x
+    x = Conversions.read(-numeral, type: Flt::BinNum, rounding: :half_down)
+    assert_equal -lo, x
+    x = Conversions.read(-numeral, type: Flt::BinNum, rounding: :half_up)
+    assert_equal -hi, x
+
+    rounding = Rounding[:simplify]
+
+    assert_equal numeral, Conversions.write(lo, rounding: rounding, input_rounding: :half_down)
+    assert_equal numeral_lo, Conversions.write(lo, rounding: rounding, input_rounding: :half_up)
+    assert_equal numeral, Conversions.write(lo, rounding: rounding, input_rounding: :half_even)
+    assert_equal numeral, Conversions.write(hi, rounding: rounding, input_rounding: :half_up)
+    assert_equal numeral_hi, Conversions.write(hi, rounding: rounding, input_rounding: :half_down)
+    assert_equal numeral_hi, Conversions.write(hi, rounding: rounding, input_rounding: :half_even)
+    assert_equal -numeral, Conversions.write(-lo, rounding: rounding, input_rounding: :half_down)
+    assert_equal -numeral_lo, Conversions.write(-lo, rounding: rounding, input_rounding: :half_up)
+    assert_equal -numeral, Conversions.write(-lo, rounding: rounding, input_rounding: :half_even)
+    assert_equal -numeral, Conversions.write(-hi, rounding: rounding, input_rounding: :half_up)
+    assert_equal -numeral_hi, Conversions.write(-hi, rounding: rounding, input_rounding: :half_down)
+    assert_equal -numeral_hi, Conversions.write(-hi, rounding: rounding, input_rounding: :half_even)
   end
 
   def test_read_write_single_nearest

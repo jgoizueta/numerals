@@ -138,6 +138,9 @@ module Numerals
         text_parts.exponent_value = num_parts.exponent
         # if num_parts.exponent != 0 || @mode.mode == :scientific
           text_parts.exponent = num_parts.exponent.to_s(10) # use digits_definition ?
+          if @symbols.show_exponent_plus && num_parts.exponent >= 0
+            text_parts.exponent = @symbols.plus + text_parts.exponent
+          end
         # end
         text_parts.exponent_base = num_parts.exponent_base.to_s(10) # use digits_definition ?
         text_parts.exponent_base_value = num_parts.exponent_base

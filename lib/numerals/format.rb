@@ -165,6 +165,17 @@ module Numerals
     include Output
     include Input
 
+    # Shortcuts to Symbols aspects
+
+    def set_plus!(plus, which = nil)
+      @symbols.set_plus!(plus, which)
+      self
+    end
+
+    def set_plus(plus, which = nil)
+      dup.set_plus!(plus, which)
+    end
+
     private
 
     def extract_options(*args)

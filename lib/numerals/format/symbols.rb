@@ -325,6 +325,48 @@ module Numerals
       params
     end
 
+    def set_plus!(plus, which = nil)
+      case plus
+      when nil, false
+        case which
+        when :exponent, :exp
+          @show_exponent_plus = false
+        when :both, :all
+          @show_plus = @show_exponent_plus = false
+        else
+          @show_plus = false
+        end
+      when true
+        case which
+        when :exponent, :exp
+          @show_exponent_plus = true
+        when :both, :all
+          @show_plus = @show_exponent_plus = true
+        else
+          @show_plus = true
+        end
+      when :both, :all
+        @show_plus = @show_exponent_plus = true
+      when :exponent, :exp
+        @show_exponent_plus = true
+      else
+        @plus = plus
+        case which
+        when :exponent, :exp
+          @show_exponent_plus = true
+        when :both, :all
+          @show_plus = @show_exponent_plus = true
+        else
+          @show_plus = true
+        end
+      end
+      self
+    end
+
+    def set_plus(plus, which = nil)
+      dup.set_plus!(plus, which)
+    end
+
     def to_s
       "Digits[#{parameters(true).inspect.unwrap('{}')}]"
     end

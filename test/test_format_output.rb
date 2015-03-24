@@ -639,4 +639,49 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
     assert_equal '-oo', fmt.write(BigDecimal.context.infinity(-1))
   end
 
+  def test_float_sign
+    fmt = Format[symbols:[uppercase: true]]
+    fmt_plus = fmt[symbols: [show_plus: true]]
+    assert_equal fmt_plus, fmt.set_plus(true)
+    fmt_plus_sp = fmt_plus[symbols: [plus: ' ']]
+    assert_equal fmt_plus_sp, fmt.set_plus(' ')
+    fmt_exp_plus = fmt[symbols: [show_exponent_plus: true]]
+    assert_equal fmt_exp_plus, fmt.set_plus(true, :exp)
+    assert_equal fmt_exp_plus, fmt.set_plus(:exp)
+    fmt_exp_plus_sp = fmt[symbols: [show_exponent_plus: true, plus: ' ']]
+    assert_equal fmt_exp_plus_sp, fmt.set_plus(' ', :exp)
+    fmt_both_plus = fmt[symbols: [show_exponent_plus: true, show_plus: true]]
+    assert_equal fmt_both_plus, fmt.set_plus(:all)
+    fmt_both_plus_sp = fmt[symbols: [show_exponent_plus: true, show_plus: true, plus: ' ']]
+    assert_equal fmt_both_plus_sp, fmt.set_plus(' ', :all)
+
+    assert_equal '1.25', fmt.write(1.25)
+    assert_equal '+1.25', fmt_plus.write(1.25)
+    assert_equal ' 1.25', fmt_plus_sp.write(1.25)
+    assert_equal '-1.25', fmt.write(-1.25)
+    assert_equal '-1.25', fmt_plus.write(-1.25)
+    assert_equal '1.25E5', fmt[mode: :sci].write(1.25E5)
+    assert_equal '-1.25E5', fmt[mode: :sci].write(-1.25E5)
+    assert_equal '1.25E-5', fmt[mode: :sci].write(1.25E-5)
+    assert_equal '-1.25E-5', fmt[mode: :sci].write(-1.25E-5)
+    assert_equal '+1.25E5', fmt_plus[mode: :sci].write(1.25E5)
+    assert_equal '-1.25E5', fmt_plus[mode: :sci].write(-1.25E5)
+    assert_equal ' 1.25E5', fmt_plus_sp[mode: :sci].write(1.25E5)
+    assert_equal '-1.25E5', fmt_plus_sp[mode: :sci].write(-1.25E5)
+    assert_equal '1.25E+5', fmt_exp_plus[mode: :sci].write(1.25E5)
+    assert_equal '-1.25E+5', fmt_exp_plus[mode: :sci].write(-1.25E5)
+    assert_equal '1.25E 5', fmt_exp_plus_sp[mode: :sci].write(1.25E5)
+    assert_equal '-1.25E 5', fmt_exp_plus_sp[mode: :sci].write(-1.25E5)
+    assert_equal '1.25E-5', fmt_exp_plus_sp[mode: :sci].write(1.25E-5)
+    assert_equal '-1.25E-5', fmt_exp_plus_sp[mode: :sci].write(-1.25E-5)
+
+    assert_equal ' 1.25E-5', fmt_both_plus_sp[mode: :sci].write(1.25E-5)
+    assert_equal '-1.25E-5', fmt_both_plus_sp[mode: :sci].write(-1.25E-5)
+    assert_equal ' 1.25E 5', fmt_both_plus_sp[mode: :sci].write(1.25E5)
+    assert_equal '-1.25E 5', fmt_both_plus_sp[mode: :sci].write(-1.25E5)
+    assert_equal '+1.25E-5', fmt_both_plus[mode: :sci].write(1.25E-5)
+    assert_equal '-1.25E-5', fmt_both_plus[mode: :sci].write(-1.25E-5)
+    assert_equal '+1.25E+5', fmt_both_plus[mode: :sci].write(1.25E5)
+    assert_equal '-1.25E+5', fmt_both_plus[mode: :sci].write(-1.25E+5)
+  end
 end

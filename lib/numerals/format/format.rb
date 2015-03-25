@@ -45,7 +45,7 @@ module Numerals
 
     def initialize(*args)
       @exact_input = false
-      @rounding = Rounding[]
+      @rounding = Rounding[:simplify]
       @mode = Mode[]
       @symbols = Symbols[]
       @assembler = :text
@@ -197,7 +197,7 @@ module Numerals
         when Symbols::Digits
           options[:digits] = arg
         when Format
-          options.merge arg.parameters
+          options.merge! arg.parameters
         when :exact_input
           options[:exact_input] = true
         when :hexbin

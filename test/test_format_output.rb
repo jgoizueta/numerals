@@ -73,6 +73,22 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
     assert_equal "4.940656458412465441765687928682213723650598026143247644255856825006755072702087518652998363616359923797965646954457177309266567103559397963987747960107818781263007131903114045278458171678489821036887186360569987307230500063874091535649843873124733972731696151400317153853980741262385655911710266585566867681870395603106249319452715914924553293054565444011274801297099995419319894090804165633245247571478690147267801593552386115501348035264934720193790268107107491703332226844753335720832431936092382893458368060106011506169809753078342277318329247904982524730776375927247874656084778203734469699533647017972677717585125660551199131504891101451037862738167250955837389733598993664809941164205702637090279242767544565229087538682506419718265533447265625e-324",
                  fmt.write(Float.context.minimum_nonzero)
 
+
+    assert_equal '0', Format[:exact].write(0.0)
+    assert_equal '0', Format[:simplify].write(0.0)
+    assert_equal '0e-17', Format[:preserve].write(0.0)
+
+    assert_equal '1', Format[:exact].write(1.0)
+    assert_equal '1', Format[:simplify].write(1.0)
+    assert_equal '1.0000000000000000', Format[:preserve].write(1.0)
+
+    assert_equal '1.23', Format[:exact].write(1.23)
+    assert_equal '1.23', Format[:simplify].write(1.23)
+    assert_equal '1.2300000000000000', Format[:preserve].write(1.23)
+
+    assert_equal '0.10000000000000001', Format[:exact].write(0.1)
+    assert_equal '0.1', Format[:simplify].write(0.1)
+    assert_equal '0.10000000000000001', Format[:preserve].write(0.1)
   end
 
   def test_write_decnum_dec
@@ -132,6 +148,10 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
     assert_equal '0.0', Format[rounding: :preserve].write(Flt::DecNum('0.0'))
     assert_equal '0.0000', Format[rounding: :preserve].write(Flt::DecNum('0.0000'))
     assert_equal '0e-15', Format[rounding: :preserve].write(Flt::DecNum('0E-15'))
+
+    assert_equal '0.1', Format[:exact].write(Flt::DecNum('0.100'))
+    assert_equal '0.1', Format[:simplify].write(Flt::DecNum('0.100'))
+    assert_equal '0.100', Format[:preserve].write(Flt::DecNum('0.100'))
   end
 
 
@@ -359,6 +379,10 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
     assert_equal "123456789.25", fmt.write(123456789.25)
     assert_equal "123456789.25", fmt.write(BigDecimal('123456789.25'))
     assert_equal "123456789.25", fmt.write((Rational(123456789)+Rational(1,4)))
+
+    assert_equal '0.25', Format[:exact].write(Rational(1,4))
+    assert_equal '0.25', Format[:simplify].write(Rational(1,4))
+    assert_equal '0.25', Format[:preserve].write(Rational(1,4))
   end
 
   def test_optional_mode_prec_parameters
@@ -366,7 +390,7 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
     fmt = Format[]
     assert_equal '0.1000000000', fmt[rounding: [precision: 10]].write(x)
     assert_equal '1.000000000e-1', fmt[rounding: [precision: 10], mode: :scientific].write(x)
-    assert_equal '0.1', fmt[rounding: :simpliry] .write(x)
+    assert_equal '0.1', fmt[rounding: :simplify] .write(x)
     assert_equal '0.10000', fmt[rounding: [precision: 5]].write(x)
     assert_equal '1.0000e-1', fmt[rounding: [precision: 5], mode: :scientific].write(x)
   end
@@ -683,5 +707,31 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
     assert_equal '-1.25E-5', fmt_both_plus[mode: :sci].write(-1.25E-5)
     assert_equal '+1.25E+5', fmt_both_plus[mode: :sci].write(1.25E5)
     assert_equal '-1.25E+5', fmt_both_plus[mode: :sci].write(-1.25E+5)
+  end
+
+  def test_write_bigdecimal_dec
+    assert_equal '1', Format[rounding: :simplify].write(BigDecimal('1.0'))
+    assert_equal '1', Format[rounding: :preserve].write(BigDecimal('1.0'))
+    assert_equal '1', Format[rounding: :exact].write(BigDecimal('1.0'))
+
+
+    assert_equal '0', Format[rounding: :exact].write(BigDecimal('0'))
+    assert_equal '0', Format[rounding: :exact].write(BigDecimal('0.0'))
+    assert_equal '0', Format[rounding: :exact].write(BigDecimal('0.000'))
+    assert_equal '0', Format[rounding: :exact].write(BigDecimal('0E-15'))
+
+    assert_equal '0', Format[rounding: :simplify].write(BigDecimal('0'))
+    assert_equal '0', Format[rounding: :simplify].write(BigDecimal('0.0'))
+    assert_equal '0', Format[rounding: :simplify].write(BigDecimal('0.0000'))
+    assert_equal '0', Format[rounding: :simplify].write(BigDecimal('0E-15'))
+
+    assert_equal '0.0', Format[rounding: :preserve].write(BigDecimal('0'))
+    assert_equal '0.0', Format[rounding: :preserve].write(BigDecimal('0.0'))
+    assert_equal '0.0', Format[rounding: :preserve].write(BigDecimal('0.0000'))
+    assert_equal '0.0', Format[rounding: :preserve].write(BigDecimal('0E-15'))
+
+    assert_equal '0.1', Format[:exact].write(BigDecimal('0.100'))
+    assert_equal '0.1', Format[:simplify].write(BigDecimal('0.100'))
+    assert_equal '0.1', Format[:preserve].write(BigDecimal('0.100'))
   end
 end

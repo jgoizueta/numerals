@@ -197,11 +197,8 @@ class Numerals::FloatConversion
 
     dec_pos, digits = formatter.digits
     rep_pos = formatter.repeat
-    if rounding.preserving? || !rounding.exact?
-      normalization = :approximate
-    else
-      normalization = :exact
-    end
+
+    normalization = :approximate
 
     numeral = Numerals::Numeral[digits, sign: sign, point: dec_pos, rep_pos: rep_pos, base: output_base,
                                 normalize: normalization]

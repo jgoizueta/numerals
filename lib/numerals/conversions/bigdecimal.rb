@@ -178,11 +178,7 @@ class Numerals::BigDecimalConversion
 
     dec_pos, digits = formatter.digits
 
-    if rounding.preserving? || !rounding.exact?
-      normalization = :approximate
-    else
-      normalization = :exact
-    end
+    normalization = :approximate
 
     numeral = Numerals::Numeral[digits, sign: sign, point: dec_pos, rep_pos: formatter.repeat, base: output_base, normalize: normalization]
 

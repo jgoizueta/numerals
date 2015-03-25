@@ -182,9 +182,7 @@ module Numerals
     # that prior truncation should be passed as the second argument.
     def truncate(numeral, round_up=nil)
       check_base numeral
-      if exact? && !preserving?
-        round_up = nil
-      else
+      unless exact? && !preserving?
         n = precision(numeral)
         unless n >= numeral.digits.size && numeral.approximate?
           if n < numeral.digits.size - 1
@@ -237,11 +235,12 @@ module Numerals
         round_up: round_up,
         base: numeral.base
       )
-      if numeral.zero? && point != 0 && exact? && !preserving?
+      if numeral.zero? && exact? && !preserving?
         digits = []
         point = 0
       end
-      Numeral[digits, point: point, base: numeral.base, sign: numeral.sign, normalize: :approximate]
+      normalization = @mode == :exact ? :exact : :approximate
+      Numeral[digits, point: point, base: numeral.base, sign: numeral.sign, normalize: normalization]
     end
 
     ZERO_DIGITS = 0 # 1?

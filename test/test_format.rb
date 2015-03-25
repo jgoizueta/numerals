@@ -90,7 +90,6 @@ class TestFormat <  Test::Unit::TestCase # < Minitest::Test
     assert_equal Format::Mode[:fixed], f.mode
 
     f = f.set_rounding(precision: 10).set_mode(:engineering)
-    return
     assert_equal false, f.exact_input
     assert_equal Rounding[precision: 10], f.rounding
     assert_equal Format::Mode[:engineering], f.mode

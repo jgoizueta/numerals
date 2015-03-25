@@ -281,11 +281,21 @@ module Numerals
       dup.set! *args
     end
 
-    def set_repeat(*args)
+    def self.aspect(aspect, &blk)
+      define_method :"set_#{aspect}!" do |*args|
+        instance_exec(*args, &blk)
+        self
+      end
+      define_method :"set_#{aspect}" do |*args|
+        dup.send(:"set_#{aspect}!", *args)
+      end
+    end
+
+    aspect :repeat do |*args|
       # TODO accept hash :begin, :end, :suffix, ...
     end
 
-    def set_grouping(*args)
+    aspect :grouping! do |*args|
       args.each do |arg|
         case arg
         when Symbol
@@ -300,18 +310,14 @@ module Numerals
       end
     end
 
-    def set_group_thousands(sep = nil)
+    aspect :group_thousands do |sep = nil|
       @group_separator = sep if sep
       @grouping = [3]
     end
 
-    def set_signs(plus, minus)
+    aspect :signs do |plus, minus|
       @plus = plus
       @minus = minus
-    end
-
-    def set_locale(locale)
-      # ...
     end
 
     def parameters(abbreviated=false)
@@ -325,7 +331,7 @@ module Numerals
       params
     end
 
-    def set_plus!(plus, which = nil)
+    aspect :plus do |plus, which = nil|
       case plus
       when nil, false
         case which
@@ -360,11 +366,6 @@ module Numerals
           @show_plus = true
         end
       end
-      self
-    end
-
-    def set_plus(plus, which = nil)
-      dup.set_plus!(plus, which)
     end
 
     def to_s

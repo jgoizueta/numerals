@@ -1,8 +1,5 @@
 module Numerals
 
-  class Format
-  end
-
   # Formatted input implementation
   module Format::Input
 

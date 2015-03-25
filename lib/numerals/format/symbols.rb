@@ -7,10 +7,10 @@ module Numerals
   #   approximate value, are not determined: they could change to any
   #   other digit and the approximated value would be the same.
   #
-  class Format::Symbols < Format::Aspect
+  class Format::Symbols < FormattingAspect
 
 
-    class Digits < Format::Aspect
+    class Digits < FormattingAspect
 
       DEFAULT_DIGITS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
@@ -26,12 +26,11 @@ module Numerals
 
       include ModalSupport::StateEquivalent
 
-      def set!(*args)
+      set do |*args|
         options = extract_options(*args)
         options.each do |option, value|
           send :"#{option}=", value
         end
-        normalize!
       end
 
       attr_reader :digits, :max_base, :case_sensitive, :uppercase, :lowercase
@@ -148,10 +147,6 @@ module Numerals
         options
       end
 
-      def normalize!
-        self
-      end
-
     end
 
     DEFAULTS = {
@@ -237,9 +232,7 @@ module Numerals
       !@grouping.empty? && @group_separator && !@group_separator.empty?
     end
 
-    # def set_signs(...)
-
-    def set!(*args)
+    set do |*args|
       options = extract_options(*args)
       options.each do |option, value|
         if option == :digits
@@ -248,7 +241,7 @@ module Numerals
           send :"#{option}=", value
         end
       end
-      normalize!
+      apply_case!
     end
 
     attr_writer :digits, :nan, :infinity,
@@ -261,7 +254,7 @@ module Numerals
       # TODO accept hash :begin, :end, :suffix, ...
     end
 
-    aspect :grouping! do |*args|
+    aspect :grouping do |*args|
       args.each do |arg|
         case arg
         when Symbol
@@ -284,17 +277,6 @@ module Numerals
     aspect :signs do |plus, minus|
       @plus = plus
       @minus = minus
-    end
-
-    def parameters(abbreviated=false)
-      params = {}
-      DEFAULTS.each do |param, default|
-        value = instance_variable_get("@#{param}")
-        if !abbreviated || value != default
-          params[param] = value
-        end
-      end
-      params
     end
 
     aspect :plus do |plus, which = nil|
@@ -332,6 +314,21 @@ module Numerals
           @show_plus = true
         end
       end
+    end
+
+    aspect :minus do |minus|
+      @minus = minus
+    end
+
+    def parameters(abbreviated=false)
+      params = {}
+      DEFAULTS.each do |param, default|
+        value = instance_variable_get("@#{param}")
+        if !abbreviated || value != default
+          params[param] = value
+        end
+      end
+      params
     end
 
     def to_s
@@ -402,7 +399,7 @@ module Numerals
       options
     end
 
-    def normalize!
+    def apply_case!
       if @uppercase
         @nan = @nan.upcase
         @infinity = @infinity.upcase
@@ -419,7 +416,7 @@ module Numerals
         @nan = @nan.downcase
         @infinity = @infinity.downcase
         @plus = @plus.downcase
-        @exponent = @exponent.upcae
+        @exponent = @exponent.downcase
         @point = @point.downcase
         @group_separator = @group_separator.downcase
         @zero = @zero.downcase if @zero
@@ -428,7 +425,6 @@ module Numerals
         @repeat_suffix = @repeat_suffix.downcase
         @digits = @digits[lowercase: true]
       end
-      self
     end
 
     def cased(symbol)

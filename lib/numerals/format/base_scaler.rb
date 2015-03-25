@@ -2,9 +2,6 @@ require 'forwardable'
 
 module Numerals
 
-  class Format
-  end
-
   # This converts the number representation contained in an ExpSetter
   # scaling the base of the significand.
   #

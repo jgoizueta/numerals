@@ -1,7 +1,7 @@
 module Numerals
 
   # Rounding of Numerals
-  class Rounding
+  class Rounding < FormattingAspect
 
     # Rounding is defined by the rounding mode and the precision,
     # and is used to establish the desired accuracy of a Numeral result.
@@ -38,20 +38,11 @@ module Numerals
 
     include ModalSupport::StateEquivalent
 
-    def [](*args)
-      set *args
-    end
-
-    def self.[](*args)
-      Rounding.new *args
-    end
-
-    def set!(*args)
+    set do |*args|
       options = extract_options(*args)
       options.each do |option, value|
         send :"#{option}=", value
       end
-      normalize!
     end
 
     def base=(v)
@@ -82,10 +73,6 @@ module Numerals
         @mode = :half_even if exact?
         @precision = nil
       end
-    end
-
-    def set(*args)
-      dup.set! *args
     end
 
     def parameters
@@ -327,10 +314,6 @@ module Numerals
         end
       end
       options
-    end
-
-    def normalize!
-      self
     end
 
   end

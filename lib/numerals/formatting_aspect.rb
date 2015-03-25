@@ -1,9 +1,6 @@
 module Numerals
 
-  class Format
-  end
-
-  class Format::Aspect
+  class FormattingAspect
 
     def [](*args)
       set *args
@@ -24,6 +21,13 @@ module Numerals
       end
       define_method :"set_#{aspect}" do |*args|
         dup.send(:"set_#{aspect}!", *args)
+      end
+    end
+
+    def self.set(*args, &blk)
+      define_method :"set!" do |*args|
+        instance_exec(*args, &blk)
+        self
       end
     end
 

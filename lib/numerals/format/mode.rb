@@ -1,8 +1,5 @@
 module Numerals
 
-  class Format
-  end
-
   # Formatting mode
   #
   # * :scientific use scientific notation.
@@ -38,7 +35,7 @@ module Numerals
   #   of some calculators, where scientific notation is used when
   #   more digits than the specified precision would be needed.
   #
-  class Format::Mode < Format::Aspect
+  class Format::Mode < FormattingAspect
 
     DEFAULTS = {
       mode: :general,
@@ -59,12 +56,11 @@ module Numerals
 
     include ModalSupport::StateEquivalent
 
-    def set!(*args)
+    set do |*args|
       options = extract_options(*args)
       options.each do |option, value|
         send :"#{option}=", value
       end
-      normalize!
     end
 
     MODE_SHORTCUTS = {
@@ -154,10 +150,6 @@ module Numerals
         end
       end
       options
-    end
-
-    def normalize!
-      self
     end
 
   end

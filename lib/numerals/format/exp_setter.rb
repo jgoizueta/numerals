@@ -1,8 +1,5 @@
 module Numerals
 
-  class Format
-  end
-
   # Adjust exponent to be used in a Numeral expression;
   # break up the numeral into integer, fractional and repeating parts.
   #

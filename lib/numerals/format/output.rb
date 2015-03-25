@@ -2,9 +2,6 @@ require 'stringio'
 
 module Numerals
 
-  class Format
-  end
-
   # Formatted output implementation
   module Format::Output
 

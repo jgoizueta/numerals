@@ -100,7 +100,8 @@ class Numerals::BigDecimalConversion
     else
       if output_base == input_base && output_rounding.preserving?
         # akin to number.format(base: output_base)
-        Numerals::Numeral.from_coefficient_scale number.sign*number.coefficient, number.integral_exponent, approximate: true
+        sign, coefficient, exponent = @context.split(number)
+        Numerals::Numeral.from_coefficient_scale sign*coefficient, exponent, approximate: true
       elsif output_rounding.simplifying?
         # akin to number.forma(base: output_base, simplify: true)
         general_num_to_numeral number, output_rounding, false
@@ -164,7 +165,7 @@ class Numerals::BigDecimalConversion
     # here rounding_mode is not the output rounding mode, but the rounding mode used for input
     rounding_mode = @input_rounding ||
                     (rounding.exact? ? @context.rounding : rounding.mode)
-# The minimum exponent of BigDecimal numbers is not well defined;
+    # The minimum exponent of BigDecimal numbers is not well defined;
     # depends of host architecture, version of BigDecimal, etc.
     # We'll use an arbitrary conservative value.
     min_exp = -100000000
@@ -176,10 +177,17 @@ class Numerals::BigDecimalConversion
     )
 
     dec_pos, digits = formatter.digits
-    numeral = Numerals::Numeral[digits, sign: sign, point: dec_pos, rep_pos: formatter.repeat, base: output_base]
-    if all_digits
-      numeral = rounding.round(numeral, round_up: formatter.round_up)
+
+    if rounding.preserving? || !rounding.exact?
+      normalization = :approximate
+    else
+      normalization = :exact
     end
+
+    numeral = Numerals::Numeral[digits, sign: sign, point: dec_pos, rep_pos: formatter.repeat, base: output_base, normalize: normalization]
+
+    numeral = rounding.round(numeral, round_up: formatter.round_up)
+
     numeral
   end
 

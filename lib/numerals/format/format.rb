@@ -7,10 +7,39 @@ module Numerals
   #
   # * Exact input
   # * Rounding
-  # * Format::Mode
-  # * Format::Symbols
+  # * Mode
+  # * Symbols
+  # * Input rounding
   #
-  # Some aspects (Rounding, ...) are handled with aspect-definining classes.
+  # Some aspects (Rounding, Mode & Symbols) are handled with aspect-definining
+  # classes Rounding, Format::Mode and Format::Symbols.
+  #
+  # Exact input applies only to numeric types that can hold limited
+  # precision values such as Float, Flt::Num or BigDecimal. It specifies
+  # that the numeric value is to be taken as an exact quantity. Otherwise,
+  # the numeric value is interpreted as a rounded approximation of some
+  # original exact value (so it represents a range of exact number which
+  # would all be rounded to the same approximation). Rational and Integer
+  # types are always exact and not affected by this option.
+  #
+  # Rounding defines how numbers are rounded into text form or how
+  # values represented in text round to numeric values. So it specifies
+  # the precision of the result and whether the result is an approximation
+  # or an exact quantity.
+  #
+  # Mode defines de formatting style.
+  #
+  # Symbols contains the details of how digits and other symbols are
+  # represented in text form and the final text notation used.
+  #
+  # The input-rounding property can set to either a Rounding object
+  # or just a rounding mode symbol (:half_even, etc.).
+  # It is used to define which rounding mode is implied when reading textual
+  # numeric expressions into approximate numeric values. It affects how
+  # approximate numbers are written to text because the text representation
+  # of approximate values should be read back into the original value.
+  # If a Rounding object is assigned only the mode is used, and it is ignored
+  # if the rounding is exact.  #
   #
   class Format < FormattingAspect
 

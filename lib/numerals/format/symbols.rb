@@ -7,10 +7,10 @@ module Numerals
   #   approximate value, are not determined: they could change to any
   #   other digit and the approximated value would be the same.
   #
-  class Format::Symbols
+  class Format::Symbols < Format::Aspect
 
 
-    class Digits
+    class Digits < Format::Aspect
 
       DEFAULT_DIGITS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
@@ -26,14 +26,6 @@ module Numerals
 
       include ModalSupport::StateEquivalent
 
-      def [](*args)
-        set *args
-      end
-
-      def self.[](*args)
-        Format::Symbols::Digits.new *args
-      end
-
       def set!(*args)
         options = extract_options(*args)
         options.each do |option, value|
@@ -44,10 +36,6 @@ module Numerals
 
       attr_reader :digits, :max_base, :case_sensitive, :uppercase, :lowercase
       attr_writer :case_sensitive
-
-      def set(*args)
-        dup.set! *args
-      end
 
       def digits=(digits)
         @digits = digits
@@ -251,14 +239,6 @@ module Numerals
 
     # def set_signs(...)
 
-    def [](*args)
-      set *args
-    end
-
-    def self.[](*args)
-      Format::Symbols.new *args
-    end
-
     def set!(*args)
       options = extract_options(*args)
       options.each do |option, value|
@@ -276,20 +256,6 @@ module Numerals
                 :repeat_begin, :repeat_end, :repeat_suffix, :show_plus,
                 :show_exponent_plus, :uppercase, :show_zero, :show_point,
                 :grouping, :repeat_count
-
-    def set(*args)
-      dup.set! *args
-    end
-
-    def self.aspect(aspect, &blk)
-      define_method :"set_#{aspect}!" do |*args|
-        instance_exec(*args, &blk)
-        self
-      end
-      define_method :"set_#{aspect}" do |*args|
-        dup.send(:"set_#{aspect}!", *args)
-      end
-    end
 
     aspect :repeat do |*args|
       # TODO accept hash :begin, :end, :suffix, ...
@@ -377,7 +343,7 @@ module Numerals
     end
 
     def dup
-      Mode[parameters]
+      Format::Symbols[parameters]
     end
 
     # Group digits (inserting nil values as separators)

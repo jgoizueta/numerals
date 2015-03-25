@@ -38,7 +38,7 @@ module Numerals
   #   of some calculators, where scientific notation is used when
   #   more digits than the specified precision would be needed.
   #
-  class Format::Mode
+  class Format::Mode < Format::Aspect
 
     DEFAULTS = {
       mode: :general,
@@ -58,14 +58,6 @@ module Numerals
     attr_reader :mode, :sci_int_digits, :max_leading, :max_trailing, :base_scale
 
     include ModalSupport::StateEquivalent
-
-    def [](*args)
-      set *args
-    end
-
-    def self.[](*args)
-      Format::Mode.new *args
-    end
 
     def set!(*args)
       options = extract_options(*args)
@@ -98,10 +90,6 @@ module Numerals
     end
 
     attr_writer :max_leading, :max_trailing, :base_scale
-
-    def set(*args)
-      dup.set! *args
-    end
 
     def engineering?
       @mode == :scientific && @sci_int_digits == :engineering

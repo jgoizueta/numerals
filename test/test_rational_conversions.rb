@@ -13,7 +13,7 @@ class TestRationalConversions <  Test::Unit::TestCase # < Minitest::Test
 
   def test_write
 
-    exact = Rounding[:exact]
+    exact = Rounding[:simplify]
     nine_digits = Rounding[:half_even, precision: 9]
 
     assert_equal Numeral[3, point: 0, repeat: 0],

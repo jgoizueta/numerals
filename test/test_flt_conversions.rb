@@ -10,21 +10,21 @@ class TestFltConversions <  Test::Unit::TestCase # < Minitest::Test
     type = Flt::BinNum
 
     assert_equal Numeral.nan, Conversions.write(context.nan)
-    assert_equal Numeral.nan, Conversions.write(context.nan, rounding: Rounding[:exact, base: 2])
-    assert_equal Numeral.nan, Conversions.write(context.nan, rounding: Rounding[:exact, base: 10])
+    assert_equal Numeral.nan, Conversions.write(context.nan, rounding: Rounding[:simplify, base: 2])
+    assert_equal Numeral.nan, Conversions.write(context.nan, rounding: Rounding[:simplify, base: 10])
     assert_equal Numeral.nan, Conversions.write(context.nan, rounding: Rounding[precision: 10, base: 10])
     assert_equal Numeral.nan, Conversions.write(context.nan, rounding: Rounding[:simplify])
     assert_equal Numeral.nan, Conversions.write(context.nan, rounding: Rounding[:perserve])
 
     assert_equal Numeral.infinity, Conversions.write(context.infinity)
-    assert_equal Numeral.infinity, Conversions.write(context.infinity, rounding: Rounding[:exact, base: 2])
-    assert_equal Numeral.infinity, Conversions.write(context.infinity, rounding: Rounding[:exact, base: 10])
+    assert_equal Numeral.infinity, Conversions.write(context.infinity, rounding: Rounding[:simplify, base: 2])
+    assert_equal Numeral.infinity, Conversions.write(context.infinity, rounding: Rounding[:simplify, base: 10])
     assert_equal Numeral.infinity, Conversions.write(context.infinity, rounding: Rounding[precision: 10, base: 10])
     assert_equal Numeral.infinity, Conversions.write(context.infinity)
 
     assert_equal Numeral.infinity(-1), Conversions.write(context.infinity(-1))
-    assert_equal Numeral.infinity(-1), Conversions.write(context.infinity(-1), rounding: Rounding[:exact, base: 2])
-    assert_equal Numeral.infinity(-1), Conversions.write(context.infinity(-1), rounding: Rounding[:exact, base: 10])
+    assert_equal Numeral.infinity(-1), Conversions.write(context.infinity(-1), rounding: Rounding[:simplify, base: 2])
+    assert_equal Numeral.infinity(-1), Conversions.write(context.infinity(-1), rounding: Rounding[:simplify, base: 10])
     assert_equal Numeral.infinity(-1), Conversions.write(context.infinity(-1), rounding: Rounding[precision: 10, base: 10])
     assert_equal Numeral.infinity(-1), Conversions.write(context.infinity(-1))
   end
@@ -55,13 +55,13 @@ class TestFltConversions <  Test::Unit::TestCase # < Minitest::Test
     Flt::BinNum.context(context) do
       one = Flt::BinNum(1, :fixed)
     end
-    rounding = Rounding[:exact, base: 10]
+    rounding = Rounding[:simplify, base: 10]
     assert_equal Numeral[1, point: 1],
                  Conversions.write(one, rounding: rounding, exact: true)
     assert_equal Numeral[1, point: 1, sign: -1],
                  Conversions.write(-one, rounding: rounding, exact: true)
 
-    rounding_2 = Rounding[:exact, base: 2]
+    rounding_2 = Rounding[:simplify, base: 2]
     assert_equal Numeral[1, point: 1, base: 2],
                  Conversions.write(one, rounding: rounding_2, exact: true)
     assert_equal Numeral[1, point: 1, sign: -1, base: 2],
@@ -72,7 +72,7 @@ class TestFltConversions <  Test::Unit::TestCase # < Minitest::Test
       [x, -x].each do |y|
         y = Flt::BinNum(y)
         numeral = exact_decimal(y)
-        rounding = Rounding[:exact, base: 10]
+        rounding = Rounding[:simplify, base: 10]
         assert_equal numeral, Conversions.write(y, rounding: rounding, exact: true),
                      "#{y} to base 10 exact numeral"
       end
@@ -86,7 +86,7 @@ class TestFltConversions <  Test::Unit::TestCase # < Minitest::Test
       [x, -x].each do |y|
         y = Flt::BinNum(y)
         numeral = exact_decimal(y)
-        rounding = Rounding[:exact, base: 10]
+        rounding = Rounding[:simplify, base: 10]
         assert_equal y, Conversions.read(numeral, context: context),
                      "#{x} base 10 numeral to float"
       end
@@ -132,6 +132,86 @@ class TestFltConversions <  Test::Unit::TestCase # < Minitest::Test
       hi = Flt::BinNum('0x1.52d02c7e14af7p+76', :fixed)
     end
 
+    # Input (read)
+    assert_equal(
+      lo,
+      Conversions.read(numeral, type: Flt::BinNum, rounding: :half_even)
+    )
+    assert_equal(
+      lo,
+      Conversions.read(numeral, type: Flt::BinNum, rounding: :half_down)
+    )
+    assert_equal(
+      hi,
+      Conversions.read(numeral, type: Flt::BinNum, rounding: :half_up)
+    )
+    assert_equal(
+      -lo,
+      Conversions.read(-numeral, type: Flt::BinNum, rounding: :half_even)
+    )
+    assert_equal(
+      -lo,
+      Conversions.read(-numeral, type: Flt::BinNum, rounding: :half_down)
+    )
+    assert_equal(
+      -hi,
+      Conversions.read(-numeral, type: Flt::BinNum, rounding: :half_up)
+    )
+
+    # Output (write)
+    rounding = Rounding[:simplify]
+
+    assert_equal(
+      numeral,
+      Conversions.write(lo, rounding: rounding, input_rounding: :half_down)
+    )
+    assert_equal(
+      numeral_lo,
+      Conversions.write(lo, rounding: rounding, input_rounding: :half_up)
+    )
+    assert_equal(
+      numeral,
+      Conversions.write(lo, rounding: rounding, input_rounding: :half_even)
+    )
+    assert_equal(
+      numeral,
+      Conversions.write(hi, rounding: rounding, input_rounding: :half_up)
+    )
+    assert_equal(
+      numeral_hi,
+      Conversions.write(hi, rounding: rounding, input_rounding: :half_down)
+    )
+    assert_equal(
+      numeral_hi,
+      Conversions.write(hi, rounding: rounding, input_rounding: :half_even)
+    )
+    assert_equal(
+      -numeral,
+      Conversions.write(-lo, rounding: rounding, input_rounding: :half_down)
+    )
+    assert_equal(
+      -numeral_lo,
+      Conversions.write(-lo, rounding: rounding, input_rounding: :half_up)
+    )
+    assert_equal(
+      -numeral,
+      Conversions.write(-lo, rounding: rounding, input_rounding: :half_even)
+    )
+    assert_equal(
+      -numeral,
+      Conversions.write(-hi, rounding: rounding, input_rounding: :half_up)
+    )
+    assert_equal(
+      -numeral_hi,
+      Conversions.write(-hi, rounding: rounding, input_rounding: :half_down)
+    )
+    assert_equal(
+      -numeral_hi,
+      Conversions.write(-hi, rounding: rounding, input_rounding: :half_even)
+    )
+
+    # For input, if no input_roundig is established, the Num context is used
+
     Flt::BinNum.context(context, rounding: :half_even) do
       x = Conversions.read(numeral, type: Flt::BinNum)
       assert_equal lo, x
@@ -164,77 +244,107 @@ class TestFltConversions <  Test::Unit::TestCase # < Minitest::Test
       assert_equal -hi, x
     end
 
-    rounding = Rounding[:simplify]
+    # For Output, if no input_rounding is used the output rounding is used instead
 
-    Flt::BinNum.context(context, rounding: :half_down) do
-      assert_equal numeral, Conversions.write(lo, rounding: rounding)
-    end
-    Flt::BinNum.context(context, rounding: :half_up) do
-      assert_equal numeral_lo, Conversions.write(lo, rounding: rounding)
-    end
-    Flt::BinNum.context(context, rounding: :half_even) do
-      assert_equal numeral, Conversions.write(lo, rounding: rounding)
+    if Conversions::DEFAULT_INPUT_ROUNDING_IS_CONTEXT
+
+      rounding = Rounding[:simplify]
+
+      Flt::BinNum.context(context, rounding: :half_down) do
+        assert_equal numeral, Conversions.write(lo, rounding: rounding)
+      end
+      Flt::BinNum.context(context, rounding: :half_up) do
+        assert_equal numeral_lo, Conversions.write(lo, rounding: rounding)
+      end
+      Flt::BinNum.context(context, rounding: :half_even) do
+        assert_equal numeral, Conversions.write(lo, rounding: rounding)
+      end
+
+      Flt::BinNum.context(context, rounding: :half_up) do
+        assert_equal numeral, Conversions.write(hi, rounding: rounding)
+      end
+      Flt::BinNum.context(context, rounding: :half_down) do
+        assert_equal numeral_hi, Conversions.write(hi, rounding: rounding)
+      end
+      Flt::BinNum.context(context, rounding: :half_even) do
+        assert_equal numeral_hi, Conversions.write(hi, rounding: rounding)
+      end
+
+      Flt::BinNum.context(context, rounding: :half_down) do
+        assert_equal -numeral, Conversions.write(-lo, rounding: rounding)
+      end
+      Flt::BinNum.context(context, rounding: :half_up) do
+        assert_equal -numeral_lo, Conversions.write(-lo, rounding: rounding)
+      end
+      Flt::BinNum.context(context, rounding: :half_even) do
+        assert_equal -numeral, Conversions.write(-lo, rounding: rounding)
+      end
+
+      Flt::BinNum.context(context, rounding: :half_up) do
+        assert_equal -numeral, Conversions.write(-hi, rounding: rounding)
+      end
+      Flt::BinNum.context(context, rounding: :half_down) do
+        assert_equal -numeral_hi, Conversions.write(-hi, rounding: rounding)
+      end
+      Flt::BinNum.context(context, rounding: :half_even) do
+        assert_equal -numeral_hi, Conversions.write(-hi, rounding: rounding)
+      end
+
+    else
+
+      rounding = Rounding[:simplify]
+
+      assert_equal(
+        numeral,
+        Conversions.write(lo, rounding: rounding[:half_down])
+      )
+      assert_equal(
+        numeral_lo,
+        Conversions.write(lo, rounding: rounding[:half_up])
+      )
+      assert_equal(
+        numeral,
+        Conversions.write(lo, rounding: rounding[:half_even])
+      )
+      assert_equal(
+        numeral,
+        Conversions.write(hi, rounding: rounding[:half_up])
+      )
+      assert_equal(
+        numeral_hi,
+        Conversions.write(hi, rounding: rounding[:half_down])
+      )
+      assert_equal(
+        numeral_hi,
+        Conversions.write(hi, rounding: rounding[:half_even])
+      )
+      assert_equal(
+        -numeral,
+        Conversions.write(-lo, rounding: rounding[:half_down])
+      )
+      assert_equal(
+        -numeral_lo,
+        Conversions.write(-lo, rounding: rounding[:half_up])
+      )
+      assert_equal(
+        -numeral,
+        Conversions.write(-lo, rounding: rounding[:half_even])
+      )
+      assert_equal(
+        -numeral,
+        Conversions.write(-hi, rounding: rounding[:half_up])
+      )
+      assert_equal(
+        -numeral_hi,
+        Conversions.write(-hi, rounding: rounding[:half_down])
+      )
+      assert_equal(
+        -numeral_hi,
+        Conversions.write(-hi, rounding: rounding[:half_even])
+      )
+
     end
 
-    Flt::BinNum.context(context, rounding: :half_up) do
-      assert_equal numeral, Conversions.write(hi, rounding: rounding)
-    end
-    Flt::BinNum.context(context, rounding: :half_down) do
-      assert_equal numeral_hi, Conversions.write(hi, rounding: rounding)
-    end
-    Flt::BinNum.context(context, rounding: :half_even) do
-      assert_equal numeral_hi, Conversions.write(hi, rounding: rounding)
-    end
-
-    Flt::BinNum.context(context, rounding: :half_down) do
-      assert_equal -numeral, Conversions.write(-lo, rounding: rounding)
-    end
-    Flt::BinNum.context(context, rounding: :half_up) do
-      assert_equal -numeral_lo, Conversions.write(-lo, rounding: rounding)
-    end
-    Flt::BinNum.context(context, rounding: :half_even) do
-      assert_equal -numeral, Conversions.write(-lo, rounding: rounding)
-    end
-
-    Flt::BinNum.context(context, rounding: :half_up) do
-      assert_equal -numeral, Conversions.write(-hi, rounding: rounding)
-    end
-    Flt::BinNum.context(context, rounding: :half_down) do
-      assert_equal -numeral_hi, Conversions.write(-hi, rounding: rounding)
-    end
-    Flt::BinNum.context(context, rounding: :half_even) do
-      assert_equal -numeral_hi, Conversions.write(-hi, rounding: rounding)
-    end
-
-    # now avoiding Flt contexts by using the :input_rounding option
-
-    x = Conversions.read(numeral, type: Flt::BinNum, rounding: :half_even)
-    assert_equal lo, x
-    x = Conversions.read(numeral, type: Flt::BinNum, rounding: :half_down)
-    assert_equal lo, x
-    x = Conversions.read(numeral, type: Flt::BinNum, rounding: :half_up)
-    assert_equal hi, x
-    x = Conversions.read(-numeral, type: Flt::BinNum, rounding: :half_even)
-    assert_equal -lo, x
-    x = Conversions.read(-numeral, type: Flt::BinNum, rounding: :half_down)
-    assert_equal -lo, x
-    x = Conversions.read(-numeral, type: Flt::BinNum, rounding: :half_up)
-    assert_equal -hi, x
-
-    rounding = Rounding[:simplify]
-
-    assert_equal numeral, Conversions.write(lo, rounding: rounding, input_rounding: :half_down)
-    assert_equal numeral_lo, Conversions.write(lo, rounding: rounding, input_rounding: :half_up)
-    assert_equal numeral, Conversions.write(lo, rounding: rounding, input_rounding: :half_even)
-    assert_equal numeral, Conversions.write(hi, rounding: rounding, input_rounding: :half_up)
-    assert_equal numeral_hi, Conversions.write(hi, rounding: rounding, input_rounding: :half_down)
-    assert_equal numeral_hi, Conversions.write(hi, rounding: rounding, input_rounding: :half_even)
-    assert_equal -numeral, Conversions.write(-lo, rounding: rounding, input_rounding: :half_down)
-    assert_equal -numeral_lo, Conversions.write(-lo, rounding: rounding, input_rounding: :half_up)
-    assert_equal -numeral, Conversions.write(-lo, rounding: rounding, input_rounding: :half_even)
-    assert_equal -numeral, Conversions.write(-hi, rounding: rounding, input_rounding: :half_up)
-    assert_equal -numeral_hi, Conversions.write(-hi, rounding: rounding, input_rounding: :half_down)
-    assert_equal -numeral_hi, Conversions.write(-hi, rounding: rounding, input_rounding: :half_even)
   end
 
   def test_read_write_single_nearest
@@ -253,71 +363,171 @@ class TestFltConversions <  Test::Unit::TestCase # < Minitest::Test
       hi = Flt::BinNum('0x1.0066666666667p+6', :fixed)
     end
 
-    Flt::BinNum.context(context, rounding: :half_even) do
-      x = Conversions.read(numeral, type: Flt::BinNum)
-      assert_equal lo, x
-    end
-    Flt::BinNum.context(context, rounding: :half_down) do
-      x = Conversions.read(numeral, type: Flt::BinNum)
-      assert_equal lo, x
-    end
-    Flt::BinNum.context(context, rounding: :half_up) do
-      x = Conversions.read(numeral, type: Flt::BinNum)
-      assert_equal lo, x
-    end
+    assert_equal(
+      lo,
+      Conversions.read(numeral, type: Flt::BinNum, input_rounding: :half_even)
+    )
+    assert_equal(
+      lo,
+      Conversions.read(numeral, type: Flt::BinNum, input_rounding: :half_down)
+    )
+    assert_equal(
+      lo,
+      Conversions.read(numeral, type: Flt::BinNum, input_rounding:  :half_up)
+    )
 
-    Flt::BinNum.context(context, rounding: :half_even) do
-      x = Conversions.read(-numeral, type: Flt::BinNum)
-      assert_equal -lo, x
-    end
-    Flt::BinNum.context(context, rounding: :half_down) do
-      x = Conversions.read(-numeral, type: Flt::BinNum)
-      assert_equal -lo, x
-    end
-    Flt::BinNum.context(context, rounding: :half_up) do
-      x = Conversions.read(-numeral, type: Flt::BinNum)
-      assert_equal -lo, x
-    end
+    assert_equal(
+      -lo,
+      Conversions.read(-numeral, type: Flt::BinNum, input_rounding: :half_even)
+    )
+    assert_equal(
+      -lo,
+      Conversions.read(-numeral, type: Flt::BinNum, input_rounding: :half_down)
+    )
+    assert_equal(
+      -lo,
+      Conversions.read(-numeral, type: Flt::BinNum, input_rounding:  :half_up)
+    )
 
     rounding = Rounding[:simplify]
     rounding_16 = Rounding[:half_even, precision: 16]
 
+    assert_equal(
+      numeral,
+      Conversions.write(lo, rounding: rounding, input_rounding: :half_even)
+    )
+    assert_equal(
+      numeral_lo,
+      Conversions.write(lo, rounding: rounding_16, exact: true, input_rounding: :half_even)
+    )
+    assert_equal(
+      numeral,
+      Conversions.write(lo, rounding: rounding, input_rounding: :half_down)
+    )
+    assert_equal(
+      numeral_lo,
+      Conversions.write(lo, rounding: rounding_16, exact: true, input_rounding: :half_down)
+    )
+    assert_equal(
+      numeral,
+      Conversions.write(lo, rounding: rounding, input_rounding: :half_up)
+    )
+    assert_equal(
+      numeral_lo,
+      Conversions.write(lo, rounding: rounding_16, exact: true, input_rounding: :half_up)
+    )
+
+    assert_equal(
+      -numeral,
+      Conversions.write(-lo, rounding: rounding, input_rounding: :half_even)
+    )
+    assert_equal(
+      -numeral_lo,
+      Conversions.write(-lo, rounding: rounding_16, exact: true, input_rounding: :half_even)
+    )
+    assert_equal(
+      -numeral,
+      Conversions.write(-lo, rounding: rounding, input_rounding: :half_down)
+    )
+    assert_equal(
+      -numeral_lo,
+      Conversions.write(-lo, rounding: rounding_16, exact: true, input_rounding: :half_down)
+    )
+    assert_equal(
+      -numeral,
+      Conversions.write(-lo, rounding: rounding, input_rounding: :half_up)
+    )
+    assert_equal(
+      -numeral_lo,
+      Conversions.write(-lo, rounding: rounding_16, exact: true, input_rounding: :half_up)
+    )
+
     Flt::BinNum.context(context, rounding: :half_even) do
-      assert_equal numeral, Conversions.write(lo, rounding: rounding)
-    end
-    Flt::BinNum.context(context, rounding: :half_even) do
-      assert_equal numeral_lo, Conversions.write(lo, rounding: rounding_16, exact: true)
+      x = Conversions.read(numeral, type: Flt::BinNum)
+      assert_equal lo, x
     end
     Flt::BinNum.context(context, rounding: :half_down) do
-      assert_equal numeral, Conversions.write(lo, rounding: rounding)
-    end
-    Flt::BinNum.context(context, rounding: :half_down) do
-      assert_equal numeral_lo, Conversions.write(lo, rounding: rounding_16, exact: true)
+      x = Conversions.read(numeral, type: Flt::BinNum)
+      assert_equal lo, x
     end
     Flt::BinNum.context(context, rounding: :half_up) do
-      assert_equal numeral, Conversions.write(lo, rounding: rounding)
-    end
-    Flt::BinNum.context(context, rounding: :half_up) do
-      assert_equal numeral_lo, Conversions.write(lo, rounding: rounding_16, exact: true)
+      x = Conversions.read(numeral, type: Flt::BinNum)
+      assert_equal lo, x
     end
 
     Flt::BinNum.context(context, rounding: :half_even) do
-      assert_equal -numeral, Conversions.write(-lo, rounding: rounding)
-    end
-    Flt::BinNum.context(context, rounding: :half_even) do
-      assert_equal -numeral_lo, Conversions.write(-lo, rounding: rounding_16, exact: true)
+      x = Conversions.read(-numeral, type: Flt::BinNum)
+      assert_equal -lo, x
     end
     Flt::BinNum.context(context, rounding: :half_down) do
-      assert_equal -numeral, Conversions.write(-lo, rounding: rounding)
-    end
-    Flt::BinNum.context(context, rounding: :half_down) do
-      assert_equal -numeral_lo, Conversions.write(-lo, rounding: rounding_16, exact: true)
+      x = Conversions.read(-numeral, type: Flt::BinNum)
+      assert_equal -lo, x
     end
     Flt::BinNum.context(context, rounding: :half_up) do
-      assert_equal -numeral, Conversions.write(-lo, rounding: rounding)
+      x = Conversions.read(-numeral, type: Flt::BinNum)
+      assert_equal -lo, x
     end
-    Flt::BinNum.context(context, rounding: :half_up) do
-      assert_equal -numeral_lo, Conversions.write(-lo, rounding: rounding_16, exact: true)
+
+    if Conversions::DEFAULT_INPUT_ROUNDING_IS_CONTEXT
+
+      rounding = Rounding[:simplify]
+      rounding_16 = Rounding[:half_even, precision: 16]
+
+      Flt::BinNum.context(context, rounding: :half_even) do
+        assert_equal numeral, Conversions.write(lo, rounding: rounding)
+      end
+      Flt::BinNum.context(context, rounding: :half_even) do
+        assert_equal numeral_lo, Conversions.write(lo, rounding: rounding_16, exact: true)
+      end
+      Flt::BinNum.context(context, rounding: :half_down) do
+        assert_equal numeral, Conversions.write(lo, rounding: rounding)
+      end
+      Flt::BinNum.context(context, rounding: :half_down) do
+        assert_equal numeral_lo, Conversions.write(lo, rounding: rounding_16, exact: true)
+      end
+      Flt::BinNum.context(context, rounding: :half_up) do
+        assert_equal numeral, Conversions.write(lo, rounding: rounding)
+      end
+      Flt::BinNum.context(context, rounding: :half_up) do
+        assert_equal numeral_lo, Conversions.write(lo, rounding: rounding_16, exact: true)
+      end
+
+      Flt::BinNum.context(context, rounding: :half_even) do
+        assert_equal -numeral, Conversions.write(-lo, rounding: rounding)
+      end
+      Flt::BinNum.context(context, rounding: :half_even) do
+        assert_equal -numeral_lo, Conversions.write(-lo, rounding: rounding_16, exact: true)
+      end
+      Flt::BinNum.context(context, rounding: :half_down) do
+        assert_equal -numeral, Conversions.write(-lo, rounding: rounding)
+      end
+      Flt::BinNum.context(context, rounding: :half_down) do
+        assert_equal -numeral_lo, Conversions.write(-lo, rounding: rounding_16, exact: true)
+      end
+      Flt::BinNum.context(context, rounding: :half_up) do
+        assert_equal -numeral, Conversions.write(-lo, rounding: rounding)
+      end
+      Flt::BinNum.context(context, rounding: :half_up) do
+        assert_equal -numeral_lo, Conversions.write(-lo, rounding: rounding_16, exact: true)
+      end
+
+    else
+      rounding = Rounding[:simplify]
+      rounding_16 = Rounding[:half_even, precision: 16]
+
+      assert_equal numeral, Conversions.write(lo, rounding: rounding[:half_even])
+      assert_equal numeral_lo, Conversions.write(lo, rounding: rounding_16[:half_even], exact: true)
+      assert_equal numeral, Conversions.write(lo, rounding: rounding[:half_down])
+      assert_equal numeral_lo, Conversions.write(lo, rounding: rounding_16[:half_down], exact: true)
+      assert_equal numeral, Conversions.write(lo, rounding: rounding[:half_up])
+      assert_equal numeral_lo, Conversions.write(lo, rounding: rounding_16[:half_up], exact: true)
+
+      assert_equal -numeral, Conversions.write(-lo, rounding: rounding[:half_even])
+      assert_equal -numeral_lo, Conversions.write(-lo, rounding: rounding_16[:half_even], exact: true)
+      assert_equal -numeral, Conversions.write(-lo, rounding: rounding[:half_down])
+      assert_equal -numeral_lo, Conversions.write(-lo, rounding: rounding_16[:half_down], exact: true)
+      assert_equal -numeral, Conversions.write(-lo, rounding: rounding[:half_up])
+      assert_equal -numeral_lo, Conversions.write(-lo, rounding: rounding_16[:half_up], exact: true)
     end
   end
 

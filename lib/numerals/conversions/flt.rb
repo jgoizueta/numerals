@@ -23,11 +23,7 @@ class Numerals::FltConversion
   def input_rounding=(rounding)
     if rounding
       rounding = Rounding[rounding]
-      if rounding.exact?
-        @input_rounding = nil
-      else
-        @input_rounding = rounding.mode
-      end
+      @input_rounding = rounding.mode
     else
       @input_rounding = nil
     end
@@ -86,7 +82,7 @@ class Numerals::FltConversion
     if number.special? # @context.special?(number)
       special_num_to_numeral number
     elsif exact_input
-      if output_base == input_base && output_rounding.exact?
+      if output_base == input_base && output_rounding.free?
         # akin to number.format(base: output_base, simplified: true)
         general_num_to_numeral number, output_rounding, false
       else
@@ -141,14 +137,14 @@ class Numerals::FltConversion
   def exact_num_to_numeral(number, rounding)
     quotient = number.to_r
     numeral = Numerals::Numeral.from_quotient(quotient, base: rounding.base)
-    unless rounding.exact?
+    unless rounding.free?
       numeral = rounding.round(numeral)
     end
     numeral
   end
 
   def approximate_num_to_numeral(number, rounding)
-    all_digits = !rounding.exact?
+    all_digits = !rounding.free?
     general_num_to_numeral(number, rounding, all_digits)
   end
 
@@ -158,8 +154,13 @@ class Numerals::FltConversion
     output_base = rounding.base
 
     # here rounding_mode is not the output rounding mode, but the rounding mode used for input
-    rounding_mode = @input_rounding ||
-                    (rounding.exact? ? @context.rounding : rounding.mode)
+    rounding_mode = @input_rounding
+    if Conversions::DEFAULT_INPUT_ROUNDING_IS_CONTEXT
+      rounding_mode ||= @context.rounding
+    else
+      rounding_mode ||= rounding.mode
+    end
+
     formatter = Flt::Support::Formatter.new(
       @context.radix, @context.etiny, output_base, raise_on_repeat: false
     )

@@ -7,7 +7,7 @@ module Numerals
 
     def write(number, options={})
       numeral = conversion_out(number)
-      if numeral.approximate? && !@rounding.exact?
+      if numeral.approximate? && !@rounding.free?
         insignificant_digits = @rounding.precision(numeral) - numeral.digits.size
         if insignificant_digits > 0
           numeral.expand! @rounding.precision(numeral)

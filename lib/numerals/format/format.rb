@@ -49,7 +49,7 @@ module Numerals
       @mode = Mode[]
       @symbols = Symbols[]
       @assembler = :text
-      @input_rounding = Rounding[] # equivalent to nil here
+      @input_rounding = nil
       set! *args
     end
 
@@ -63,7 +63,7 @@ module Numerals
     include ModalSupport::StateEquivalent
 
     def input_rounding?
-      !@input_rounding.exact?
+      !@input_rounding.nil?
     end
 
     def input_rounding_mode
@@ -74,10 +74,12 @@ module Numerals
       options = extract_options(*args)
       @exact_input = options[:exact_input] if options.has_key?(:exact_input)
       @rounding.set! options[:rounding] if options[:rounding]
-      @input_rounding.set! options[:input_rounding] if options[:input_rounding]
       @mode.set! options[:mode] if options[:mode] # :format ?
       @symbols.set! options[:symbols] if options[:symbols]
       @assembler = options[:assembler] if options[:assembler]
+      if options.has_key?(:input_rounding)
+        set_input_rounding! options[:input_rounding]
+      end
 
       # shortcuts
       @rounding.set! base: options[:base] if options[:base]
@@ -142,7 +144,15 @@ module Numerals
     end
 
     aspect :input_rounding do |input_roundig|
-      set! input_rounding: input_rounding
+      if input_roundig.nil?
+        @input_rounding = nil
+      else
+        if @input_rounding.nil?
+          @input_rounding = Rounding[input_roundig]
+        else
+          @input_rounding.set! input_roundig
+        end
+      end
     end
 
     def dup
@@ -214,8 +224,9 @@ module Numerals
           )
         when :gen, :general, :sci, :scientific, :fix; :fixed
           options[:mode] = Mode[arg]
-        when :exact, :simplify, :preserve,
-             :half_even, :half_down, :half_up, :down, :up, :ceiling, :floor
+        when :simplify, :preserve
+          options[:precision] = arg
+        when  :half_even, :half_down, :half_up, :down, :up, :ceiling, :floor, :up05
           options[:rounding_mode] = arg
         when Symbol
           options[:assembler] = arg

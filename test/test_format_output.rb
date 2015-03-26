@@ -23,7 +23,6 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
       return
     end
 
-    assert_equal '0', Format[rounding: :exact].write(0.0)
     assert_equal '0', Format[rounding: :simplify].write(0.0)
     assert_equal '0e-17', Format[rounding: :preserve].write(0.0)
 
@@ -34,7 +33,7 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
     assert_equal '0.10000000000000001', Format[Rounding[precision: 18]].write(0.1)
 
     assert_equal '0.1000000000000000055511151231257827021181583404541015625',
-                 Format[Rounding[:exact], exact_input: true].write(0.1)
+                 Format[Rounding[:simplify], exact_input: true].write(0.1)
 
     assert_equal '0.1000000000000000055511151231257827021181583404541015625',
                  Format[Rounding[:preserve], exact_input: true].write(0.1)
@@ -74,19 +73,15 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
                  fmt.write(Float.context.minimum_nonzero)
 
 
-    assert_equal '0', Format[:exact].write(0.0)
     assert_equal '0', Format[:simplify].write(0.0)
     assert_equal '0e-17', Format[:preserve].write(0.0)
 
-    assert_equal '1', Format[:exact].write(1.0)
     assert_equal '1', Format[:simplify].write(1.0)
     assert_equal '1.0000000000000000', Format[:preserve].write(1.0)
 
-    assert_equal '1.23', Format[:exact].write(1.23)
     assert_equal '1.23', Format[:simplify].write(1.23)
     assert_equal '1.2300000000000000', Format[:preserve].write(1.23)
 
-    assert_equal '0.10000000000000001', Format[:exact].write(0.1)
     assert_equal '0.1', Format[:simplify].write(0.1)
     assert_equal '0.10000000000000001', Format[:preserve].write(0.1)
   end
@@ -134,11 +129,6 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
     grouping = Format::Symbols[grouping: [3]]
     assert_equal '1,234,567.123', Format[Rounding[places: 3], grouping].write(Flt::DecNum('1234567.1234'))
 
-    assert_equal '0', Format[rounding: :exact].write(Flt::DecNum('0'))
-    assert_equal '0', Format[rounding: :exact].write(Flt::DecNum('0.0'))
-    assert_equal '0', Format[rounding: :exact].write(Flt::DecNum('0.0000'))
-    assert_equal '0', Format[rounding: :exact].write(Flt::DecNum('0E-15'))
-
     assert_equal '0', Format[rounding: :simplify].write(Flt::DecNum('0'))
     assert_equal '0', Format[rounding: :simplify].write(Flt::DecNum('0.0'))
     assert_equal '0', Format[rounding: :simplify].write(Flt::DecNum('0.0000'))
@@ -149,7 +139,6 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
     assert_equal '0.0000', Format[rounding: :preserve].write(Flt::DecNum('0.0000'))
     assert_equal '0e-15', Format[rounding: :preserve].write(Flt::DecNum('0E-15'))
 
-    assert_equal '0.1', Format[:exact].write(Flt::DecNum('0.100'))
     assert_equal '0.1', Format[:simplify].write(Flt::DecNum('0.100'))
     assert_equal '0.100', Format[:preserve].write(Flt::DecNum('0.100'))
   end
@@ -182,7 +171,7 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
     assert_equal '0.10000000000000001', Format[Rounding[precision: 18]].write(x)
 
     assert_equal '0.1000000000000000055511151231257827021181583404541015625',
-                 Format[Rounding[:exact], exact_input: true].write(x)
+                 Format[Rounding[:simplify], exact_input: true].write(x)
 
     assert_equal '0.1000000000000000055511151231257827021181583404541015625',
                  Format[Rounding[:preserve], exact_input: true].write(x)
@@ -380,7 +369,6 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
     assert_equal "123456789.25", fmt.write(BigDecimal('123456789.25'))
     assert_equal "123456789.25", fmt.write((Rational(123456789)+Rational(1,4)))
 
-    assert_equal '0.25', Format[:exact].write(Rational(1,4))
     assert_equal '0.25', Format[:simplify].write(Rational(1,4))
     assert_equal '0.25', Format[:preserve].write(Rational(1,4))
   end
@@ -460,55 +448,6 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
 
     fmt = Format[rounding: :simplify, exact_input: false, mode: :general, symbols: [uppercase: true]]
 
-
-    Flt::BinNum.context(context, rounding: :half_down) do
-      assert_equal "1E23", fmt.write(lo)
-    end
-
-    Flt::BinNum.context(context, rounding: :half_up) do
-      assert_equal "9.999999999999999E22", fmt.write(lo)
-    end
-
-    Flt::BinNum.context(context, rounding: :half_even) do
-      assert_equal "1E23", fmt.write(lo)
-    end
-
-    Flt::BinNum.context(context, rounding: :half_up) do
-      assert_equal "1E23", fmt.write(hi)
-    end
-
-    Flt::BinNum.context(context, rounding: :half_down) do
-      assert_equal "1.0000000000000001E23", fmt.write(hi)
-    end
-
-    Flt::BinNum.context(context, rounding: :half_even) do
-      assert_equal "1.0000000000000001E23", fmt.write(hi)
-    end
-
-    Flt::BinNum.context(context, rounding: :half_down) do
-      assert_equal "-1E23", fmt.write(-lo)
-    end
-
-    Flt::BinNum.context(context, rounding: :half_up) do
-      assert_equal "-9.999999999999999E22", fmt.write(-lo)
-    end
-
-    Flt::BinNum.context(context, rounding: :half_even) do
-      assert_equal "-1E23", fmt.write(-lo)
-    end
-
-    Flt::BinNum.context(context, rounding: :half_up) do
-      assert_equal "-1E23", fmt.write(-hi)
-    end
-
-    Flt::BinNum.context(context, rounding: :half_down) do
-      assert_equal "-1.0000000000000001E23", fmt.write(-hi)
-    end
-
-    Flt::BinNum.context(context, rounding: :half_even) do
-      assert_equal "-1.0000000000000001E23", fmt.write(-hi)
-    end
-
     assert_equal "1E23", fmt[input_rounding: :half_down].write(lo)
     assert_equal "9.999999999999999E22", fmt[input_rounding: :half_up].write(lo)
     assert_equal "1E23", fmt[input_rounding: :half_even].write(lo)
@@ -524,6 +463,75 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
     assert_equal "-1E23", fmt[input_rounding: :half_up].write(-hi)
     assert_equal "-1.0000000000000001E23", fmt[input_rounding: :half_down].write(-hi)
     assert_equal "-1.0000000000000001E23", fmt[input_rounding: :half_even].write(-hi)
+
+    if Conversions::DEFAULT_INPUT_ROUNDING_IS_CONTEXT
+
+      Flt::BinNum.context(context, rounding: :half_down) do
+        assert_equal "1E23", fmt.write(lo)
+      end
+
+      Flt::BinNum.context(context, rounding: :half_up) do
+        assert_equal "9.999999999999999E22", fmt.write(lo)
+      end
+
+      Flt::BinNum.context(context, rounding: :half_even) do
+        assert_equal "1E23", fmt.write(lo)
+      end
+
+      Flt::BinNum.context(context, rounding: :half_up) do
+        assert_equal "1E23", fmt.write(hi)
+      end
+
+      Flt::BinNum.context(context, rounding: :half_down) do
+        assert_equal "1.0000000000000001E23", fmt.write(hi)
+      end
+
+      Flt::BinNum.context(context, rounding: :half_even) do
+        assert_equal "1.0000000000000001E23", fmt.write(hi)
+      end
+
+      Flt::BinNum.context(context, rounding: :half_down) do
+        assert_equal "-1E23", fmt.write(-lo)
+      end
+
+      Flt::BinNum.context(context, rounding: :half_up) do
+        assert_equal "-9.999999999999999E22", fmt.write(-lo)
+      end
+
+      Flt::BinNum.context(context, rounding: :half_even) do
+        assert_equal "-1E23", fmt.write(-lo)
+      end
+
+      Flt::BinNum.context(context, rounding: :half_up) do
+        assert_equal "-1E23", fmt.write(-hi)
+      end
+
+      Flt::BinNum.context(context, rounding: :half_down) do
+        assert_equal "-1.0000000000000001E23", fmt.write(-hi)
+      end
+
+      Flt::BinNum.context(context, rounding: :half_even) do
+        assert_equal "-1.0000000000000001E23", fmt.write(-hi)
+      end
+
+    else
+      assert_equal "1E23", fmt[rounding: :half_down].write(lo)
+      assert_equal "9.999999999999999E22", fmt[rounding: :half_up].write(lo)
+      assert_equal "1E23", fmt[rounding: :half_even].write(lo)
+
+      assert_equal "1E23", fmt[rounding: :half_up].write(hi)
+      assert_equal "1.0000000000000001E23", fmt[rounding: :half_down].write(hi)
+      assert_equal "1.0000000000000001E23", fmt[rounding: :half_even].write(hi)
+
+      assert_equal "-1E23", fmt[rounding: :half_down].write(-lo)
+      assert_equal "-9.999999999999999E22", fmt[rounding: :half_up].write(-lo)
+      assert_equal "-1E23", fmt[rounding: :half_even].write(-lo)
+
+      assert_equal "-1E23", fmt[rounding: :half_up].write(-hi)
+      assert_equal "-1.0000000000000001E23", fmt[rounding: :half_down].write(-hi)
+      assert_equal "-1.0000000000000001E23", fmt[rounding: :half_even].write(-hi)
+    end
+
   end
 
   def test_float_equidistiant_nearest
@@ -574,20 +582,22 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
       hi = Flt::BinNum('0x1.0066666666667p+6', :fixed)
     end
 
-    fmt = Format[mode: :general, rounding: :exact, exact_input: true]
+    fmt = Format[mode: :general, rounding: :simplify, exact_input: true]
     assert_equal '64.099999999999994315658113919198513031005859375', fmt.write(lo)
     fmt = fmt[exact_input: false]
-    assert_equal "64.09999999999999", fmt.write(lo)
-    assert_equal "64.1", fmt[rounding: :simplify].write(lo)
-    assert_equal "64.09999999999999", fmt[rounding: :half_even].write(lo)
-    assert_equal "64.09999999999999", fmt[rounding: :half_up].write(lo)
-    assert_equal "64.09999999999999", fmt[rounding: :half_down].write(lo)
+    assert_equal "64.09999999999999", fmt[rounding: :preserve].write(lo)
+    assert_equal "64.1",              fmt[rounding: :simplify].write(lo)
+    assert_equal "64.1",              fmt[rounding: :half_even].write(lo)
+    assert_equal "64.1",              fmt[rounding: :half_up].write(lo)
+    assert_equal "64.1",              fmt[rounding: :half_down].write(lo)
+    assert_equal "64.09999999999999", fmt[rounding: :up].write(lo)
 
-    assert_equal "-64.09999999999999", fmt.write(-lo)
-    assert_equal "-64.1", fmt[rounding: :simplify].write(-lo)
-    assert_equal "-64.09999999999999", fmt[rounding: :half_even].write(-lo)
-    assert_equal "-64.09999999999999", fmt[rounding: :half_up].write(-lo)
-    assert_equal "-64.09999999999999", fmt[rounding: :half_down].write(-lo)
+    assert_equal "-64.09999999999999", fmt[rounding: :preserve].write(-lo)
+    assert_equal "-64.1",              fmt[rounding: :simplify].write(-lo)
+    assert_equal "-64.1",              fmt[rounding: :half_even].write(-lo)
+    assert_equal "-64.1",              fmt[rounding: :half_up].write(-lo)
+    assert_equal "-64.1",              fmt[rounding: :half_down].write(-lo)
+    assert_equal "-64.09999999999999", fmt[rounding: :up].write(-lo)
   end
 
 
@@ -601,20 +611,24 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
 
     lo = Float('0x1.0066666666666p+6') # this is nearer to the 64.1 Float
     hi = Float('0x1.0066666666667p+6')
-    fmt = Format[mode: :general, rounding: :exact, exact_input: true]
+    fmt = Format[mode: :general, rounding: :simplify, exact_input: true]
     assert_equal '64.099999999999994315658113919198513031005859375', fmt.write(lo)
     fmt = fmt[exact_input: false]
-    assert_equal "64.09999999999999", fmt.write(lo)
-    assert_equal "64.1", fmt[rounding: :simplify].write(lo)
-    assert_equal "64.09999999999999", fmt[rounding: :half_even].write(lo)
-    assert_equal "64.09999999999999", fmt[rounding: :half_up].write(lo)
-    assert_equal "64.09999999999999", fmt[rounding: :half_down].write(lo)
+    assert_equal "64.09999999999999", fmt[rounding: :preserve].write(lo)
+    assert_equal "64.1",              fmt[rounding: :simplify].write(lo)
+    assert_equal "64.1",              fmt[rounding: :half_even].write(lo)
+    assert_equal "64.1",              fmt[rounding: :half_up].write(lo)
+    assert_equal "64.1",              fmt[rounding: :half_down].write(lo)
+    assert_equal "64.09999999999999", fmt[rounding: :up].write(lo)
 
-    assert_equal "-64.09999999999999", fmt.write(-lo)
-    assert_equal "-64.1", fmt[rounding: :simplify].write(-lo)
-    assert_equal "-64.09999999999999", fmt[rounding: :half_even].write(-lo)
-    assert_equal "-64.09999999999999", fmt[rounding: :half_up].write(-lo)
-    assert_equal "-64.09999999999999", fmt[rounding: :half_down].write(-lo)
+
+    assert_equal "-64.09999999999999", fmt[rounding: :preserve].write(-lo)
+    assert_equal "-64.1",              fmt[rounding: :simplify].write(-lo)
+    assert_equal "-64.1",              fmt[rounding: :half_even].write(-lo)
+    assert_equal "-64.1",              fmt[rounding: :half_up].write(-lo)
+    assert_equal "-64.1",              fmt[rounding: :half_down].write(-lo)
+    assert_equal "-64.09999999999999", fmt[rounding: :up].write(-lo)
+
   end
 
   def test_special
@@ -712,13 +726,6 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
   def test_write_bigdecimal_dec
     assert_equal '1', Format[rounding: :simplify].write(BigDecimal('1.0'))
     assert_equal '1', Format[rounding: :preserve].write(BigDecimal('1.0'))
-    assert_equal '1', Format[rounding: :exact].write(BigDecimal('1.0'))
-
-
-    assert_equal '0', Format[rounding: :exact].write(BigDecimal('0'))
-    assert_equal '0', Format[rounding: :exact].write(BigDecimal('0.0'))
-    assert_equal '0', Format[rounding: :exact].write(BigDecimal('0.000'))
-    assert_equal '0', Format[rounding: :exact].write(BigDecimal('0E-15'))
 
     assert_equal '0', Format[rounding: :simplify].write(BigDecimal('0'))
     assert_equal '0', Format[rounding: :simplify].write(BigDecimal('0.0'))
@@ -730,7 +737,6 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
     assert_equal '0.0', Format[rounding: :preserve].write(BigDecimal('0.0000'))
     assert_equal '0.0', Format[rounding: :preserve].write(BigDecimal('0E-15'))
 
-    assert_equal '0.1', Format[:exact].write(BigDecimal('0.100'))
     assert_equal '0.1', Format[:simplify].write(BigDecimal('0.100'))
     assert_equal '0.1', Format[:preserve].write(BigDecimal('0.100'))
   end

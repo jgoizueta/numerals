@@ -1,5 +1,9 @@
 module Numerals::Conversions
 
+  # This constant is used to experiment with two alternatives for
+  # the default input_rounding used in output:
+  DEFAULT_INPUT_ROUNDING_IS_CONTEXT = false
+
   class <<self
     def [](type)
       if type.respond_to?(:numerals_conversion)
@@ -82,7 +86,7 @@ module Numerals::Conversions
     # equivalent to :exact)
     #
     def write(number, options = {})
-      output_rounding = Rounding[options[:rounding] || Rounding[:exact]]
+      output_rounding = Rounding[options[:rounding] || Rounding[]]
       if options[:input_rounding]
         input_rounding = Rounding[options[:input_rounding]].mode
       end

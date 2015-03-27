@@ -587,17 +587,17 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
     fmt = fmt[exact_input: false]
     assert_equal "64.09999999999999", fmt[rounding: :preserve].write(lo)
     assert_equal "64.1",              fmt[rounding: :simplify].write(lo)
-    assert_equal "64.1",              fmt[rounding: :half_even].write(lo)
-    assert_equal "64.1",              fmt[rounding: :half_up].write(lo)
-    assert_equal "64.1",              fmt[rounding: :half_down].write(lo)
-    assert_equal "64.09999999999999", fmt[rounding: :up].write(lo)
+    assert_equal "64.1",              fmt[input_rounding: :half_even].write(lo)
+    assert_equal "64.1",              fmt[input_rounding: :half_up].write(lo)
+    assert_equal "64.1",              fmt[input_rounding: :half_down].write(lo)
+    assert_equal "64.09999999999999", fmt[input_rounding: :up].write(lo)
 
     assert_equal "-64.09999999999999", fmt[rounding: :preserve].write(-lo)
     assert_equal "-64.1",              fmt[rounding: :simplify].write(-lo)
-    assert_equal "-64.1",              fmt[rounding: :half_even].write(-lo)
-    assert_equal "-64.1",              fmt[rounding: :half_up].write(-lo)
-    assert_equal "-64.1",              fmt[rounding: :half_down].write(-lo)
-    assert_equal "-64.09999999999999", fmt[rounding: :up].write(-lo)
+    assert_equal "-64.1",              fmt[input_rounding: :half_even].write(-lo)
+    assert_equal "-64.1",              fmt[input_rounding: :half_up].write(-lo)
+    assert_equal "-64.1",              fmt[input_rounding: :half_down].write(-lo)
+    assert_equal "-64.09999999999999", fmt[input_rounding: :up].write(-lo)
   end
 
 
@@ -616,18 +616,18 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
     fmt = fmt[exact_input: false]
     assert_equal "64.09999999999999", fmt[rounding: :preserve].write(lo)
     assert_equal "64.1",              fmt[rounding: :simplify].write(lo)
-    assert_equal "64.1",              fmt[rounding: :half_even].write(lo)
-    assert_equal "64.1",              fmt[rounding: :half_up].write(lo)
-    assert_equal "64.1",              fmt[rounding: :half_down].write(lo)
-    assert_equal "64.09999999999999", fmt[rounding: :up].write(lo)
+    assert_equal "64.1",              fmt[input_rounding: :half_even].write(lo)
+    assert_equal "64.1",              fmt[input_rounding: :half_up].write(lo)
+    assert_equal "64.1",              fmt[input_rounding: :half_down].write(lo)
+    assert_equal "64.09999999999999", fmt[input_rounding: :up].write(lo)
 
 
     assert_equal "-64.09999999999999", fmt[rounding: :preserve].write(-lo)
     assert_equal "-64.1",              fmt[rounding: :simplify].write(-lo)
-    assert_equal "-64.1",              fmt[rounding: :half_even].write(-lo)
-    assert_equal "-64.1",              fmt[rounding: :half_up].write(-lo)
-    assert_equal "-64.1",              fmt[rounding: :half_down].write(-lo)
-    assert_equal "-64.09999999999999", fmt[rounding: :up].write(-lo)
+    assert_equal "-64.1",              fmt[input_rounding: :half_even].write(-lo)
+    assert_equal "-64.1",              fmt[input_rounding: :half_up].write(-lo)
+    assert_equal "-64.1",              fmt[input_rounding: :half_down].write(-lo)
+    assert_equal "-64.09999999999999", fmt[input_rounding: :up].write(-lo)
 
   end
 

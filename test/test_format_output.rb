@@ -381,6 +381,7 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
     assert_equal '12.<2>', fmt[4].write(Rational(20,3))
     assert_equal '3.<3>', fmt[:simplify].write(Rational(10,3))
     assert_equal '3.<3>', fmt[:preserve].write(Rational(10,3))
+    assert_equal '0.3', fmt[:simplify].write(0.3)
     assert_equal '0.29999999999999999', fmt[:preserve].write(0.3)
     assert_equal '0.299999999999999988897769753748434595763683319091796875',
                  fmt[:exact_input].write(0.3)

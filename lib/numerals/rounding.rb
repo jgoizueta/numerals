@@ -36,13 +36,21 @@ module Numerals
     #   - Preserving the original value precision, which produces and
     #     approximate output. (All original digits are preserved;
     #     full precision mode). The :preserve symbol is used as the precision
-    #     to define this kind of Rounding.
+    #     to define this kind of Rounding. This is similar to the :free
+    #     mode of Flt::Num construction from a text literal.
     #   - Simplifiying or reducing the result to produce an exact output
     #     without unneeded digits to restore the original value within its
     #     original precision (e.g. traling zeros are not keep).
     #     This case can be defined with the :simplify symbol for the precision.
+    #     This is similar to the :short mode of Flt::Num construction from a
+    #     text literal.
     #
-    # TODO: change :preserve/:simplify terms to :all/:short? :full/:reduced?
+    # TODO: consider these alternatives to rename the free precision rounding modes:
+    # * replace :preserve by :free and :simplify by :short;
+    #   add short? as a synonym of simplifying?
+    #   This is consistente with Flt. :short is considered a variant of :free
+    #   meaninful only when applied to approximate input.
+    # * replace :preserve by :full and :simplify by :reduced or :short
     #
     def initialize(*args)
       DEFAULTS.each do |param, value|

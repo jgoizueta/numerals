@@ -31,6 +31,7 @@ module Numerals
     end
 
     def conversion_out(number) # => Numeral
+      return number if number.kind_of?(Numeral) # @exact_input is ignored
       conversion_options = {
         exact: exact_input,
         rounding: rounding,

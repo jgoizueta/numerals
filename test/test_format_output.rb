@@ -754,4 +754,12 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
     assert_equal '0.1', Format[:simplify].write(BigDecimal('0.100'))
     assert_equal '0.1', Format[:preserve].write(BigDecimal('0.100'))
   end
+
+  def test_write_numeral
+    assert_equal '1', Format[].write(Numeral[1, point: 1])
+    assert_equal '1.23', Format[].write(Numeral[1, 2, 3, point: 1])
+    assert_equal '-1.23', Format[].write(Numeral[1, 2, 3, point: 1, sign: -1])
+    assert_equal '-1.2333...', Format[].write(Numeral[1, 2, 3, point: 1, repeat: 2, sign: -1])
+    assert_equal '-1.23e10', Format[].write(Numeral[1, 2, 3, point: 11, sign: -1])
+  end
 end

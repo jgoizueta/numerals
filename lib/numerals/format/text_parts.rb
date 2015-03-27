@@ -14,7 +14,8 @@ class TextParts
    end
  end
 
- def initialize
+ def initialize(numeral)
+   @numeral = numeral
    @special = nil
    @sign = @integer = @fractional = @repeat = @exponent = @exponent_base = nil
    @integer_value = @exponent_value = @exponent_base_value = nil
@@ -24,5 +25,6 @@ class TextParts
  text_part :sign, :integer, :fractional, :repeat, :exponent, :exponent_base
 
  attr_accessor :integer_value, :exponent_value, :exponent_base_value
+ attr_reader :numeral
 
 end

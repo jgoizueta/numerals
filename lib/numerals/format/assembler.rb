@@ -42,7 +42,12 @@ Numerals::Format.output_assembler :text do |output, format, text_parts|
         output << text_parts.repeat
         output << format.symbols.repeat_end
       else
-        format.symbols.repeat_count.times do
+        n = RepeatDetector.min_repeat_count(
+              text_parts.numeral.digits.digits_array,
+              text_parts.numeral.repeat,
+              format.symbols.repeat_count - 1
+            )
+        n.times do
           output << text_parts.repeat
         end
         output << format.symbols.repeat_suffix

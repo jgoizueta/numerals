@@ -33,7 +33,7 @@ module Numerals
 
     include ModalSupport::BracketConstructor
 
-    attr_reader :base_scale, :scaled_base
+    attr_reader :base_scale, :scaled_base, :numeral
 
     extend Forwardable
     def_delegators :@setter,

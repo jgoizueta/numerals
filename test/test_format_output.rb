@@ -761,5 +761,15 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
     assert_equal '-1.23', Format[].write(Numeral[1, 2, 3, point: 1, sign: -1])
     assert_equal '-1.2333...', Format[].write(Numeral[1, 2, 3, point: 1, repeat: 2, sign: -1])
     assert_equal '-1.23e10', Format[].write(Numeral[1, 2, 3, point: 11, sign: -1])
+
+    n = Numeral[1,2,3,4,5,6,7,1,2,3, point: 0, repeat: 7]
+    assert_equal '0.1234567<123>', Format[symbols: [repeat_delimited: true]].write(n)
+    assert_equal '0.1234567123123123...', Format[symbols: [repeat_count: 3]].write(n)
+    assert_equal '0.1234567123123...', Format[symbols: [repeat_count: 2]].write(n)
+    # Next numeral cannot be formatted showing just two occurrences of the repeat
+    n = Numeral[4,5,1,2,3,1,2,3,4,5,1,2,3, repeat: 10, point: 0]#
+    assert_equal '0.4512312345<123>', Format[symbols: [repeat_delimited: true]].write(n)
+      assert_equal '0.4512312345123123123...', Format[symbols: [repeat_count: 3]].write(n)
+    assert_equal '0.4512312345123123123...', Format[symbols: [repeat_count: 2]].write(n)
   end
 end

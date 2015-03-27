@@ -84,7 +84,7 @@ module Numerals
     end
 
     def symbolize_out(num_parts) # => text_parts Hash
-      text_parts = TextParts.new
+      text_parts = TextParts.new(num_parts.numeral)
       if num_parts.special?
         case num_parts.special
         when :nan

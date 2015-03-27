@@ -81,6 +81,8 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
 
     assert_equal '1.23', Format[:simplify].write(1.23)
     assert_equal '1.2300000000000000', Format[:preserve].write(1.23)
+    assert_equal '1.229999999999999982236431605997495353221893310546875',
+                 Format[:exact_input].write(1.23)
 
     assert_equal '0.1', Format[:simplify].write(0.1)
     assert_equal '0.10000000000000001', Format[:preserve].write(0.1)
@@ -371,6 +373,15 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
 
     assert_equal '0.25', Format[:simplify].write(Rational(1,4))
     assert_equal '0.25', Format[:preserve].write(Rational(1,4))
+
+    fmt = Format[symbols: [repeat_delimited: true]]
+    assert_equal '1.10e14', fmt[2, precision: 3].write(23433)
+    assert_equal '1.011100e14', fmt[2, precision: 7].write(23433)
+    assert_equal '101101110001001', fmt[2].write(23433)
+    assert_equal '12.<2>', fmt[4].write(Rational(20,3))
+    assert_equal '3.<3>', fmt[:simplify].write(Rational(10,3))
+    assert_equal '3.<3>', fmt[:preserve].write(Rational(10,3))
+    assert_equal '0.29999999999999999', fmt[:preserve].write(0.3)
   end
 
   def test_optional_mode_prec_parameters

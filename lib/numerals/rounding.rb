@@ -182,7 +182,11 @@ module Numerals
     def round(numeral, options={})
       round_up = options[:round_up]
       numeral, round_up = truncate(numeral, round_up)
-      adjust(numeral, round_up)
+      if numeral.exact?
+        numeral
+      else
+        adjust(numeral, round_up)
+      end
     end
 
     # Note: since Rounding has no mutable attributes, default dup is OK
@@ -203,27 +207,27 @@ module Numerals
     # the digits beyond the truncation point that can be used to round the truncated
     # numeral. If the numeral has already been truncated, the round_up result of
     # that prior truncation should be passed as the second argument.
+
+
     def truncate(numeral, round_up=nil)
       check_base numeral
-      unless simplifying? # free?
+      unless simplifying? # TODO: could simplify this just skiping on free?
         n = precision(numeral)
-        infinite_n = (n == 0)
-        unless (infinite_n || n >= numeral.digits.size) && numeral.approximate?
-          if !infinite_n && (n < numeral.digits.size - 1)
+        if n == 0
+          return numeral if numeral.repeating? # or rails inexact...
+          n = numeral.digits.size
+        end
+        unless n >= numeral.digits.size && numeral.approximate?
+          if n < numeral.digits.size - 1
             rest_digits = numeral.digits[n+1..-1]
           else
             rest_digits = []
           end
-          if numeral.repeating? && numeral.repeat < numeral.digits.size &&
-             (infinite_n || n >= numeral.repeat)
+          if numeral.repeating? && numeral.repeat < numeral.digits.size && n >= numeral.repeat
             rest_digits += numeral.digits[numeral.repeat..-1]
           end
-          if infinite_n
-            digits = numeral.digits[0..-1]
-          else
-            digits = numeral.digits[0, n]
-          end
-          if digits.size < n # TODO: infinite_n case
+          digits = numeral.digits[0, n]
+          if digits.size < n
             digits += (digits.size...n).map{|i| numeral.digit_value_at(i)}
           end
           if numeral.base % 2 == 0
@@ -248,7 +252,11 @@ module Numerals
           else # next_digit > tie_digit
             round_up = :hi
           end
-          numeral = Numeral[digits, point: numeral.point, sign: numeral.sign, normalize: :approximate]
+          numeral = Numeral[
+                      digits, point: numeral.point, sign: numeral.sign,
+                      base: numeral.base,
+                      normalize: :approximate
+                    ]
         end
       end
       [numeral, round_up]
@@ -257,23 +265,19 @@ module Numerals
     # Adjust a truncated numeral using the round-up information
     def adjust(numeral, round_up)
       check_base numeral
-      if numeral.exact? # simplifying?
-        numeral.normalize! Numeral.exact_normalization
-      else
-        point, digits = Flt::Support.adjust_digits(
-          numeral.point, numeral.digits.digits_array,
-          round_mode: @mode,
-          negative: numeral.sign == -1,
-          round_up: round_up,
-          base: numeral.base
-        )
-        if numeral.zero? && simplifying?
-          digits = []
-          point = 0
-        end
-        normalization = simplifying? ? :exact : :approximate
-        Numeral[digits, point: point, base: numeral.base, sign: numeral.sign, normalize: normalization]
+      point, digits = Flt::Support.adjust_digits(
+        numeral.point, numeral.digits.digits_array,
+        round_mode: @mode,
+        negative: numeral.sign == -1,
+        round_up: round_up,
+        base: numeral.base
+      )
+      if numeral.zero? && simplifying?
+        digits = []
+        point = 0
       end
+      normalization = simplifying? ? :exact : :approximate
+      Numeral[digits, point: point, base: numeral.base, sign: numeral.sign, normalize: normalization]
     end
 
     ZERO_DIGITS = 0 # 1?

@@ -1,5 +1,10 @@
 module Numerals
   class Format < FormattingAspect
+    class Error < StandardError
+    end
+
+    class InvalidRepeatingNumeral < Error
+    end
   end
 end
 

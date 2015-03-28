@@ -7,6 +7,8 @@ module Numerals
   #   approximate value, are not determined: they could change to any
   #   other digit and the approximated value would be the same.
   #
+  # * repeating : (boolean) support repeating decimals?
+  #
   class Format::Symbols < FormattingAspect
 
 
@@ -172,7 +174,8 @@ module Numerals
       repeat_delimited: false,
       repeat_count: 3,
       grouping: [],
-      insignificant_digit: nil
+      insignificant_digit: nil,
+      repeating: true
     }
 
     def initialize(*args)
@@ -195,14 +198,14 @@ module Numerals
     attr_reader :repeat_begin, :repeat_end, :repeat_suffix, :repeat_delimited
     attr_reader :show_plus, :show_exponent_plus, :uppercase, :lowercase,
                 :show_zero, :show_point
-    attr_reader :grouping, :repeat_count
+    attr_reader :grouping, :repeat_count, :repeating
 
     attr_writer :uppercase, :lowercase, :nan, :infinity, :plus,
                 :minus, :exponent, :point, :group_separator, :zero,
                 :repeat_begin, :repeat_end, :repeat_suffix,
                 :show_plus, :show_exponent_plus, :show_zero, :show_point,
                 :repeat_delimited, :repeat_count, :grouping,
-                :insignificant_digit
+                :insignificant_digit, :repeating
 
     include ModalSupport::StateEquivalent
 

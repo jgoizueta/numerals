@@ -772,4 +772,22 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
       assert_equal '0.4512312345123123123...', Format[symbols: [repeat_count: 3]].write(n)
     assert_equal '0.4512312345123123123...', Format[symbols: [repeat_count: 2]].write(n)
   end
+
+  def test_repeating_error
+    assert_raises Format::InvalidRepeatingNumeral do
+      Format[:free, repeating: false].write(Rational(1,3))
+    end
+    assert_raises Format::InvalidRepeatingNumeral do
+      Format[:short, repeating: false].write(Rational(1,3))
+    end
+    assert_nothing_raised do
+      Format[precision: 10, repeating: false].write(Rational(1,3))
+    end
+    assert_nothing_raised do
+      Format[:free, repeating: false].write(Rational(2469,200))
+    end
+    assert_nothing_raised do
+      Format[:short, repeating: false].write(Rational(2469,200))
+    end
+  end
 end

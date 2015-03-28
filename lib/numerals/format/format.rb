@@ -87,6 +87,7 @@ module Numerals
       @rounding.set! mode: options[:rounding_mode] if options[:rounding_mode]
       @rounding.set! precision: options[:precision] if options[:precision]
       @rounding.set! places: options[:places] if options[:places]
+      @symbols.set! repeating: options[:repeating] if options.has_key?(:repeating)
     end
 
     def parameters

@@ -16,6 +16,9 @@ module Numerals
       end
       # 2. Break numeral into parts (digits, etc.)
       num_parts = partition_out(numeral, insignificant_digits: insignificant_digits)
+      if !@symbols.repeating && num_parts.repeating?
+        raise Format::InvalidRepeatingNumeral, "Invalid format: cannot represent exact value"
+      end
       # 3. Represent parts as text
       text_parts = symbolize_out(num_parts)
       # 4. Assemble text parts into output notation

@@ -59,6 +59,6 @@ class Numerals::IntegerConversion
 
 end
 
-def Integer.numerals_conversion
+def Integer.numerals_conversion(options = {})
   Numerals::IntegerConversion.instance
 end

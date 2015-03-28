@@ -5,18 +5,18 @@ module Numerals::Conversions
   DEFAULT_INPUT_ROUNDING_IS_CONTEXT = false
 
   class <<self
-    def [](type)
+    def [](type, options = nil)
       if type.respond_to?(:numerals_conversion)
-        type.numerals_conversion
+        type.numerals_conversion(options || {})
       end
     end
 
     def order_of_magnitude(number, options={})
-      self[number.class].order_of_magnitude(number, options)
+      self[number.class, options[:type_options]].order_of_magnitude(number, options)
     end
 
     def number_of_digits(number, options={})
-      self[number.class].number_of_digits(number, options)
+      self[number.class, options[:type_options]].number_of_digits(number, options)
     end
 
     # Convert Numeral to Number
@@ -46,7 +46,8 @@ module Numerals::Conversions
       if options[:input_rounding] || options[:rounding]
         input_rounding = Rounding[options[:input_rounding] || options[:rounding]].mode
       end
-      self[selector].read(numeral, exact_input, approximate_simplified, input_rounding)
+      conversions = self[selector, options[:type_options]]
+      conversions.read(numeral, exact_input, approximate_simplified, input_rounding)
     end
 
     # Convert Number to Numeral
@@ -90,13 +91,13 @@ module Numerals::Conversions
       if options[:input_rounding]
         input_rounding = Rounding[options[:input_rounding]].mode
       end
-      conversion = self[number.class]
+      conversion = self[number.class, options[:type_options]]
       exact_input = conversion.exact?(number, options)
       conversion.write(number, exact_input, output_rounding, input_rounding)
     end
 
     def exact?(number, options = {})
-      self[number.class].exact?(number, options)
+      self[number.class, options[:type_options]].exact?(number, options)
     end
 
     private

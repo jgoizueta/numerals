@@ -12,9 +12,7 @@ class Numerals::BigDecimalConversion
     @input_rounding = options[:input_rounding]
   end
 
-  include Singleton
-
-  attr_reader :context, :type, :rounding_mode
+  attr_reader :context, :type, :input_rounding
 
   def input_rounding=(rounding)
     if rounding
@@ -238,6 +236,6 @@ class Numerals::BigDecimalConversion
 
 end
 
-def BigDecimal.numerals_conversion
-  Numerals::BigDecimalConversion.instance
+def BigDecimal.numerals_conversion(options = {})
+  Numerals::BigDecimalConversion.new(options)
 end

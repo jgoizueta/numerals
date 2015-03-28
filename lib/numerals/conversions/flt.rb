@@ -18,7 +18,7 @@ class Numerals::FltConversion
     @input_rounding = options[:input_rounding]
   end
 
-  attr_reader :context, :type, :rounding_mode
+  attr_reader :context, :type, :input_rounding
 
   def input_rounding=(rounding)
     if rounding
@@ -231,12 +231,12 @@ class Numerals::FltConversion
 
 end
 
-def (Flt::Num).numerals_conversion
-  Numerals::FltConversion.new(self)
+def (Flt::Num).numerals_conversion(options = {})
+  Numerals::FltConversion.new(self, options)
 end
 
 class Flt::Num::ContextBase
-  def numerals_conversion
-    Numerals::FltConversion.new(self)
+  def numerals_conversion(options = {})
+    Numerals::FltConversion.new(self, options)
   end
 end

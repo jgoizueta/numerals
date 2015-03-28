@@ -13,7 +13,7 @@ class Numerals::FloatConversion
     @input_rounding = options[:input_rounding]
   end
 
-  attr_reader :context, :type, :rounding_mode
+  attr_reader :context, :type, :input_rounding
 
   def input_rounding=(rounding)
     if rounding
@@ -297,12 +297,12 @@ class Numerals::FloatConversion
 
 end
 
-def Float.numerals_conversion
-  Numerals::FloatConversion.new
+def Float.numerals_conversion(options = {})
+  Numerals::FloatConversion.new(options)
 end
 
 class <<Float.context
-  def numerals_conversion
-    Numerals::FloatConversion.new
+  def numerals_conversion(options = {})
+    Numerals::FloatConversion.new(options)
   end
 end

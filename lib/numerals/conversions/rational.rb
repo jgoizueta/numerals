@@ -47,6 +47,6 @@ class Numerals::RationalConversion
 
 end
 
-def Rational.numerals_conversion
+def Rational.numerals_conversion(options = {})
   Numerals::RationalConversion.instance
 end

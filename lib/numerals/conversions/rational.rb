@@ -33,7 +33,7 @@ class Numerals::RationalConversion
     Rational(*numeral.to_quotient)
   end
 
-  def write(number, exact_input, output_rounding, input_rounding = nil)
+  def write(number, exact_input, output_rounding)
     output_base = output_rounding.base
     q = [number.numerator, number.denominator]
     numeral = Numerals::Numeral.from_quotient(q, base: output_base)
@@ -41,7 +41,7 @@ class Numerals::RationalConversion
     numeral
   end
 
-  def read(numeral, exact_input, approximate_simplified, input_rounding = nil)
+  def read(numeral, exact_input, approximate_simplified)
     Rational(*numeral.to_quotient)
   end
 

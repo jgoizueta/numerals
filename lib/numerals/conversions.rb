@@ -43,11 +43,8 @@ module Numerals::Conversions
       selector = options[:context] || options[:type]
       exact_input = options[:exact]
       approximate_simplified = options[:simplify]
-      if options[:input_rounding] || options[:rounding]
-        input_rounding = Rounding[options[:input_rounding] || options[:rounding]].mode
-      end
       conversions = self[selector, options[:type_options]]
-      conversions.read(numeral, exact_input, approximate_simplified, input_rounding)
+      conversions.read(numeral, exact_input, approximate_simplified)
     end
 
     # Convert Number to Numeral
@@ -58,10 +55,6 @@ module Numerals::Conversions
     #
     # * :rounding (a Rounding) (which defines output base as well)
     # * :exact (exact input indicator)
-    # * :input_rounding (optional, a non-exact Rounding or rounding mode)
-    #   which is used when input is approximate as the assumed rounding
-    #   mode which would be used so that the result numeral rounds back
-    #   to the input number
     #
     # Approximate mode:
     #
@@ -93,7 +86,7 @@ module Numerals::Conversions
       end
       conversion = self[number.class, options[:type_options]]
       exact_input = conversion.exact?(number, options)
-      conversion.write(number, exact_input, output_rounding, input_rounding)
+      conversion.write(number, exact_input, output_rounding)
     end
 
     def exact?(number, options = {})

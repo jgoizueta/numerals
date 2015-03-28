@@ -42,7 +42,9 @@ module Numerals
       conversion_options = {
         exact: exact_input,
         rounding: rounding,
-        input_rounding: input_rounding_mode
+        type_options: {
+          input_rounding: input_rounding_mode
+        }
       }
       Conversions.write(number, conversion_options)
     end

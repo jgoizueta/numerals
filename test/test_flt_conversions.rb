@@ -135,27 +135,27 @@ class TestFltConversions <  Test::Unit::TestCase # < Minitest::Test
     # Input (read)
     assert_equal(
       lo,
-      Conversions.read(numeral, type: Flt::BinNum, rounding: :half_even)
+      Conversions.read(numeral, type: Flt::BinNum, type_options: { input_rounding: :half_even })
     )
     assert_equal(
       lo,
-      Conversions.read(numeral, type: Flt::BinNum, rounding: :half_down)
+      Conversions.read(numeral, type: Flt::BinNum, type_options: { input_rounding: :half_down })
     )
     assert_equal(
       hi,
-      Conversions.read(numeral, type: Flt::BinNum, rounding: :half_up)
+      Conversions.read(numeral, type: Flt::BinNum, type_options: { input_rounding: :half_up })
     )
     assert_equal(
       -lo,
-      Conversions.read(-numeral, type: Flt::BinNum, rounding: :half_even)
+      Conversions.read(-numeral, type: Flt::BinNum, type_options: { input_rounding: :half_even })
     )
     assert_equal(
       -lo,
-      Conversions.read(-numeral, type: Flt::BinNum, rounding: :half_down)
+      Conversions.read(-numeral, type: Flt::BinNum, type_options: { input_rounding: :half_down })
     )
     assert_equal(
       -hi,
-      Conversions.read(-numeral, type: Flt::BinNum, rounding: :half_up)
+      Conversions.read(-numeral, type: Flt::BinNum, type_options: { input_rounding: :half_up })
     )
 
     # Output (write)
@@ -163,51 +163,51 @@ class TestFltConversions <  Test::Unit::TestCase # < Minitest::Test
 
     assert_equal(
       numeral,
-      Conversions.write(lo, rounding: rounding, input_rounding: :half_down)
+      Conversions.write(lo, rounding: rounding, type_options: { input_rounding: :half_down })
     )
     assert_equal(
       numeral_lo,
-      Conversions.write(lo, rounding: rounding, input_rounding: :half_up)
+      Conversions.write(lo, rounding: rounding, type_options: { input_rounding: :half_up })
     )
     assert_equal(
       numeral,
-      Conversions.write(lo, rounding: rounding, input_rounding: :half_even)
+      Conversions.write(lo, rounding: rounding, type_options: { input_rounding: :half_even })
     )
     assert_equal(
       numeral,
-      Conversions.write(hi, rounding: rounding, input_rounding: :half_up)
+      Conversions.write(hi, rounding: rounding, type_options: { input_rounding: :half_up })
     )
     assert_equal(
       numeral_hi,
-      Conversions.write(hi, rounding: rounding, input_rounding: :half_down)
+      Conversions.write(hi, rounding: rounding, type_options: { input_rounding: :half_down })
     )
     assert_equal(
       numeral_hi,
-      Conversions.write(hi, rounding: rounding, input_rounding: :half_even)
+      Conversions.write(hi, rounding: rounding, type_options: { input_rounding: :half_even })
     )
     assert_equal(
       -numeral,
-      Conversions.write(-lo, rounding: rounding, input_rounding: :half_down)
+      Conversions.write(-lo, rounding: rounding, type_options: { input_rounding: :half_down })
     )
     assert_equal(
       -numeral_lo,
-      Conversions.write(-lo, rounding: rounding, input_rounding: :half_up)
+      Conversions.write(-lo, rounding: rounding, type_options: { input_rounding: :half_up })
     )
     assert_equal(
       -numeral,
-      Conversions.write(-lo, rounding: rounding, input_rounding: :half_even)
+      Conversions.write(-lo, rounding: rounding, type_options: { input_rounding: :half_even })
     )
     assert_equal(
       -numeral,
-      Conversions.write(-hi, rounding: rounding, input_rounding: :half_up)
+      Conversions.write(-hi, rounding: rounding, type_options: { input_rounding: :half_up })
     )
     assert_equal(
       -numeral_hi,
-      Conversions.write(-hi, rounding: rounding, input_rounding: :half_down)
+      Conversions.write(-hi, rounding: rounding, type_options: { input_rounding: :half_down })
     )
     assert_equal(
       -numeral_hi,
-      Conversions.write(-hi, rounding: rounding, input_rounding: :half_even)
+      Conversions.write(-hi, rounding: rounding, type_options: { input_rounding: :half_even })
     )
 
     # For input, if no input_roundig is established, the Num context is used
@@ -365,28 +365,28 @@ class TestFltConversions <  Test::Unit::TestCase # < Minitest::Test
 
     assert_equal(
       lo,
-      Conversions.read(numeral, type: Flt::BinNum, input_rounding: :half_even)
+      Conversions.read(numeral, type: Flt::BinNum, type_options: { input_rounding: :half_even })
     )
     assert_equal(
       lo,
-      Conversions.read(numeral, type: Flt::BinNum, input_rounding: :half_down)
+      Conversions.read(numeral, type: Flt::BinNum, type_options: { input_rounding: :half_down })
     )
     assert_equal(
       lo,
-      Conversions.read(numeral, type: Flt::BinNum, input_rounding:  :half_up)
+      Conversions.read(numeral, type: Flt::BinNum, type_options: { input_rounding:  :half_up })
     )
 
     assert_equal(
       -lo,
-      Conversions.read(-numeral, type: Flt::BinNum, input_rounding: :half_even)
+      Conversions.read(-numeral, type: Flt::BinNum, type_options: { input_rounding: :half_even })
     )
     assert_equal(
       -lo,
-      Conversions.read(-numeral, type: Flt::BinNum, input_rounding: :half_down)
+      Conversions.read(-numeral, type: Flt::BinNum, type_options: { input_rounding: :half_down })
     )
     assert_equal(
       -lo,
-      Conversions.read(-numeral, type: Flt::BinNum, input_rounding:  :half_up)
+      Conversions.read(-numeral, type: Flt::BinNum, type_options: { input_rounding:  :half_up })
     )
 
     rounding = Rounding[:short]
@@ -394,52 +394,52 @@ class TestFltConversions <  Test::Unit::TestCase # < Minitest::Test
 
     assert_equal(
       numeral,
-      Conversions.write(lo, rounding: rounding, input_rounding: :half_even)
+      Conversions.write(lo, rounding: rounding, type_options: { input_rounding: :half_even })
     )
     assert_equal(
       numeral_lo,
-      Conversions.write(lo, rounding: rounding_16, exact: true, input_rounding: :half_even)
+      Conversions.write(lo, rounding: rounding_16, exact: true, type_options: { input_rounding: :half_even })
     )
     assert_equal(
       numeral,
-      Conversions.write(lo, rounding: rounding, input_rounding: :half_down)
+      Conversions.write(lo, rounding: rounding, type_options: { input_rounding: :half_down })
     )
     assert_equal(
       numeral_lo,
-      Conversions.write(lo, rounding: rounding_16, exact: true, input_rounding: :half_down)
+      Conversions.write(lo, rounding: rounding_16, exact: true, type_options: { input_rounding: :half_down })
     )
     assert_equal(
       numeral,
-      Conversions.write(lo, rounding: rounding, input_rounding: :half_up)
+      Conversions.write(lo, rounding: rounding, type_options: { input_rounding: :half_up })
     )
     assert_equal(
       numeral_lo,
-      Conversions.write(lo, rounding: rounding_16, exact: true, input_rounding: :half_up)
+      Conversions.write(lo, rounding: rounding_16, exact: true, type_options: { input_rounding: :half_up })
     )
 
     assert_equal(
       -numeral,
-      Conversions.write(-lo, rounding: rounding, input_rounding: :half_even)
+      Conversions.write(-lo, rounding: rounding, type_options: { input_rounding: :half_even })
     )
     assert_equal(
       -numeral_lo,
-      Conversions.write(-lo, rounding: rounding_16, exact: true, input_rounding: :half_even)
+      Conversions.write(-lo, rounding: rounding_16, exact: true, type_options: { input_rounding: :half_even })
     )
     assert_equal(
       -numeral,
-      Conversions.write(-lo, rounding: rounding, input_rounding: :half_down)
+      Conversions.write(-lo, rounding: rounding, type_options: { input_rounding: :half_down })
     )
     assert_equal(
       -numeral_lo,
-      Conversions.write(-lo, rounding: rounding_16, exact: true, input_rounding: :half_down)
+      Conversions.write(-lo, rounding: rounding_16, exact: true, type_options: { input_rounding: :half_down })
     )
     assert_equal(
       -numeral,
-      Conversions.write(-lo, rounding: rounding, input_rounding: :half_up)
+      Conversions.write(-lo, rounding: rounding, type_options: { input_rounding: :half_up })
     )
     assert_equal(
       -numeral_lo,
-      Conversions.write(-lo, rounding: rounding_16, exact: true, input_rounding: :half_up)
+      Conversions.write(-lo, rounding: rounding_16, exact: true, type_options: { input_rounding: :half_up })
     )
 
     Flt::BinNum.context(context, rounding: :half_even) do
@@ -581,11 +581,6 @@ class TestFltConversions <  Test::Unit::TestCase # < Minitest::Test
     assert_equal :down, c.input_rounding
     c = Conversions[Flt::DecNum.context, input_rounding: :half_even]
     assert_equal :half_even, c.input_rounding
-
-    # TODO: when type parameters are added test they can be set with
-    #   Conversions.write(... type_options: { ... }) etc.
-    # Curren parameter :input_rounding cannot be tested since
-    # it is overrided by Conversions.write & read in each call
   end
 
 end

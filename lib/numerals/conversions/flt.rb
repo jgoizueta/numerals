@@ -3,6 +3,13 @@ require 'flt'
 
 class Numerals::FltConversion
 
+  # Options:
+  #
+  # * :input_rounding (optional, a non-exact Rounding or rounding mode)
+  #   which is used when input is approximate as the assumed rounding
+  #   mode which would be used so that the result numeral rounds back
+  #   to the input number
+  #
   def initialize(context_or_type, options={})
     if Class === context_or_type && context_or_type < Flt::Num
       @type = context_or_type
@@ -15,7 +22,7 @@ class Numerals::FltConversion
     end
     # @input_rounding if used for :free numeral to number conversion
     # and should be the implied rounding mode of the inverse conversion
-    @input_rounding = options[:input_rounding]
+    self.input_rounding = options[:input_rounding]
   end
 
   attr_reader :context, :type, :input_rounding
@@ -74,8 +81,7 @@ class Numerals::FltConversion
     end
   end
 
-  def write(number, exact_input, output_rounding, input_rounding = nil)
-    self.input_rounding = input_rounding
+  def write(number, exact_input, output_rounding)
     output_base = output_rounding.base
     input_base = @context.radix
 
@@ -106,8 +112,7 @@ class Numerals::FltConversion
     end
   end
 
-  def read(numeral, exact_input, approximate_simplified, input_rounding = nil)
-    self.input_rounding = input_rounding
+  def read(numeral, exact_input, approximate_simplified)
     if numeral.special?
       special_numeral_to_num numeral
     elsif numeral.approximate? && !exact_input

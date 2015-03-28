@@ -193,7 +193,10 @@ class Numerals::FltConversion
     # consider:
     # return exact_numeral_to_num(numeral) if numeral.exact?
     if numeral.base == @context.radix
-      numeral = numeral.approximate(@context.precision) unless @context.exact?
+      unless @context.exact?
+        rounding = Rounding[@context.rounding, precision: @context.precision, base: @context.radix]
+        numeral = rounding.round(numeral)
+      end
       same_base_numeral_to_num numeral
     else
       general_numeral_to_num numeral, :fixed

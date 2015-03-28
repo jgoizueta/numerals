@@ -559,4 +559,16 @@ class TestFltConversions <  Test::Unit::TestCase # < Minitest::Test
     }
   end
 
+  def test_read_same_base_rounding
+    numeral = Numeral[6,6,6,6,6,6,6,6,6, point: 0]
+    assert_equal(
+      Flt::DecNum('0.66667'),
+      Conversions.read(numeral, context: Flt::DecNum.context(precision: 5, rounding: :half_even))
+    )
+    assert_equal(
+      Flt::DecNum('0.66666'),
+      Conversions.read(numeral, context: Flt::DecNum.context(precision: 5, rounding: :down))
+    )
+  end
+
 end

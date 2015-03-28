@@ -70,9 +70,9 @@ module Numerals::Conversions
     # will be shown (digits that can take any value and the numeral
     # still would convert to the original number if rounded to the same precision)
     #
-    # In approximate mode, if rounding is :simplify, the shortest representation
+    # In approximate mode, if rounding is simplifying? (:short), the shortest representation
     # which rounds back to the origina number with the same precision is used.
-    # If rounding is :preserve and the output base is the same as the number
+    # If rounding is :free and the output base is the same as the number
     # internal radix, the exact precision (trailing zeros) of the number
     # is represented.
     #
@@ -82,8 +82,8 @@ module Numerals::Conversions
     # option is defined to be true.
     #
     # The number is treated as an exact value, and converted according to
-    # Rounding. (in this case the :simplify and :preserve roundings are
-    # equivalent to :exact)
+    # Rounding. (in this case the :free and :short precision roundings are
+    # equivalent)
     #
     def write(number, options = {})
       output_rounding = Rounding[options[:rounding] || Rounding[]]

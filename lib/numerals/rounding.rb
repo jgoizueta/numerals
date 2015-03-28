@@ -3,13 +3,13 @@ module Numerals
   # Rounding of Numerals
   class Rounding < FormattingAspect
 
-    # Rounding defined a rounding mode and a precision,
+    # Rounding defines a rounding mode and a precision,
     # and is used to establish the desired accuracy of a Numeral result.
     #
     # Rounding also defines the base of the numerals to be rounded,
     # which is 10 by default.
     #
-    # The rounding mode which is the rule used to limit
+    # The rounding mode is the rule used to limit
     # the precision of a numeral; the rounding modes available are those
     # of Flt::Num, namely:
     #
@@ -24,33 +24,25 @@ module Numerals
     #
     # Regarding the rounding precision there are two types of Roundings:
     #
-    # * Limited, fixed precision: the precision of the rounded result is either
+    # * Fixed (limited) precision: the precision of the rounded result is either
     #   defined as relative (number of significant digits defined by the
     #   precision property) or absolute (number of fractional places
     #   --decimals for base 10-- defined by the places property)
-    # * Unlimited, free precision which preserves the value of
+    # * Free (unlimited) precision, which preserves the value of
     #   the input numeral. As much precision as needed is used to keep
     #   unambiguously the original value. When applied to exact input,
     #   this kind of rounding doesn't perform any rounding.
     #   For approximate input there are two variants:
     #   - Preserving the original value precision, which produces and
     #     approximate output. (All original digits are preserved;
-    #     full precision mode). The :preserve symbol is used as the precision
-    #     to define this kind of Rounding. This is similar to the :free
-    #     mode of Flt::Num construction from a text literal.
+    #     full precision mode). This is the default free precision mode,
+    #     established by using the :free symbol for the precision
+    #     (or its synonym :preserve).
     #   - Simplifiying or reducing the result to produce an exact output
     #     without unneeded digits to restore the original value within its
     #     original precision (e.g. traling zeros are not keep).
-    #     This case can be defined with the :simplify symbol for the precision.
-    #     This is similar to the :short mode of Flt::Num construction from a
-    #     text literal.
-    #
-    # TODO: consider these alternatives to rename the free precision rounding modes:
-    # * replace :preserve by :free and :simplify by :short;
-    #   add short? as a synonym of simplifying?
-    #   This is consistente with Flt. :short is considered a variant of :free
-    #   meaninful only when applied to approximate input.
-    # * replace :preserve by :full and :simplify by :reduced or :short
+    #     This case can be defined with the :short symbol for the precision
+    #     (or its synonum :simplify).
     #
     def initialize(*args)
       DEFAULTS.each do |param, value|
@@ -61,7 +53,7 @@ module Numerals
 
     DEFAULTS = {
       mode: :half_even,
-      precision: :simplify,
+      precision: :short,
       places: nil,
       base: 10
     }
@@ -116,32 +108,58 @@ module Numerals
       to_s
     end
 
-    # former exact? method
+    # Returns true if the Rounding is of free (unlimited) precision,
+    # which can be either :free (preserving) or :short (simplifying)
+    # regarding approximate input.
     def free? # unlimited? exact? all? nonrounding? free?
-      [:simplify, :preserve].include?(@precision)
+      [:free, :short].include?(@precision)
     end
 
+    # Returns true if the Rounding is of fixed (limited) precision.
     def fixed? # limited? approximate? rounding? fixed?
       !free?
     end
 
+    # Returns true if the Rounding is of fixed precision defined
+    # as a number of fractional places, i.e. independently of the
+    # number to be rounded's magnitude.
     def absolute?
       @precision.nil? # fixed? && @precision # !@places.nil?
     end
 
+    # Returns true if the Rounding is of fixed precision defined
+    # as a number of significant digits (precision attribute),
+    # i.e. in relation to the number to be rounded's magnitude.
     def relative?
       fixed? && !absolute?
     end
 
+    # Returns true if the Rounding is of free precision and
+    # the behaviour for approximate numbers is producing a
+    # simplified (short) result with only the needed digits
+    # to restore the original value within its precision.
     def simplifying?
-      @precision == :simplify
+      @precision == :short
     end
 
+    def short?
+      simplifying?
+    end
+
+    # Returns true if the Rounding is of free precision and
+    # the behaviour for approximate numbers is to keep its
+    # original precision (so it may include trailing zeros)
+    # and the result of rounding will be an approximate numeral.
     def preserving?
-      @precision == :preserve
+      @precision == :free
     end
 
-    # Number of significant digits for a given numerical/numeral value
+    def full?
+      preserving?
+    end
+
+    # Number of significant digits for a given numerical/numeral value.
+    # If no value is passed, the :precision property is returned.
     def precision(value = nil, options = {})
       if value.nil?
         @precision
@@ -160,7 +178,8 @@ module Numerals
       end
     end
 
-    # Number of fractional placesfor a given numerical/numeral value
+    # Number of fractional places for a given numerical/numeral value
+    # If no value is passed, the :places property is returned.
     def places(value = nil, options = {})
       if value.nil?
         @places
@@ -347,10 +366,10 @@ module Numerals
         case arg
         when Hash
           options.merge! arg
-        when :simplify
-          options.merge! precision: :simplify
-        when :preserve
-          options.merge! precision: :preserve
+        when :short, :simplify
+          options.merge! precision: :short
+        when :free, :preserve
+          options.merge! precision: :free
         when Symbol
           options[:mode] = arg
         when Integer

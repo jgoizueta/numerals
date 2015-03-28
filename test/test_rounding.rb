@@ -84,39 +84,43 @@ class TestRounding <  Test::Unit::TestCase # < Minitest::Test
   end
 
   def test_constructor
-    r = Rounding[:simplify]
+    assert_equal Rounding[:short], Rounding[:simplify]
+    r = Rounding[:short]
     assert r.free?
     refute r.fixed?
     assert r.simplifying?
+    assert r.short?
     refute r.preserving?
-    assert_equal :simplify, r.precision
+    refute r.full?
+    assert_equal :short, r.precision
     assert_equal 10, r.base
     assert_nil r.places
 
-    r = Rounding[:simplify, base: 2]
+    r = Rounding[:short, base: 2]
     assert r.free?
     refute r.fixed?
     assert r.simplifying?
     refute r.preserving?
-    assert_equal :simplify, r.precision
+    assert_equal :short, r.precision
     assert_equal 2, r.base
     assert_nil r.places
 
-    r = Rounding[:preserve]
+    assert_equal Rounding[:free], Rounding[:preserve]
+    r = Rounding[:free]
     assert r.free?
     refute r.fixed?
     refute r.simplifying?
     assert r.preserving?
-    assert_equal :preserve, r.precision
+    assert_equal :free, r.precision
     assert_equal 10, r.base
     assert_nil r.places
 
-    r = Rounding[:preserve, base: 2]
+    r = Rounding[:free, base: 2]
     assert r.free?
     refute r.fixed?
     refute r.simplifying?
     assert r.preserving?
-    assert_equal :preserve, r.precision
+    assert_equal :free, r.precision
     assert_equal 2, r.base
     assert_nil r.places
 
@@ -194,37 +198,37 @@ class TestRounding <  Test::Unit::TestCase # < Minitest::Test
   end
 
   def test_copy
-    r1 = Rounding[:simplify]
+    r1 = Rounding[:short]
     r2 = Rounding[r1]
-    assert_equal :simplify, r2.precision
-    r2.precision = :preserve
-    assert_equal :simplify, r1.precision
-    assert_equal :preserve, r2.precision
+    assert_equal :short, r2.precision
+    r2.precision = :free
+    assert_equal :short, r1.precision
+    assert_equal :free, r2.precision
 
-    r2 = r1[:preserve]
-    assert_equal :simplify, r1.precision
-    assert_equal :preserve, r2.precision
+    r2 = r1[:free]
+    assert_equal :short, r1.precision
+    assert_equal :free, r2.precision
 
-    r1 = Rounding[:simplify, :half_up, base: 2]
+    r1 = Rounding[:short, :half_up, base: 2]
     r2 = r1[precision: 10]
     assert_equal 2, r2.base
     assert_equal 10, r2.precision
-    assert_equal :simplify, r1.precision
+    assert_equal :short, r1.precision
     assert_equal :half_up, r1.mode
     assert_equal :half_up, r2.mode
 
-    r1 = Rounding[:simplify, base: 2]
+    r1 = Rounding[:short, base: 2]
     r2 = r1.set(precision: 10)
     assert_equal 2, r2.base
     assert_equal 10, r2.precision
-    assert_equal :simplify, r1.precision
+    assert_equal :short, r1.precision
   end
 
   def test_mutators
-    r1 = Rounding[:preserve]
-    r2 = r1.set!(:simplify)
-    assert_equal :simplify, r1.precision
-    assert_equal :simplify, r2.precision
+    r1 = Rounding[:free]
+    r2 = r1.set!(:short)
+    assert_equal :short, r1.precision
+    assert_equal :short, r2.precision
     assert_equal r1.object_id, r2.object_id
   end
 

@@ -45,7 +45,7 @@ module Numerals
 
     def initialize(*args)
       @exact_input = false
-      @rounding = Rounding[:simplify]
+      @rounding = Rounding[:short]
       @mode = Mode[]
       @symbols = Symbols[]
       @assembler = :text
@@ -224,7 +224,7 @@ module Numerals
           )
         when :gen, :general, :sci, :scientific, :fix; :fixed
           options[:mode] = Mode[arg]
-        when :simplify, :preserve
+        when :short, :free, :simplify, :preserve
           options[:precision] = arg
         when  :half_even, :half_down, :half_up, :down, :up, :ceiling, :floor, :up05
           options[:rounding_mode] = arg

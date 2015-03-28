@@ -83,7 +83,7 @@ class Numerals::BigDecimalConversion
       if output_base == input_base && output_rounding.free?
         # akin to number.format(base: output_base, simplified: true)
         if true
-          # ALT.1 just like approximate :simplify
+          # ALT.1 just like approximate :short
           general_num_to_numeral number, output_rounding, false
         else
           # ALT.2 just like different bases

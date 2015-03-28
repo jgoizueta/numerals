@@ -12,20 +12,20 @@ class TestBigConversions <  Test::Unit::TestCase # < Minitest::Test
     type = BigDecimal
 
     assert_equal Numeral.nan, Conversions.write(context.nan)
-    assert_equal Numeral.nan, Conversions.write(context.nan, rounding: Rounding[:simplify, base: 2])
-    assert_equal Numeral.nan, Conversions.write(context.nan, rounding: Rounding[:simplify, base: 10])
+    assert_equal Numeral.nan, Conversions.write(context.nan, rounding: Rounding[:short, base: 2])
+    assert_equal Numeral.nan, Conversions.write(context.nan, rounding: Rounding[:short, base: 10])
     assert_equal Numeral.nan, Conversions.write(context.nan, rounding: Rounding[precision: 10, base: 10])
     assert_equal Numeral.nan, Conversions.write(context.nan)
 
     assert_equal Numeral.infinity, Conversions.write(context.infinity)
-    assert_equal Numeral.infinity, Conversions.write(context.infinity, rounding: Rounding[:simplify, base: 2])
-    assert_equal Numeral.infinity, Conversions.write(context.infinity, rounding: Rounding[:simplify, base: 10])
+    assert_equal Numeral.infinity, Conversions.write(context.infinity, rounding: Rounding[:short, base: 2])
+    assert_equal Numeral.infinity, Conversions.write(context.infinity, rounding: Rounding[:short, base: 10])
     assert_equal Numeral.infinity, Conversions.write(context.infinity, rounding: Rounding[precision: 10, base: 10])
     assert_equal Numeral.infinity, Conversions.write(context.infinity)
 
     assert_equal Numeral.infinity(-1), Conversions.write(context.infinity(-1))
-    assert_equal Numeral.infinity(-1), Conversions.write(context.infinity(-1), rounding: Rounding[:simplify, base: 2])
-    assert_equal Numeral.infinity(-1), Conversions.write(context.infinity(-1), rounding: Rounding[:simplify, base: 10])
+    assert_equal Numeral.infinity(-1), Conversions.write(context.infinity(-1), rounding: Rounding[:short, base: 2])
+    assert_equal Numeral.infinity(-1), Conversions.write(context.infinity(-1), rounding: Rounding[:short, base: 10])
     assert_equal Numeral.infinity(-1), Conversions.write(context.infinity(-1), rounding: Rounding[precision: 10, base: 10])
     assert_equal Numeral.infinity(-1), Conversions.write(context.infinity(-1))
   end

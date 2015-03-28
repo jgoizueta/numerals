@@ -6,6 +6,7 @@ module Numerals
   module Format::Output
 
     def write(number, options={})
+      # 1. Convert number to numeral
       numeral = conversion_out(number)
       if numeral.approximate? && !@rounding.free?
         insignificant_digits = @rounding.precision(numeral) - numeral.digits.size
@@ -13,8 +14,11 @@ module Numerals
           numeral.expand! @rounding.precision(numeral)
         end
       end
+      # 2. Break numeral into parts (digits, etc.)
       num_parts = partition_out(numeral, insignificant_digits: insignificant_digits)
+      # 3. Represent parts as text
       text_parts = symbolize_out(num_parts)
+      # 4. Assemble text parts into output notation
       output = options[:output] || StringIO.new
       assemble_out(output, text_parts)
       options[:output] ? output : output.string

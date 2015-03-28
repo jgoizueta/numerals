@@ -81,9 +81,6 @@ module Numerals::Conversions
     #
     def write(number, options = {})
       output_rounding = Rounding[options[:rounding] || Rounding[]]
-      if options[:input_rounding]
-        input_rounding = Rounding[options[:input_rounding]].mode
-      end
       conversion = self[number.class, options[:type_options]]
       exact_input = conversion.exact?(number, options)
       conversion.write(number, exact_input, output_rounding)

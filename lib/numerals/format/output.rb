@@ -158,7 +158,7 @@ module Numerals
     end
 
     def assemble_out(output, text_parts)
-      Format.assemble(@assembler, output, self, text_parts)
+      Format.assemble(@notation, output, self, text_parts)
     end
 
   end

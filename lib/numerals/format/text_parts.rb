@@ -14,17 +14,18 @@ class TextParts
    end
  end
 
- def initialize(numeral)
+ def initialize(numeral = nil)
    @numeral = numeral
    @special = nil
    @sign = @integer = @fractional = @repeat = @exponent = @exponent_base = nil
    @integer_value = @exponent_value = @exponent_base_value = nil
+   @detect_repeat = false
  end
 
  text_part :special
  text_part :sign, :integer, :fractional, :repeat, :exponent, :exponent_base
 
- attr_accessor :integer_value, :exponent_value, :exponent_base_value
+ attr_accessor :integer_value, :exponent_value, :exponent_base_value, :detect_repeat
  attr_reader :numeral
 
 end

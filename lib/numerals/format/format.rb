@@ -48,12 +48,12 @@ module Numerals
       @rounding = Rounding[:short]
       @mode = Mode[]
       @symbols = Symbols[]
-      @assembler = :text
+      @notation = :text
       @input_rounding = nil
       set! *args
     end
 
-    attr_reader :rounding, :exact_input, :mode, :symbols, :assembler,
+    attr_reader :rounding, :exact_input, :mode, :symbols, :notation,
                 :input_rounding
 
     def base
@@ -76,7 +76,7 @@ module Numerals
       @rounding.set! options[:rounding] if options[:rounding]
       @mode.set! options[:mode] if options[:mode] # :format ?
       @symbols.set! options[:symbols] if options[:symbols]
-      @assembler = options[:assembler] if options[:assembler]
+      @notation = options[:notation] if options[:notation]
       if options.has_key?(:input_rounding)
         set_input_rounding! options[:input_rounding]
       end
@@ -96,7 +96,7 @@ module Numerals
         exact_input: @exact_input,
         mode: @mode,
         symbols: @symbols,
-        assembler: @assembler,
+        notation: @notation,
         input_rounding: input_rounding? ? @input_rounding : nil
       }
     end
@@ -107,7 +107,7 @@ module Numerals
       args << "rounding: #{@rounding}"
       args << "mode: #{@mode}"
       args << "symbols: #{@symbols}"
-      args << "assembler: #{@assembler.inspect}" if @assembler != :text
+      args << "notation: #{@notation.inspect}" if @notation != :text
       args << "input_rounding: #{input_rounding_mode.inspect}" if input_rounding?
       "Format[#{args.join(', ')}]"
     end
@@ -136,8 +136,8 @@ module Numerals
       set symbols: args
     end
 
-    aspect :assembler do |assembler|
-      set! assembler: assembler
+    aspect :notation do |notation|
+      set! notation: notation
     end
 
     aspect :digits do |digits|
@@ -230,7 +230,7 @@ module Numerals
         when  :half_even, :half_down, :half_up, :down, :up, :ceiling, :floor, :up05
           options[:rounding_mode] = arg
         when Symbol
-          options[:assembler] = arg
+          options[:notation] = arg
         when Integer
           options[:base] = arg
         else

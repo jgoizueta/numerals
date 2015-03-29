@@ -8,6 +8,10 @@ class Numerals::IntegerConversion
   class InvalidConversion < RuntimeError
   end
 
+  def type
+    Integer
+  end
+
   def order_of_magnitude(value, options={})
     base = options[:base] || 10
     if base == 2 && value.respond_to?(:bit_length)

@@ -5,6 +5,10 @@ class Numerals::RationalConversion
 
   include Singleton
 
+  def type
+    Rational
+  end
+
   def order_of_magnitude(value, options={})
     base = options[:base] || 10
     if base == 10

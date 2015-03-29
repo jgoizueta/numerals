@@ -11,14 +11,23 @@ module Numerals
   #
   class Format::Symbols < FormattingAspect
 
+    def self.regexp_group(symbols, options={})
+      capture = !options[:no_capture]
+      symbols = "#{Array(symbols).map{|d| Regexp.escape(d)}.join('|')}"
+      if capture
+        "(#{symbols})"
+      else
+        "(?:#{symbols})"
+      end
+    end
 
     class Digits < FormattingAspect
 
-      DEFAULT_DIGITS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      DEFAULT_DIGITS = %w(0 1 2 3 4 5 6 7 8 9 A B C D E F G H I J K L M N O P Q R S T U V W X Y Z)
 
       def initialize(*args)
         @digits = DEFAULT_DIGITS
-        @downcase_digits = @digits.downcase
+        @downcase_digits = @digits.map(&:downcase)
         @max_base = @digits.size
         @case_sensitive = false
         @uppercase = false
@@ -35,28 +44,32 @@ module Numerals
         end
       end
 
-      attr_reader :digits, :max_base, :case_sensitive, :uppercase, :lowercase
+      attr_reader :digits_string, :max_base, :case_sensitive, :uppercase, :lowercase
       attr_writer :case_sensitive
 
       def digits=(digits)
-        @digits = digits
+        if digits.is_a?(String)
+          @digits = digits.each_char.to_a
+        else
+          @digits = digits
+        end
         @max_base = @digits.size
-        @lowercase = (@digits.downcase == @digits)
-        @uppercase = (@digits.upcase == @digits)
-        @downcase_digits = @digits.downcase
-        if @digits.each_char.to_a.uniq.size != @max_base
+        @lowercase = @digits.all? { |d| d.downcase == d }
+        @uppercase = @digits.all? { |d| d.upcase == d }
+        @downcase_digits = @digits.map(&:downcase)
+        if @digits.uniq.size != @max_base
           raise "Inconsistent digits"
         end
       end
 
       def uppercase=(v)
         @uppercase = v
-        self.digits = @digits.upcase
+        self.digits = @digits.map(&:upcase) if v
       end
 
       def lowercase=(v)
         @lowercase = v
-        self.digits = @digits.downcase
+        self.digits = @digits.map(&:downcase) if v
       end
 
       def is_digit?(digit_symbol, options={})
@@ -105,14 +118,15 @@ module Numerals
 
       def parameters
         params = {}
-        params[:digits] = @digits if @digits != DEFAULT_DIGITS
-        params[:case_sensitive] = true if @case_sensitive
-        params[:uppercase] = true if @uppercase
-        params[:lowercase] = true if @lowercase
+        params[:digits] = @digits
+        params[:case_sensitive] = @case_sensitive
+        params[:uppercase] = @uppercase
+        params[:lowercase] = @lowercase
         params
       end
 
       def to_s
+        # TODO: show only non-defaults
         "Digits[#{parameters.inspect.unwrap('{}')}]"
       end
 
@@ -120,13 +134,16 @@ module Numerals
         "Format::Symbols::#{self}"
       end
 
-      def regexp(base = nil)
-        base ||= @max_base
+      def regexp(options = {})
+        base = options[:base] || @max_base
+        additional_symbols = Array(options[:symbols])
         if case_sensitive
-          "[#{Regexp.escape(@digits[0,@max_base])}]"
+          symbols = @digits[0, @max_base]
         else
-          "[#{Regexp.escape(@downcase_digits[0,@max_base])}#{Regexp.escape(@digits[0,@max_base].upcase)}]"
+          symbols = @downcase_digits[0, @max_base] + @digits[0, @max_base].map(&:upcase)
         end
+        symbols += additional_symbols
+        Symbols.regexp_group(symbols, options)
       end
 
       private
@@ -138,7 +155,7 @@ module Numerals
           case arg
           when Hash
             options.merge! arg
-          when String
+          when String, Array
             options[:digits] = arg
           when Format::Symbols::Digits
             options.merge! arg.parameters
@@ -378,6 +395,17 @@ module Numerals
           insignificant_symbol: insignificant_symbol
         )
       )
+    end
+
+    def regexp(symbols, options = {})
+      symbols = Array(symbols)
+      if symbols.delete(:digits)
+        @digits.regexp(options.merge(symbols: symbols))
+      elsif symbol.delete(:grouped_digits)
+        @digits.regexp(options.merge(symbols: symbols+[group_separator]))
+      else
+        Symbols.regexp_group(symbols, options)
+      end
     end
 
     private

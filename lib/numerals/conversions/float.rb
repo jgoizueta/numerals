@@ -10,8 +10,6 @@ class Numerals::FloatConversion < Numerals::ContextConversion
   #   to the input number
   #
   def initialize(options={})
-    options = { use_native_float: true }.merge(options)
-    @use_native_float = options[:use_native_float]
     super Float, options
   end
 
@@ -131,38 +129,6 @@ class Numerals::FloatConversion < Numerals::ContextConversion
   def approximate_float_to_numeral(number, rounding)
     all_digits = !rounding.free?
     general_float_to_numeral(number, rounding, all_digits)
-  end
-
-  # def fixed_float_to_numeral(number, rounding)
-  #   # adjust to rounding.precision
-  #   if rounding.free?
-  #     # if simplify
-  #     #   number = @context.rationalize(simplify)
-  #     # end
-  #     exact_float_to_numeral number, rounding.base
-  #   else
-  #     if rounding.base == 10 && @use_native_float
-  #       native_float_to_numeral number, rounding
-  #     else
-  #       general_float_to_numeral number, rounding, true
-  #     end
-  #   end
-  # end
-
-  # def free_float_to_numeral(number, rounding)
-  #   # free mode ignores output precision (rounding) and
-  #   # produces the result based only on the number precision
-  #   rounding = Rounding[:exact, base: rounding.base]
-  #   general_float_to_numeral number, rounding, false
-  # end
-
-  def native_float_to_numeral(number, rounding)
-    need_to_round = (rounding.mode != @context.rounding)
-    n = need_to_round ? Float::DECIMAL_DIG : rounding.precision
-    txt = format("%.*e", n - 1, number)
-    numeral = text_to_numeral(txt, normalize: :approximate) # C-Locale text to numeral...
-    numeral = rounding.round(numeral) if need_to_round
-    numeral
   end
 
   def general_float_to_numeral(x, rounding, all_digits)

@@ -8,7 +8,9 @@ class Numerals::FltConversion
   # * :input_rounding (optional, a non-exact Rounding or rounding mode)
   #   which is used when input is approximate as the assumed rounding
   #   mode which would be used so that the result numeral rounds back
-  #   to the input number
+  #   to the input number. :context can be used to use the
+  #   numeric context as input rounding.
+  #   input_rounding is also used to round input ...
   #
   def initialize(context_or_type, options={})
     if Class === context_or_type && context_or_type < Flt::Num
@@ -29,8 +31,11 @@ class Numerals::FltConversion
 
   def input_rounding=(rounding)
     if rounding
-      rounding = Rounding[rounding]
-      @input_rounding = rounding.mode
+      if rounding == :context
+        @input_rounding = Rounding[@context.rounding, precision: @context.precision, base: @context.radix]
+      else
+        @input_rounding = Rounding[rounding]
+      end
     else
       @input_rounding = nil
     end
@@ -159,12 +164,7 @@ class Numerals::FltConversion
     output_base = rounding.base
 
     # here rounding_mode is not the output rounding mode, but the rounding mode used for input
-    rounding_mode = @input_rounding
-    if Conversions::DEFAULT_INPUT_ROUNDING_IS_CONTEXT
-      rounding_mode ||= @context.rounding
-    else
-      rounding_mode ||= rounding.mode
-    end
+    rounding_mode = (@input_rounding || rounding).mode
 
     formatter = Flt::Support::Formatter.new(
       @context.radix, @context.etiny, output_base, raise_on_repeat: false
@@ -228,7 +228,11 @@ class Numerals::FltConversion
   def general_numeral_to_num(numeral, mode)
     sign, coefficient, scale = numeral.split
     reader = Flt::Support::Reader.new(mode: mode)
-    rounding_mode = @input_rounding || @context.rounding
+    if @input_rounding
+      rounding_mode = @input_rounding.mode
+    else
+       rounding_Mode = @context.rounding
+    end
     reader.read(@context, rounding_mode, sign, coefficient, scale, numeral.base).tap do
       # @exact = reader.exact?
     end

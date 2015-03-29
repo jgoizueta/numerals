@@ -60,14 +60,17 @@ class TestFloatConversions <  Test::Unit::TestCase # < Minitest::Test
 
   def test_type_parameters
     c = Conversions[Float, input_rounding: :down]
-    assert_equal :down, c.input_rounding
+    assert_equal Rounding[:down, base: Float::RADIX], c.input_rounding
     c = Conversions[Float, input_rounding: :half_even]
-    assert_equal :half_even, c.input_rounding
+    assert_equal Rounding[:half_even, base: Float::RADIX], c.input_rounding
 
-    # TODO: when type parameters are added test they can be set with
-    #   Conversions.write(... type_options: { ... }) etc.
-    # Curren parameter :input_rounding cannot be tested since
-    # it is overrided by Conversions.write & read in each call
+    c = Conversions[Float, input_rounding: Rounding[:half_up, precision: 7, base: 3]]
+    assert_equal Rounding[:half_up, base: Float::RADIX], c.input_rounding
+
+    c = Conversions[Float.context, input_rounding: :context]
+    assert_equal Float.context.radix, c.input_rounding.base
+    assert_equal Float.context.rounding, c.input_rounding.mode
+    assert_equal Float.context.precision, c.input_rounding.precision
   end
 
 end

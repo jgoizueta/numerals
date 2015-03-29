@@ -1,9 +1,5 @@
 module Numerals::Conversions
 
-  # This constant is used to experiment with two alternatives for
-  # the default input_rounding used in output:
-  DEFAULT_INPUT_ROUNDING_IS_CONTEXT = false
-
   class <<self
     def [](type, options = nil)
       if type.respond_to?(:numerals_conversion)

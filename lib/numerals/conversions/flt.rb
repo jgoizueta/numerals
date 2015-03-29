@@ -1,7 +1,6 @@
-require 'numerals/conversions'
-require 'flt'
+require 'numerals/conversions/context_conversion'
 
-class Numerals::FltConversion
+class Numerals::FltConversion < Numerals::ContextConversion
 
   # Options:
   #
@@ -13,32 +12,7 @@ class Numerals::FltConversion
   #   input_rounding is also used to round input ...
   #
   def initialize(context_or_type, options={})
-    if Class === context_or_type && context_or_type < Flt::Num
-      @type = context_or_type
-      @context = @type.context
-    elsif Flt::Num::ContextBase === context_or_type
-      @context = context_or_type
-      @type = @context.num_class
-    else
-      raise "Invalid FltConversion definition"
-    end
-    # @input_rounding if used for :free numeral to number conversion
-    # and should be the implied rounding mode of the inverse conversion
-    self.input_rounding = options[:input_rounding]
-  end
-
-  attr_reader :context, :type, :input_rounding
-
-  def input_rounding=(rounding)
-    if rounding
-      if rounding == :context
-        @input_rounding = Rounding[@context.rounding, precision: @context.precision, base: @context.radix]
-      else
-        @input_rounding = Rounding[rounding]
-      end
-    else
-      @input_rounding = nil
-    end
+    super
   end
 
   def order_of_magnitude(value, options={})

@@ -478,73 +478,69 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
     assert_equal "-1.0000000000000001E23", fmt[input_rounding: :half_down].write(-hi)
     assert_equal "-1.0000000000000001E23", fmt[input_rounding: :half_even].write(-hi)
 
-    if Conversions::DEFAULT_INPUT_ROUNDING_IS_CONTEXT
-
-      Flt::BinNum.context(context, rounding: :half_down) do
-        assert_equal "1E23", fmt.write(lo)
-      end
-
-      Flt::BinNum.context(context, rounding: :half_up) do
-        assert_equal "9.999999999999999E22", fmt.write(lo)
-      end
-
-      Flt::BinNum.context(context, rounding: :half_even) do
-        assert_equal "1E23", fmt.write(lo)
-      end
-
-      Flt::BinNum.context(context, rounding: :half_up) do
-        assert_equal "1E23", fmt.write(hi)
-      end
-
-      Flt::BinNum.context(context, rounding: :half_down) do
-        assert_equal "1.0000000000000001E23", fmt.write(hi)
-      end
-
-      Flt::BinNum.context(context, rounding: :half_even) do
-        assert_equal "1.0000000000000001E23", fmt.write(hi)
-      end
-
-      Flt::BinNum.context(context, rounding: :half_down) do
-        assert_equal "-1E23", fmt.write(-lo)
-      end
-
-      Flt::BinNum.context(context, rounding: :half_up) do
-        assert_equal "-9.999999999999999E22", fmt.write(-lo)
-      end
-
-      Flt::BinNum.context(context, rounding: :half_even) do
-        assert_equal "-1E23", fmt.write(-lo)
-      end
-
-      Flt::BinNum.context(context, rounding: :half_up) do
-        assert_equal "-1E23", fmt.write(-hi)
-      end
-
-      Flt::BinNum.context(context, rounding: :half_down) do
-        assert_equal "-1.0000000000000001E23", fmt.write(-hi)
-      end
-
-      Flt::BinNum.context(context, rounding: :half_even) do
-        assert_equal "-1.0000000000000001E23", fmt.write(-hi)
-      end
-
-    else
-      assert_equal "1E23", fmt[rounding: :half_down].write(lo)
-      assert_equal "9.999999999999999E22", fmt[rounding: :half_up].write(lo)
-      assert_equal "1E23", fmt[rounding: :half_even].write(lo)
-
-      assert_equal "1E23", fmt[rounding: :half_up].write(hi)
-      assert_equal "1.0000000000000001E23", fmt[rounding: :half_down].write(hi)
-      assert_equal "1.0000000000000001E23", fmt[rounding: :half_even].write(hi)
-
-      assert_equal "-1E23", fmt[rounding: :half_down].write(-lo)
-      assert_equal "-9.999999999999999E22", fmt[rounding: :half_up].write(-lo)
-      assert_equal "-1E23", fmt[rounding: :half_even].write(-lo)
-
-      assert_equal "-1E23", fmt[rounding: :half_up].write(-hi)
-      assert_equal "-1.0000000000000001E23", fmt[rounding: :half_down].write(-hi)
-      assert_equal "-1.0000000000000001E23", fmt[rounding: :half_even].write(-hi)
+    Flt::BinNum.context(context, rounding: :half_down) do
+      assert_equal "1E23", fmt[input_rounding: :context].write(lo)
     end
+
+    Flt::BinNum.context(context, rounding: :half_up) do
+      assert_equal "9.999999999999999E22", fmt[input_rounding: :context].write(lo)
+    end
+
+    Flt::BinNum.context(context, rounding: :half_even) do
+      assert_equal "1E23", fmt[input_rounding: :context].write(lo)
+    end
+
+    Flt::BinNum.context(context, rounding: :half_up) do
+      assert_equal "1E23", fmt[input_rounding: :context].write(hi)
+    end
+
+    Flt::BinNum.context(context, rounding: :half_down) do
+      assert_equal "1.0000000000000001E23", fmt[input_rounding: :context].write(hi)
+    end
+
+    Flt::BinNum.context(context, rounding: :half_even) do
+      assert_equal "1.0000000000000001E23", fmt[input_rounding: :context].write(hi)
+    end
+
+    Flt::BinNum.context(context, rounding: :half_down) do
+      assert_equal "-1E23", fmt[input_rounding: :context].write(-lo)
+    end
+
+    Flt::BinNum.context(context, rounding: :half_up) do
+      assert_equal "-9.999999999999999E22", fmt[input_rounding: :context].write(-lo)
+    end
+
+    Flt::BinNum.context(context, rounding: :half_even) do
+      assert_equal "-1E23", fmt[input_rounding: :context].write(-lo)
+    end
+
+    Flt::BinNum.context(context, rounding: :half_up) do
+      assert_equal "-1E23", fmt[input_rounding: :context].write(-hi)
+    end
+
+    Flt::BinNum.context(context, rounding: :half_down) do
+      assert_equal "-1.0000000000000001E23", fmt[input_rounding: :context].write(-hi)
+    end
+
+    Flt::BinNum.context(context, rounding: :half_even) do
+      assert_equal "-1.0000000000000001E23", fmt[input_rounding: :context].write(-hi)
+    end
+
+    assert_equal "1E23", fmt[rounding: :half_down].write(lo)
+    assert_equal "9.999999999999999E22", fmt[rounding: :half_up].write(lo)
+    assert_equal "1E23", fmt[rounding: :half_even].write(lo)
+
+    assert_equal "1E23", fmt[rounding: :half_up].write(hi)
+    assert_equal "1.0000000000000001E23", fmt[rounding: :half_down].write(hi)
+    assert_equal "1.0000000000000001E23", fmt[rounding: :half_even].write(hi)
+
+    assert_equal "-1E23", fmt[rounding: :half_down].write(-lo)
+    assert_equal "-9.999999999999999E22", fmt[rounding: :half_up].write(-lo)
+    assert_equal "-1E23", fmt[rounding: :half_even].write(-lo)
+
+    assert_equal "-1E23", fmt[rounding: :half_up].write(-hi)
+    assert_equal "-1.0000000000000001E23", fmt[rounding: :half_down].write(-hi)
+    assert_equal "-1.0000000000000001E23", fmt[rounding: :half_even].write(-hi)
 
   end
 

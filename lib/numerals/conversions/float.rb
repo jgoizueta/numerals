@@ -1,7 +1,6 @@
-require 'numerals/conversions'
-require 'flt/float'
+require 'numerals/conversions/context_conversion'
 
-class Numerals::FloatConversion
+class Numerals::FloatConversion < Numerals::ContextConversion
 
   # Options:
   #
@@ -11,24 +10,9 @@ class Numerals::FloatConversion
   #   to the input number
   #
   def initialize(options={})
-    @type = Float
-    @context = @type.context
     options = { use_native_float: true }.merge(options)
     @use_native_float = options[:use_native_float]
-    # @input_rounding if used for :free numeral to number conversion
-    # and should be the implied rounding mode of the inverse conversion
-    self.input_rounding = options[:input_rounding]
-  end
-
-  attr_reader :context, :type, :input_rounding
-
-  def input_rounding=(rounding)
-    if rounding
-      rounding = Rounding[rounding]
-      @input_rounding = rounding.mode
-    else
-      @input_rounding = nil
-    end
+    super Float, options
   end
 
   def order_of_magnitude(value, options={})
@@ -187,12 +171,7 @@ class Numerals::FloatConversion
     output_base = rounding.base
 
     # here rounding_mode is not the output rounding mode, but the rounding mode used for input
-    rounding_mode = @input_rounding
-    if Conversions::DEFAULT_INPUT_ROUNDING_IS_CONTEXT
-      rounding_mode ||= @context.rounding
-    else
-      rounding_mode ||= rounding.mode
-    end
+    rounding_mode = (@input_rounding || rounding).mode
 
     formatter = Flt::Support::Formatter.new(
       @context.radix, @context.etiny, output_base, raise_on_repeat: false
@@ -294,7 +273,11 @@ class Numerals::FloatConversion
   def general_numeral_to_float(numeral, mode)
     sign, coefficient, scale = numeral.split
     reader = Flt::Support::Reader.new(mode: mode)
-    rounding_mode = @input_rounding || @context.rounding
+    if @input_rounding
+      rounding_mode = @input_rounding.mode
+    else
+       rounding_Mode = @context.rounding
+    end
     reader.read(@context, rounding_mode, sign, coefficient, scale, numeral.base).tap do
       # @exact = reader.exact?
     end

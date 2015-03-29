@@ -640,6 +640,9 @@ class TestFltConversions <  Test::Unit::TestCase # < Minitest::Test
     assert_equal Rounding[:half_even], c.input_rounding
     c = Conversions[Flt::DecNum, input_rounding: Rounding[:half_up, precision: 7]]
     assert_equal Rounding[:half_up, precision: 7], c.input_rounding
+    c = Conversions[Flt::DecNum, input_rounding: Rounding[:half_up, precision: 7, base: 3]]
+    assert_equal Rounding[:half_up], c.input_rounding
+
     Flt::DecNum.context(rounding: :half_down, precision: 10) do
       c = Conversions[Flt::DecNum, input_rounding: :context]
       assert_equal :half_down, c.input_rounding.mode

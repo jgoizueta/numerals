@@ -2,7 +2,7 @@ require 'numerals/conversions'
 require 'bigdecimal'
 require 'singleton'
 
-class Numerals::BigDecimalConversion
+class Numerals::BigDecimalConversion < Numerals::ContextConversion
 
   # Options:
   #
@@ -12,22 +12,7 @@ class Numerals::BigDecimalConversion
   #   to the input number
   #
   def initialize(options = {})
-    @type = BigDecimal
-    @context = @type.context
-    # @input_rounding if used for :free numeral to number conversion
-    # and should be the implied rounding mode of the inverse conversion
-    self.input_rounding = options[:input_rounding]
-  end
-
-  attr_reader :context, :type, :input_rounding
-
-  def input_rounding=(rounding)
-    if rounding
-      rounding = Rounding[rounding]
-      @input_rounding = rounding.mode
-    else
-      @input_rounding = nil
-    end
+    super BigDecimal, options
   end
 
   def order_of_magnitude(value, options={})
@@ -162,12 +147,7 @@ class Numerals::BigDecimalConversion
     output_base = rounding.base
 
     # here rounding_mode is not the output rounding mode, but the rounding mode used for input
-    rounding_mode = @input_rounding
-    if Conversions::DEFAULT_INPUT_ROUNDING_IS_CONTEXT
-      rounding_mode ||= @context.rounding
-    else
-      rounding_mode ||= rounding.mode
-    end
+    rounding_mode = (@input_rounding || rounding).mode
 
     # The minimum exponent of BigDecimal numbers is not well defined;
     # depends of host architecture, version of BigDecimal, etc.
@@ -230,7 +210,11 @@ class Numerals::BigDecimalConversion
   def general_numeral_to_num(numeral, mode)
     sign, coefficient, scale = numeral.split
     reader = Flt::Support::Reader.new(mode: mode)
-    rounding_mode = @input_rounding || @context.rounding
+    if @input_rounding
+      rounding_mode = @input_rounding.mode
+    else
+       rounding_Mode = @context.rounding
+    end
     dec_num_context = Flt::DecNum::Context(
       precision: @context.precision,
       rounding:  @context.rounding

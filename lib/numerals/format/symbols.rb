@@ -137,6 +137,10 @@ module Numerals
         "Format::Symbols::#{self}"
       end
 
+      def dup
+        Digits[parameters]
+      end
+
       private
 
       def extract_options(*args)
@@ -160,7 +164,6 @@ module Numerals
     end
 
     DEFAULTS = {
-      digits: Format::Symbols::Digits[],
       nan: 'NaN',
       infinity: 'Infinity',
       plus: '+',
@@ -190,6 +193,11 @@ module Numerals
       DEFAULTS.each do |param, value|
         instance_variable_set "@#{param}", value
       end
+
+      # @digits is a mutable Object, so we don't want
+      # to set it from DEFAULTS (which would share the
+      # default Digits among all Symbols)
+      @digits = Format::Symbols::Digits[]
 
       # TODO: justification/padding
       # width, adjust_mode (left, right, internal), fill_symbol
@@ -351,6 +359,9 @@ module Numerals
           params[param] = value
         end
       end
+      if !abbreviated || @digits != Format::Symbols::Digits[]
+        params[:digits] = @digits
+      end
       params
     end
 
@@ -446,6 +457,26 @@ module Numerals
         symbols += @digits.digits(options)
       end
       regexp_group(symbols, options)
+    end
+
+    def digits_values(digits_text, options = {})
+      digit_pattern = Regexp.new(
+        regexp(
+          :grouped_digits,
+          options.merge(no_capture: true)
+        ),
+        case_sensitive? ? Regexp::IGNORECASE : 0
+      )
+      digits_text.scan(digit_pattern).map { |digit|
+        case digit
+        when /\A#{regexp(:insignificant_digit, case_sensitivity: true)}\Z/
+          0
+        when /\A#{regexp(:group_separator, case_sensitivity: true)}\Z/
+          nil
+        else
+          @digits.digit_value(digit)
+        end
+      }.compact
     end
 
     private

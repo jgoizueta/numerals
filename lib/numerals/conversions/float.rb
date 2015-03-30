@@ -169,8 +169,7 @@ class Numerals::FloatConversion < Numerals::ContextConversion
   end
 
   def fixed_numeral_to_float(numeral)
-    # consider:
-    # return exact_numeral_to_float(numeral) if numeral.exact?
+    return exact_numeral_to_float(numeral) if numeral.exact?
     if numeral.base == @context.radix
       same_base_numeral_to_float numeral
     else

@@ -178,7 +178,11 @@ class Numerals::FltConversion < Numerals::ContextConversion
       end
       same_base_numeral_to_num numeral
     else
-      general_numeral_to_num numeral, :fixed
+      if numeral.repeating? # numeral.exact?
+        exact_numeral_to_num(numeral)
+      else
+        general_numeral_to_num numeral, :fixed
+      end
     end
   end
 
@@ -192,7 +196,11 @@ class Numerals::FltConversion < Numerals::ContextConversion
   end
 
   def free_numeral_to_num(numeral)
-    general_numeral_to_num numeral, :free
+    if numeral.base == @context.radix
+      same_base_numeral_to_num numeral
+    else
+      general_numeral_to_num numeral, :free
+    end
   end
 
   def short_numeral_to_num(numeral)

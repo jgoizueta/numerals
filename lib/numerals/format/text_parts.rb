@@ -28,4 +28,8 @@ class TextParts
  attr_accessor :integer_value, :exponent_value, :exponent_base_value, :detect_repeat
  attr_reader :numeral
 
+ def detect_repeat?
+   @detect_repeat
+ end
+
 end

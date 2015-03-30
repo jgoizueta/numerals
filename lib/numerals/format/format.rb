@@ -88,7 +88,7 @@ module Numerals
       @rounding.set! precision: options[:precision] if options[:precision]
       @rounding.set! places: options[:places] if options[:places]
       @symbols.set! repeating: options[:repeating] if options.has_key?(:repeating)
-      @symbols.set case_sensitive: options[:case_sensitive] if options.has_key?(:case_sensitive)
+      @symbols.set! case_sensitive: options[:case_sensitive] if options.has_key?(:case_sensitive)
     end
 
     def parameters

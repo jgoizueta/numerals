@@ -43,8 +43,15 @@ module Numerals
       def disassemble(text)
         text_parts = TextParts.new
         s = format.symbols
-        special = /#{s.regexp(:plus, :minus)}?\s*#{s.regexp(:nan, :infinity)}/i
+        special = /
+          \A
+          #{s.regexp(:plus, :minus, case_sensitivity: true)}?
+          \s*
+          #{s.regexp(:nan, :infinity, case_sensitivity: true)}
+          \Z
+        /x
         if match = special.match(text)
+          valid = true
           text_parts.special = "#{match[1]}#{match[2]}"
         else
           valid = true
@@ -106,11 +113,12 @@ module Numerals
               end
             end
 
+            text_parts.exponent_base = format.rounding.base
             if exponent
               if !exponent_value
                 valid = false
               end
-              text_parts.exponent = "#{exponent_sign}#{exponent}"
+              text_parts.exponent = "#{exponent_sign}#{exponent_value}"
               text_parts.exponent_value = text_parts.exponent.to_i
             else
               if exponent_sign || exponent_value

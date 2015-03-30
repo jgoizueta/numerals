@@ -13,7 +13,8 @@ module Numerals
 
     def self.regexp_group(symbols, options={})
       capture = !options[:no_capture]
-      symbols = "#{Array(symbols).map{|d| Regexp.escape(d)}.join('|')}"
+      symbols = Array(symbols).compact.select { |s| !s.empty? }
+                              .map{|d| Regexp.escape(d)}.join('|')
       if capture
         "(#{symbols})"
       else
@@ -138,12 +139,12 @@ module Numerals
         base = options[:base] || @max_base
         additional_symbols = Array(options[:symbols])
         if case_sensitive
-          symbols = @digits[0, @max_base]
+          symbols = @digits[0, base]
         else
-          symbols = @downcase_digits[0, @max_base] + @digits[0, @max_base].map(&:upcase)
+          symbols = @downcase_digits[0, base] + @digits[0, base].map(&:upcase)
         end
         symbols += additional_symbols
-        Symbols.regexp_group(symbols, options)
+        Format::Symbols.regexp_group(symbols, options)
       end
 
       private
@@ -397,14 +398,21 @@ module Numerals
       )
     end
 
-    def regexp(symbols, options = {})
-      symbols = Array(symbols)
-      if symbols.delete(:digits)
+    def regexp(*args)
+      options = args.pop if args.last.is_a?(Hash)
+      options ||= {}
+      symbols = args
+      digits = symbols.delete(:digits)
+      grouped_digits = symbols.delete(:grouped_digits)
+      symbols = symbols.map { |s| send(s.to_sym) }
+      if grouped_digits
+        symbols += [group_separator, insignificant_digit]
         @digits.regexp(options.merge(symbols: symbols))
-      elsif symbol.delete(:grouped_digits)
-        @digits.regexp(options.merge(symbols: symbols+[group_separator]))
+      elsif digits
+        symbols += [insignificant_digit]
+        @digits.regexp(options.merge(symbols: symbols))
       else
-        Symbols.regexp_group(symbols, options)
+        Format::Symbols.regexp_group(symbols, options)
       end
     end
 

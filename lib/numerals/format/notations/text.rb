@@ -40,7 +40,7 @@ module Numerals
         end
       end
 
-      def disassemble(input, text)
+      def disassemble(text)
         text_parts = TextParts.new
         s = format.symbols
         special = /#{s.regexp(:plus, :minus)}?\s*#{s.regexp(:nan, :infinity)}/i
@@ -50,32 +50,41 @@ module Numerals
           valid = true
           # TODO: the i (ignore case) option conflicts with the case handling of digits...
           # TODO: replace numbered groups by named variables ?<var>
+          # TODO: ignore padding, admit base indicators
           regular = /
+            \A
             #{s.regexp(:plus, :minus)}?
             \s*
-            (#{s.regexp(:grouped_digits, base: format.base, no_capture: true)})*
-            #{s.regexp(:point)}?
-            #{s.regexp(:digits, base: format.base)}?
-            (?:#{s.regexp(:repeat_begin)}#{s.regexp(:digits, base: format.base)}#{s.regexp(:repeat_end)})?
+            (?:
+              (?:(#{s.regexp(:grouped_digits, base: format.base, no_capture: true)}+)#{s.regexp(:point)}?)
+              |
+              #{s.regexp(:point)} # admit empty integer part, but then a point is needed
+            )
+            (#{s.regexp(:digits, base: format.base, no_capture: true)}*)
+            (?:#{s.regexp(:repeat_begin)}(#{s.regexp(:digits, base: format.base, no_capture: true)}+)#{s.regexp(:repeat_end)})?
             #{s.regexp(:repeat_suffix)}?
-            (?:#{s.regexp(:exponent)}#{s.regexp(:plus, :minus)}\d+)
+            (?:#{s.regexp(:exponent)}#{s.regexp(:plus, :minus)}?(\d+))?
+            \Z
           /xi
+
           match = regular.match(text)
 
           if match.nil?
             valid = false
           else
+            # TODO: we could avoid capturing point, point_with_no_integer_part
             sign = match[1]
             integer_part = match[2]
             point = match[3]
-            fractional_part = match[4]
-            repeat_begin = match[5]
-            repeat_part = match[6]
-            repeat_end = match[7]
-            repeat_suffix = match[8]
-            exponent = match[9]
-            exponent_sign = match[10]
-            exponent_value = match[11]
+            point_with_no_integer_part = match[4]
+            fractional_part = match[5]
+            repeat_begin = match[6]
+            repeat_part = match[7]
+            repeat_end = match[8]
+            repeat_suffix = match[9]
+            exponent = match[10]
+            exponent_sign = match[11]
+            exponent_value = match[12]
 
             text_parts.sign = sign
             text_parts.integer = integer_part
@@ -102,7 +111,7 @@ module Numerals
               text_parts.exponent = "#{exponent_sign}#{exponent}"
               text_parts.exponent_value = text_parts.exponent.to_i
             else
-              if exponen_sign || exponent_value
+              if exponent_sign || exponent_value
                 valid = false
               end
             end

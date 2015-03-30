@@ -14,7 +14,7 @@ module Numerals
         raise "assemble must be implemented in Notation derived class #{self.class}"
       end
 
-      def disassemble(input, text)
+      def disassemble(text)
         raise "disassemble must be implemented in Notation derived class #{self.class}"
       end
 

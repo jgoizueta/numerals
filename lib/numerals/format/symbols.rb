@@ -11,17 +11,6 @@ module Numerals
   #
   class Format::Symbols < FormattingAspect
 
-    def self.regexp_group(symbols, options={})
-      capture = !options[:no_capture]
-      symbols = Array(symbols).compact.select { |s| !s.empty? }
-                              .map{|d| Regexp.escape(d)}.join('|')
-      if capture
-        "(#{symbols})"
-      else
-        "(?:#{symbols})"
-      end
-    end
-
     class Digits < FormattingAspect
 
       DEFAULT_DIGITS = %w(0 1 2 3 4 5 6 7 8 9 A B C D E F G H I J K L M N O P Q R S T U V W X Y Z)
@@ -48,6 +37,15 @@ module Numerals
       attr_reader :digits_string, :max_base, :case_sensitive, :uppercase, :lowercase
       attr_writer :case_sensitive
 
+      def digits(options = {})
+        base = options[:base] || @max_base
+        if base >= @max_base
+          @digits
+        else
+          @digits[0, base]
+        end
+      end
+
       def digits=(digits)
         if digits.is_a?(String)
           @digits = digits.each_char.to_a
@@ -71,6 +69,10 @@ module Numerals
       def lowercase=(v)
         @lowercase = v
         self.digits = @digits.map(&:downcase) if v
+      end
+
+      def case_sensitive?
+        case_sensitive
       end
 
       def is_digit?(digit_symbol, options={})
@@ -133,18 +135,6 @@ module Numerals
 
       def inspect
         "Format::Symbols::#{self}"
-      end
-
-      def regexp(options = {})
-        base = options[:base] || @max_base
-        additional_symbols = Array(options[:symbols])
-        if case_sensitive
-          symbols = @digits[0, base]
-        else
-          symbols = @downcase_digits[0, base] + @digits[0, base].map(&:upcase)
-        end
-        symbols += additional_symbols
-        Format::Symbols.regexp_group(symbols, options)
       end
 
       private
@@ -290,6 +280,18 @@ module Numerals
       end
     end
 
+    def case_sensitive
+      @digits.case_sensitive
+    end
+
+    def case_sensitive?
+      @digits.case_sensitive
+    end
+
+    def case_sensitive=(v)
+      @digits.set! case_sensitive: v
+    end
+
     aspect :group_thousands do |sep = nil|
       @group_separator = sep if sep
       @grouping = [3]
@@ -398,6 +400,36 @@ module Numerals
       )
     end
 
+    # Generate a regular expression to match any of the passed symbols.
+    #
+    #   symbols.regexp(:nan, :plus, :minus) #=> "(NaN|+|-)"
+    #
+    # The special symbol :digits can also be passed to generate all the digits,
+    # in which case the :base option can be used to generate digits
+    # only for some base smaller than the maximum defined for digits.
+    #
+    #   symbols.regexp(:digits, :point, base: 10) # => "(0|1|...|9)"
+    #
+    # The option :no_capture can be used to avoid generating a capturing
+    # group; otherwise the result is captured group (surrounded by parenthesis)
+    #
+    #   symbols.regexp(:digits, no_capture: true) # => "(?:...)"
+    #
+    # The :case_sensitivity option is used to generate a regular expression
+    # that matches the case of the text as defined by ghe case_sensitive
+    # attribute of the Symbols. If this option is used the result should not be
+    # used in a case-insensitive regular expression (/.../i).
+    #
+    #   /#{symbols.regexp(:digits, case_sensitivity: true)}/
+    #
+    # If the options is not used, than the regular expression should be
+    # be made case-insensitive according to the Symbols:
+    #
+    #  if symbols.case_sensitive?
+    #    /#{symbols.regexp(:digits)}/
+    # else
+    #    /#{symbols.regexp(:digits)}/i
+    #
     def regexp(*args)
       options = args.pop if args.last.is_a?(Hash)
       options ||= {}
@@ -407,16 +439,41 @@ module Numerals
       symbols = symbols.map { |s| send(s.to_sym) }
       if grouped_digits
         symbols += [group_separator, insignificant_digit]
-        @digits.regexp(options.merge(symbols: symbols))
       elsif digits
         symbols += [insignificant_digit]
-        @digits.regexp(options.merge(symbols: symbols))
-      else
-        Format::Symbols.regexp_group(symbols, options)
       end
+      if digits || grouped_digits
+        symbols += @digits.digits(options)
+      end
+      regexp_group(symbols, options)
     end
 
     private
+
+    def regexp_char(c, options = {})
+      c_upcase = c.upcase
+      c_downcase = c.downcase
+      if c_downcase != c_upcase && !case_sensitive? && options[:case_sensitivity]
+        "(?:#{Regexp.escape(c_upcase)}|#{Regexp.escape(c_downcase)})"
+      else
+        Regexp.escape(c)
+      end
+    end
+
+    def regexp_symbol(symbol, options = {})
+      symbol.each_char.map { |c| regexp_char(c, options) }.join
+    end
+
+    def regexp_group(symbols, options = {})
+      capture = !options[:no_capture]
+      symbols = Array(symbols).compact.select { |s| !s.empty? }
+                              .map{ |d| regexp_symbol(d, options) }.join('|')
+      if capture
+        "(#{symbols})"
+      else
+        "(?:#{symbols})"
+      end
+    end
 
     def extract_options(*args)
       options = {}
@@ -431,6 +488,8 @@ module Numerals
           options.merge! arg.parameters
         when :group_thousands
           options[:grouping] = [3]
+        when :case_sensitive
+          options[:case_sensitive] = true
         else
           raise "Invalid Symbols definition"
         end

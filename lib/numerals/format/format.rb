@@ -88,6 +88,7 @@ module Numerals
       @rounding.set! precision: options[:precision] if options[:precision]
       @rounding.set! places: options[:places] if options[:places]
       @symbols.set! repeating: options[:repeating] if options.has_key?(:repeating)
+      @symbols.set case_sensitive: options[:case_sensitive] if options.has_key?(:case_sensitive)
     end
 
     def parameters
@@ -114,6 +115,10 @@ module Numerals
 
     def inspect
       to_s
+    end
+
+    def case_sensitive?
+      @symbols.case_sensitive?
     end
 
     aspect :rounding do |*args|
@@ -229,6 +234,8 @@ module Numerals
           options[:precision] = arg
         when  :half_even, :half_down, :half_up, :down, :up, :ceiling, :floor, :up05
           options[:rounding_mode] = arg
+        when :case_sensitive
+          options[:case_sensitive] = true
         when Symbol
           options[:notation] = arg
         when Integer

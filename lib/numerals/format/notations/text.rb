@@ -48,7 +48,6 @@ module Numerals
           text_parts.special = "#{match[1]}#{match[2]}"
         else
           valid = true
-          # TODO: the i (ignore case) option conflicts with the case handling of digits...
           # TODO: replace numbered groups by named variables ?<var>
           # TODO: ignore padding, admit base indicators
           regular = /
@@ -65,7 +64,10 @@ module Numerals
             #{s.regexp(:repeat_suffix)}?
             (?:#{s.regexp(:exponent)}#{s.regexp(:plus, :minus)}?(\d+))?
             \Z
-          /xi
+          /x
+          unless s.case_sensitive?
+            regular = Regexp.new(regular.source, regular.options | Regexp::IGNORECASE)
+          end
 
           match = regular.match(text)
 

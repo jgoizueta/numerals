@@ -121,4 +121,30 @@ class TestFormat <  Test::Unit::TestCase # < Minitest::Test
     assert_equal 'PLUS', f2.symbols.plus
   end
 
+  def test_repeat_aspect
+    s = Format::Symbols[]
+    assert_equal '<', s.repeat_begin
+    assert_equal '>', s.repeat_end
+    assert_equal '...', s.repeat_suffix
+    refute s.repeat_delimited
+    assert_equal 3, s.repeat_count
+    assert s.repeating
+
+    s.set_repeat! false
+    refute s.repeating
+
+    s.set_repeat! true, delimiters: '[', count: 2, suffix: '****'
+    assert_equal '[', s.repeat_begin
+    assert_nil s.repeat_end
+    assert_equal '****', s.repeat_suffix
+    refute s.repeat_delimited
+    assert_equal 2, s.repeat_count
+    assert s.repeating
+
+    s.set_repeat! true, delimiters: ['>', '<'], delimited: true
+    assert_equal '>', s.repeat_begin
+    assert_equal '<', s.repeat_end
+    assert s.repeat_delimited
+  end
+
 end

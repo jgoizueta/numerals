@@ -268,7 +268,37 @@ module Numerals
                 :grouping, :repeat_count
 
     aspect :repeat do |*args|
-      # TODO accept hash :begin, :end, :suffix, ...
+      args.each do |arg|
+        case arg
+        when true, false
+          @repeating = arg
+        when Integer
+          @repeat_count = arg
+        when :delimited
+          @repeat_delimited = true
+        when :suffixed
+          @repeat_delimited = false
+        when Hash
+          arg.each do |key, value|
+            case key
+            when :delimiters
+              @repeat_begin, @repeat_end = Array(value)
+            when :begin
+              @repeat_begin = value
+            when :end
+              @repeat_end = value
+            when :suffix
+              @repeat_suffix = value
+            when :delimited
+              @repeat_delimited = value
+            when :count
+              @repeat_count = value
+            else
+              send "#{key}=", value
+            end
+          end
+        end
+      end
     end
 
     aspect :grouping do |*args|

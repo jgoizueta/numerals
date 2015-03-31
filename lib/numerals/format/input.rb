@@ -4,37 +4,40 @@ module Numerals
   module Format::Input
 
     def read(text, options={})
-      # obtain destination type
-
-      # Alt.1 use Conversion...
+      # 1. Obtain destination type
       selector = options[:context] || options[:type]
       conversion = Conversions[selector, options[:type_options]]
-      raise "Invalid type #{selector.inspect}" unless conversion
-      type = conversion.type
-      if conversion.is_a?(ContextConversion)
-        context = conversion.context
+      unless conversion
+        raise InvalidNumericType, "Invalid type #{selector.inspect}"
       end
+      type = conversion.type
+      # if conversion.is_a?(ContextConversion)
+      #   context = conversion.context
+      # end
 
-      # Alt.2 require :type arguent
-      # type = options[:type]
-
-
-      input_rounding = @input_rounding || @rounding
-      input_base = significand_base
-
-      # 1. dissassemble (parse notation): text notation => text parts
+      # 2. dissassemble (parse notation): text notation => text parts
       text_parts = Format.disassemble(@notation, self, text)
 
-      if text_parts.special?
+      # 3. Convert text parts to values and generate a Numeral
+      numeral = partition_in(text_parts)
 
-        nan = /
-                #{@symbols.regexp(:nan, case_sensitivity: true)}
-              /x
+      # 4. Convert to requested type:
+      if type == Numeral
+        return numeral
+      else
+        conversion_in(numeral, options)
+      end
+    end
+
+    def partition_in(text_parts)
+      if text_parts.special?
+        # Read special number
+        nan = /#{@symbols.regexp(:nan, case_sensitivity: true)}/
         inf = /
-                #{@symbols.regexp(:plus, :minus, case_sensitivity: true)}?
-                \s*
-                #{@symbols.regexp(:infinity, case_sensitivity: true)}
-              /x
+          #{@symbols.regexp(:plus, :minus, case_sensitivity: true)}?
+          \s*
+          #{@symbols.regexp(:infinity, case_sensitivity: true)}
+        /x
         minus = /#{@symbols.regexp(:minus, case_sensitivity: true)}/
         if nan.match(text_parts.special)
           numeral = Numeral[:nan]
@@ -46,13 +49,13 @@ module Numerals
           end
           numeral = Numeral[:infinity, sign: sign]
         else
-          raise "Invalid number"
+          raise InvaludNumberFormat, "Invalid number"
         end
-
       else
+        # Parse and convert text parts to values
+        input_rounding = @input_rounding || @rounding
+        input_base = significand_base
 
-        # 2. parse and convert text parts to digit values / other values (sign, exponent...)
-        #    @symbols.repeat_suffix found => detect_repeat
         if !@symbols.repeating && (text_parts.repeat || text_parts.detect_repeat)
           raise Format::InvalidRepeatingNumeral, "Invalid format: unexpected repeating numeral"
         end
@@ -81,7 +84,6 @@ module Numerals
 
         point = integer_digits.size
 
-        # 3. generate numeral
         if text_parts.detect_repeat? # repeat_suffix found
           digits = integer_digits + fractional_digits
           digits, repeat = RepeatDetector.detect(digits, @symbols.repeat_count - 1)
@@ -95,13 +97,8 @@ module Numerals
           repeat = nil
         end
 
-        if repeat || @exact_input
-          normalization = :exact
-        else
-          normalization = :approximate
-        end
-
         if @mode.base_scale > 1
+          # De-scale the significand base
           digits = Format::BaseScaler.ugrouped_digits(digits, base, @mode.base_scale)
           point  *= @mode.base_scale
           repeat *= @mode.base_scale if repeat
@@ -109,42 +106,28 @@ module Numerals
 
         point += exponent_value
 
+        # Generate Numeral
+        if repeat || @exact_input
+          normalization = :exact
+        else
+          normalization = :approximate
+        end
         numeral = Numeral[digits, sign: sign, point: point, repeat: repeat, base: base, normalize: normalization]
       end
+    end
 
-      # 4. Convert to requested type:
-      if type == Numeral
-        return numeral
+    def conversion_in(numeral, options)
+      options = options.merge(
+        exact: numeral.exact?, # @exact_input, Also: if we want to force :fixed format
+        simplify: @rounding.simplifying?, # applies to approx input only => :short
+      )
+      type_options = { input_rounding: @input_rounding || @rounding }
+      if options[:type_options]
+        options[:type_options] = type_options.merge(options[:type_options])
       else
-        # Alternatives:
-        #
-        # convert numeral to number with
-        # Conversions
-        options = {
-          exact: numeral.exact?, # @exact_input,
-          simplify: @rounding.simplifying?,
-          type_options: {
-            input_rounding: @input_rounding || @rounding,
-          },
-          type: options[:type],
-          context: options[:context]
-        }
-
-        # or, if admitting type_options
-        options = options.merge(
-          exact: numeral.exact?, # @exact_input,
-          simplify: @rounding.simplifying?,
-        )
-        type_options = { input_rounding: @input_rounding || @rounding }
-        if options[:type_options]
-          options[:type_options] = options[:type_options].merge(type_options)
-        else
-          options[:type_options] = type_options
-        end
-
-        Conversions.read(numeral, options)
+        options[:type_options] = type_options
       end
-
+      Conversions.read(numeral, options)
     end
 
   end

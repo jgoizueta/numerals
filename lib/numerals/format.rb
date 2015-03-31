@@ -5,6 +5,12 @@ module Numerals
 
     class InvalidRepeatingNumeral < Error
     end
+
+    class InvalidNumberFormat < Error
+    end
+
+    class InvalidNumericType < Error
+    end
   end
 end
 

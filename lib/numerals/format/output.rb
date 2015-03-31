@@ -14,6 +14,7 @@ module Numerals
           numeral.expand! @rounding.precision(numeral)
         end
       end
+      return numeral if options[:output] == :numeral
       # 2. Break numeral into parts (digits, etc.)
       num_parts = partition_out(numeral, insignificant_digits: insignificant_digits)
       if !@symbols.repeating && num_parts.repeating?

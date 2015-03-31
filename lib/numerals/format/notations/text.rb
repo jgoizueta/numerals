@@ -55,6 +55,7 @@ module Numerals
           text_parts.special = "#{match[1]}#{match[2]}"
         else
           valid = true
+          base = format.significand_base
           # TODO: replace numbered groups by named variables ?<var>
           # TODO: ignore padding, admit base indicators
           regular = /
@@ -62,12 +63,12 @@ module Numerals
             #{s.regexp(:plus, :minus)}?
             \s*
             (?:
-              (?:(#{s.regexp(:grouped_digits, base: format.base, no_capture: true)}+)#{s.regexp(:point)}?)
+              (?:(#{s.regexp(:grouped_digits, base: base, no_capture: true)}+)#{s.regexp(:point)}?)
               |
               #{s.regexp(:point)} # admit empty integer part, but then a point is needed
             )
-            (#{s.regexp(:digits, base: format.base, no_capture: true)}*)
-            (?:#{s.regexp(:repeat_begin)}(#{s.regexp(:digits, base: format.base, no_capture: true)}+)#{s.regexp(:repeat_end)})?
+            (#{s.regexp(:digits, base: base, no_capture: true)}*)
+            (?:#{s.regexp(:repeat_begin)}(#{s.regexp(:digits, base: base, no_capture: true)}+)#{s.regexp(:repeat_end)})?
             #{s.regexp(:repeat_suffix)}?
             (?:#{s.regexp(:exponent)}#{s.regexp(:plus, :minus)}?(\d+))?
             \Z
@@ -113,7 +114,7 @@ module Numerals
               end
             end
 
-            text_parts.exponent_base = format.rounding.base
+            text_parts.exponent_base = format.base
             if exponent
               if !exponent_value
                 valid = false

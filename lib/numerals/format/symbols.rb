@@ -465,7 +465,7 @@ module Numerals
           :grouped_digits,
           options.merge(no_capture: true)
         ),
-        case_sensitive? ? Regexp::IGNORECASE : 0
+        !case_sensitive? ? Regexp::IGNORECASE : 0
       )
       digits_text.scan(digit_pattern).map { |digit|
         case digit

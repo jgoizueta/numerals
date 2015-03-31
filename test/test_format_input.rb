@@ -81,6 +81,18 @@ class TestFormatInput <  Test::Unit::TestCase # < Minitest::Test
   end
 
   def test_read_hexbin
+    context = Flt::BinNum::IEEEDoubleContext
+    Flt::BinNum.context(context) do
+      f = Format[:free, :hexbin]
+      x = Flt::BinNum('0.1', :fixed)
+      assert_same_flt x, f.read("1.999999999999Ap-4", type: Flt::BinNum)
+      assert_same_flt -x, f.read("-1.999999999999Ap-4", type: Flt::BinNum)
+      assert_same_flt x, f.read("19.99999999999Ap-8", type: Flt::BinNum)
+      %w(1.52d02c7e14af6p+76 1.52d02c7e14af7p+76 1.0066666666666p+6 1.0066666666667p+6).each do |txt|
+        x =  Flt::BinNum("0x#{txt}", :fixed)
+        assert_same_flt x, f.read(txt, type: Flt::BinNum)
+      end
+    end
   end
 
   def test_read_equidistant

@@ -60,6 +60,11 @@ module Numerals
       @rounding.base
     end
 
+    # Presentation base for the significand
+    def significand_base
+      base**@mode.base_scale
+    end
+
     include ModalSupport::StateEquivalent
 
     def input_rounding?

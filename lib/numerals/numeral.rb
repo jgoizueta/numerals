@@ -325,7 +325,6 @@ module Numerals
           end
         end
       end
-
       self
     end
 

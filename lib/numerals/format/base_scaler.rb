@@ -142,6 +142,19 @@ module Numerals
         0
       end
     end
+
+    # Convert base digits to scaled base digits
+    def self.ugrouped_digits(digits, base, base_scale)
+      digits.flat_map { |d|
+        group = Numeral::Digits[base: base]
+        group.value = d
+        ungrouped = group.digits_array
+        if ungrouped.size < base_scale
+          ungrouped = [0]*(base_scale - ungrouped.size) + ungrouped
+        end
+        ungrouped
+      }
+    end
   end
 
 end

@@ -4,8 +4,6 @@ module Numerals
   module Format::Input
 
     def read(text, options={})
-      # TODO: base-scale
-
       # obtain destination type
 
       # Alt.1 use Conversion...
@@ -22,6 +20,7 @@ module Numerals
 
 
       input_rounding = @input_rounding || @rounding
+      input_base = significand_base
 
       # 1. dissassemble (parse notation): text notation => text parts
       text_parts = Format.disassemble(@notation, self, text)
@@ -67,12 +66,12 @@ module Numerals
 
         integer_digits = []
         if text_parts.integer?
-          integer_digits = @symbols.digits_values(text_parts.integer, base: @rounding.base)
+          integer_digits = @symbols.digits_values(text_parts.integer, base: input_base)
         end
 
         fractional_digits = []
         if text_parts.fractional?
-          fractional_digits = @symbols.digits_values(text_parts.fractional, base: @rounding.base)
+          fractional_digits = @symbols.digits_values(text_parts.fractional, base: input_base)
         end
 
         exponent_value = 0
@@ -80,14 +79,14 @@ module Numerals
           exponent_value = text_parts.exponent.to_i
         end
 
-        point = integer_digits.size + exponent_value
+        point = integer_digits.size
 
         # 3. generate numeral
         if text_parts.detect_repeat? # repeat_suffix found
           digits = integer_digits + fractional_digits
           digits, repeat = RepeatDetector.detect(digits, @symbols.repeat_count - 1)
         elsif text_parts.repeat?
-          repeat_digits = @symbols.digits_values(text_parts.repeat, base: @rounding.base)
+          repeat_digits = @symbols.digits_values(text_parts.repeat, base: input_base)
           digits = integer_digits + fractional_digits
           repeat = digits.size
           digits += repeat_digits
@@ -102,7 +101,15 @@ module Numerals
           normalization = :approximate
         end
 
-        numeral = Numeral[digits, sign: sign, point: point, repeat: repeat, normalize: normalization]
+        if @mode.base_scale > 1
+          digits = Format::BaseScaler.ugrouped_digits(digits, base, @mode.base_scale)
+          point  *= @mode.base_scale
+          repeat *= @mode.base_scale if repeat
+        end
+
+        point += exponent_value
+
+        numeral = Numeral[digits, sign: sign, point: point, repeat: repeat, base: base, normalize: normalization]
       end
 
       # 4. Convert to requested type:

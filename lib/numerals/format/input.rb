@@ -7,10 +7,15 @@ module Numerals
       # 1. Obtain destination type
       selector = options[:context] || options[:type]
       conversion = Conversions[selector, options[:type_options]]
-      unless conversion
-        raise InvalidNumericType, "Invalid type #{selector.inspect}"
+      if conversion
+        type = conversion.type
+      else
+        type = options[:type]
+        if type != Numeral
+          raise Format::InvalidNumericType, "Invalid type #{selector.inspect}"
+        end
       end
-      type = conversion.type
+
       # if conversion.is_a?(ContextConversion)
       #   context = conversion.context
       # end
@@ -49,7 +54,7 @@ module Numerals
           end
           numeral = Numeral[:infinity, sign: sign]
         else
-          raise InvaludNumberFormat, "Invalid number"
+          raise Format::InvaludNumberFormat, "Invalid number"
         end
       else
         # Parse and convert text parts to values

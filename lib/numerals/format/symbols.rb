@@ -207,8 +207,6 @@ module Numerals
       set! *args
     end
 
-    # TODO: transmit uppercase/lowercase to digits
-
     attr_reader :digits, :nan, :infinity, :plus, :minus, :exponent, :point,
                 :group_separator, :zero, :insignificant_digit
     attr_reader :repeat_begin, :repeat_end, :repeat_suffix, :repeat_delimited

@@ -384,15 +384,15 @@ module Numerals
     # of given size (number of characters)
     def paddings(number_size)
       left_padding = internal_padding = right_padding = ''
-      if padding?
-        left_padding, internal_padding, right_padding = format.symbols.paddings(number_size)
-        right_padding_size = right_padding_size/format.symbols.fill.size
-        right_padding = format.symbols.fill*right_padding_size
+      if padded?
+        left_padding_size, internal_padding_size, right_padding_size = padding.padding_sizes(number_size)
+        right_padding_size = right_padding_size/fill.size
+        right_padding = fill*right_padding_size
         d = right_padding_size - right_padding.size
-        left_padding_size = (left_padding_size + d)/format.symbols.fill.size
-        left_padding = format.symbols.fill*left_padding_size
-        internal_padding_size = internal_padding_size/format.symbols.fill.size
-        internal_padding = format.symbols.fill*internal_padding_size
+        left_padding_size = (left_padding_size + d)/fill.size
+        left_padding = fill*left_padding_size
+        internal_padding_size = internal_padding_size/fill.size
+        internal_padding = fill*internal_padding_size
       end
       [left_padding, internal_padding, right_padding ]
     end

@@ -69,8 +69,8 @@ module Numerals
     def padding_sizes(number_size)
       left_padding_size = internal_padding_size = right_padding_size = 0
       padding_size = width - number_size
-      if padding_size > 0 && padding?
-        case format.symbols.padding.adjust
+      if padding_size > 0 && padded?
+        case adjust
         when :left
           left_padding_size = padding_size
         when :right

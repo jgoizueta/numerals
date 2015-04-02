@@ -157,4 +157,15 @@ class TestFormat <  Test::Unit::TestCase # < Minitest::Test
     assert_equal ' ', f.padding.fill
   end
 
+  def tst_grouping
+    f = Format[]
+    refute f.grouping?
+    f.set_grouping! :thousands
+    assert f.grouping?
+    assert_equal [3], f.grouping
+    f.set_grouping! false
+    refute f.grouping?
+    assert_equal [], f.grouping
+  end
+
 end

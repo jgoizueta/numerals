@@ -164,12 +164,14 @@ module Numerals
         case arg
         when Symbol
           if arg == :thousands
-            @groups = [3]
+            @grouping = [3]
           end
         when String
           @group_separator = arg
         when Array
-          @groups = groups
+          @grouping = arg
+        when false
+          @grouping = []
         end
       end
     end

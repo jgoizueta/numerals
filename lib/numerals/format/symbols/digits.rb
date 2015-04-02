@@ -119,7 +119,23 @@ module Numerals
 
     def to_s
       # TODO: show only non-defaults
-      "Digits[#{parameters.inspect.unwrap('{}')}]"
+      args = []
+      if @digits != DEFAULT_DIGITS
+        args << @digits.to_s
+      end
+      if @max_base != @digits.size
+        args << "max_base: #{@max_base}"
+      end
+      if @case_sensitive
+        args << "case_sensitive: #{case_sensitive.inspect}"
+      end
+      if @uppercase
+        args << "uppercase: #{uppercase.inspect}"
+      end
+      if @lowercase
+        args << "lowercase: #{lowercase.inspect}"
+      end
+      "Digits[#{args.join(', ')}]"
     end
 
     def inspect
@@ -127,7 +143,7 @@ module Numerals
     end
 
     def dup
-      Digits[parameters]
+      Format::Symbols::Digits[parameters]
     end
 
     private
@@ -143,6 +159,8 @@ module Numerals
           options[:digits] = arg
         when Format::Symbols::Digits
           options.merge! arg.parameters
+        when :uppercase, :downcase
+          send :"#{arg}=", true
         else
           raise "Invalid Symbols::Digits definition"
         end

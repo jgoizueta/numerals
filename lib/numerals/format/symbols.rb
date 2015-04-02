@@ -11,158 +11,6 @@ module Numerals
   #
   class Format::Symbols < FormattingAspect
 
-    class Digits < FormattingAspect
-
-      DEFAULT_DIGITS = %w(0 1 2 3 4 5 6 7 8 9 A B C D E F G H I J K L M N O P Q R S T U V W X Y Z)
-
-      def initialize(*args)
-        @digits = DEFAULT_DIGITS
-        @downcase_digits = @digits.map(&:downcase)
-        @max_base = @digits.size
-        @case_sensitive = false
-        @uppercase = false
-        @lowercase = false
-        set! *args
-      end
-
-      include ModalSupport::StateEquivalent
-
-      set do |*args|
-        options = extract_options(*args)
-        options.each do |option, value|
-          send :"#{option}=", value
-        end
-      end
-
-      attr_reader :digits_string, :max_base, :case_sensitive, :uppercase, :lowercase
-      attr_writer :case_sensitive
-
-      def digits(options = {})
-        base = options[:base] || @max_base
-        if base >= @max_base
-          @digits
-        else
-          @digits[0, base]
-        end
-      end
-
-      def digits=(digits)
-        if digits.is_a?(String)
-          @digits = digits.each_char.to_a
-        else
-          @digits = digits
-        end
-        @max_base = @digits.size
-        @lowercase = @digits.all? { |d| d.downcase == d }
-        @uppercase = @digits.all? { |d| d.upcase == d }
-        @downcase_digits = @digits.map(&:downcase)
-        if @digits.uniq.size != @max_base
-          raise "Inconsistent digits"
-        end
-      end
-
-      def uppercase=(v)
-        @uppercase = v
-        self.digits = @digits.map(&:upcase) if v
-      end
-
-      def lowercase=(v)
-        @lowercase = v
-        self.digits = @digits.map(&:downcase) if v
-      end
-
-      def case_sensitive?
-        case_sensitive
-      end
-
-      def is_digit?(digit_symbol, options={})
-        base = options[:base] || @max_base
-        raise "Invalid base" if base > @max_base
-        v = digit_value(digit_symbol)
-        v && v < base
-      end
-
-      def digit_value(digit)
-        if @case_sensitive
-          @digits.index(digit)
-        else
-          @downcase_digits.index(digit.downcase)
-        end
-      end
-
-      def digit_symbol(v, options={})
-        base = options[:base] || @max_base
-        raise "Invalid base" if base > @max_base
-        v >= 0 && v < base ? @digits[v] : nil
-      end
-
-      # Convert sequence of digits to its text representation.
-      # The nil value can be used in the digits sequence to
-      # represent the group separator.
-      def digits_text(digit_values, options={})
-        insignificant_digits = options[:insignificant_digits] || 0
-        num_digits = digit_values.reduce(0) { |num, digit|
-          digit.nil? ? num : num + 1
-        }
-        num_digits -= insignificant_digits
-        digit_values.map { |d|
-          if d.nil?
-            options[:separator]
-          else
-            num_digits -= 1
-            if num_digits >= 0
-              digit_symbol(d, options)
-            else
-              options[:insignificant_symbol]
-            end
-          end
-        }.join
-      end
-
-      def parameters
-        params = {}
-        params[:digits] = @digits
-        params[:case_sensitive] = @case_sensitive
-        params[:uppercase] = @uppercase
-        params[:lowercase] = @lowercase
-        params
-      end
-
-      def to_s
-        # TODO: show only non-defaults
-        "Digits[#{parameters.inspect.unwrap('{}')}]"
-      end
-
-      def inspect
-        "Format::Symbols::#{self}"
-      end
-
-      def dup
-        Digits[parameters]
-      end
-
-      private
-
-      def extract_options(*args)
-        options = {}
-        args = args.first if args.size == 1 && args.first.kind_of?(Array)
-        args.each do |arg|
-          case arg
-          when Hash
-            options.merge! arg
-          when String, Array
-            options[:digits] = arg
-          when Format::Symbols::Digits
-            options.merge! arg.parameters
-          else
-            raise "Invalid Symbols::Digits definition"
-          end
-        end
-        options
-      end
-
-    end
-
     DEFAULTS = {
       nan: 'NaN',
       infinity: 'Infinity',
@@ -175,7 +23,6 @@ module Numerals
       repeat_begin: '<',
       repeat_end: '>',
       repeat_suffix: '...',
-      #repeat_detect: false,
       show_plus: false,
       show_exponent_plus: false,
       uppercase: false,
@@ -186,7 +33,9 @@ module Numerals
       repeat_count: 3,
       grouping: [],
       insignificant_digit: nil,
-      repeating: true
+      repeating: true,
+      base_prefix: nil,
+      base_suffix: nil
     }
 
     def initialize(*args)
@@ -199,8 +48,8 @@ module Numerals
       # default Digits among all Symbols)
       @digits = Format::Symbols::Digits[]
 
-      # TODO: justification/padding
-      # width, adjust_mode (left, right, internal), fill_symbol
+      # same with @padding
+      @padding = Format::Symbols::Padding[]
 
       # TODO: base_suffixes, base_preffixes, show_base
 
@@ -208,18 +57,20 @@ module Numerals
     end
 
     attr_reader :digits, :nan, :infinity, :plus, :minus, :exponent, :point,
-                :group_separator, :zero, :insignificant_digit
-    attr_reader :repeat_begin, :repeat_end, :repeat_suffix, :repeat_delimited
-    attr_reader :show_plus, :show_exponent_plus, :uppercase, :lowercase,
-                :show_zero, :show_point
-    attr_reader :grouping, :repeat_count, :repeating
+                :group_separator, :zero, :insignificant_digit, :padding,
+                :repeat_begin, :repeat_end, :repeat_suffix, :repeat_delimited,
+                :show_plus, :show_exponent_plus, :uppercase, :lowercase,
+                :show_zero, :show_point,
+                :grouping, :repeat_count, :repeating,
+                :base_prefix, :base_suffix
 
-    attr_writer :uppercase, :lowercase, :nan, :infinity, :plus,
+    attr_writer :digits, :uppercase, :lowercase, :nan, :infinity, :plus,
                 :minus, :exponent, :point, :group_separator, :zero,
                 :repeat_begin, :repeat_end, :repeat_suffix,
                 :show_plus, :show_exponent_plus, :show_zero, :show_point,
                 :repeat_delimited, :repeat_count, :grouping,
-                :insignificant_digit, :repeating
+                :insignificant_digit, :repeating,
+                :base_prefix, :base_suffix
 
     include ModalSupport::StateEquivalent
 
@@ -249,23 +100,32 @@ module Numerals
       !@grouping.empty? && @group_separator && !@group_separator.empty?
     end
 
+    def padded?
+      @padding.padded?
+    end
+
+    def fill
+      fill = @padding.fill
+      if fill.is_a?(Integer)
+        @digits.digit_symbol(fill)
+      else
+        fill
+      end
+    end
+
     set do |*args|
       options = extract_options(*args)
       options.each do |option, value|
         if option == :digits
           @digits.set! value
+        elsif option == :padding
+          @padding.set! value
         else
           send :"#{option}=", value
         end
       end
       apply_case!
     end
-
-    attr_writer :digits, :nan, :infinity,
-                :plus, :minus, :exponent, :point, :group_separator, :zero,
-                :repeat_begin, :repeat_end, :repeat_suffix, :show_plus,
-                :show_exponent_plus, :uppercase, :show_zero, :show_point,
-                :grouping, :repeat_count
 
     aspect :repeat do |*args|
       args.each do |arg|
@@ -379,6 +239,14 @@ module Numerals
       @minus = minus
     end
 
+    aspect :padding do |*args|
+      @padding.set! *args
+    end
+
+    aspect :leading_zeros do |width|
+      @padding.leading_zeros = width
+    end
+
     def parameters(abbreviated=false)
       params = {}
       DEFAULTS.each do |param, default|
@@ -389,6 +257,9 @@ module Numerals
       end
       if !abbreviated || @digits != Format::Symbols::Digits[]
         params[:digits] = @digits
+      end
+      if !abbreviated || @padding != Format::Symbols::Padding[]
+        params[:padding] = @padding
       end
       params
     end
@@ -475,7 +346,9 @@ module Numerals
       symbols = args
       digits = symbols.delete(:digits)
       grouped_digits = symbols.delete(:grouped_digits)
-      symbols = symbols.map { |s| send(s.to_sym) }
+      symbols = symbols.map { |s|
+        s.is_a?(Symbol) ? send(s)  : s
+      }
       if grouped_digits
         symbols += [group_separator, insignificant_digit]
       elsif digits
@@ -507,6 +380,23 @@ module Numerals
       }.compact
     end
 
+    # Returns left, internal and right padding for a number
+    # of given size (number of characters)
+    def paddings(number_size)
+      left_padding = internal_padding = right_padding = ''
+      if padding?
+        left_padding, internal_padding, right_padding = format.symbols.paddings(number_size)
+        right_padding_size = right_padding_size/format.symbols.fill.size
+        right_padding = format.symbols.fill*right_padding_size
+        d = right_padding_size - right_padding.size
+        left_padding_size = (left_padding_size + d)/format.symbols.fill.size
+        left_padding = format.symbols.fill*left_padding_size
+        internal_padding_size = internal_padding_size/format.symbols.fill.size
+        internal_padding = format.symbols.fill*internal_padding_size
+      end
+      [left_padding, internal_padding, right_padding ]
+    end
+
     private
 
     def regexp_char(c, options = {})
@@ -528,10 +418,22 @@ module Numerals
       symbols = Array(symbols).compact.select { |s| !s.empty? }
                               .map{ |d| regexp_symbol(d, options) }.join('|')
       if capture
-        "(#{symbols})"
+        symbols = "(#{symbols})"
       else
-        "(?:#{symbols})"
+        if symbols != ''
+          symbols = "(?:#{symbols})"
+          if options[:optional]
+            if options[:multiple]
+              symbols = "#{symbols}*"
+            else
+              symbols = "#{symbols}?"
+            end
+          elsif options[:multiple]
+            symbols = "#{symbols}+"
+          end
+        end
       end
+      symbols
     end
 
     def extract_options(*args)
@@ -568,7 +470,8 @@ module Numerals
         @repeat_begin = @repeat_begin.upcase
         @repeat_end   = @repeat_end.upcase
         @repeat_suffix = @repeat_suffix.upcase
-        @digits = @digits[uppercase: true]
+        @digits.set! uppercase: true
+        @padding.fill = @padding.fill.upcase if @padding.fill.is_a?(String)
       elsif @lowercase
         @nan = @nan.downcase
         @infinity = @infinity.downcase
@@ -580,7 +483,8 @@ module Numerals
         @repeat_begin = @repeat_begin.downcase
         @repeat_end   = @repeat_end.downcase
         @repeat_suffix = @repeat_suffix.downcase
-        @digits = @digits[lowercase: true]
+        @digits.set! lowercase: true
+        @padding.fill = @padding.fill.downcase if @padding.filll.is_a?(String)
       end
     end
 
@@ -591,3 +495,6 @@ module Numerals
   end
 
 end
+
+require 'numerals/format/symbols/digits'
+require 'numerals/format/symbols/padding'

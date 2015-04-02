@@ -147,4 +147,14 @@ class TestFormat <  Test::Unit::TestCase # < Minitest::Test
     assert s.repeat_delimited
   end
 
+  def test_padding_aspect
+    f = Format[]
+    refute f.padded?
+    assert_equal :right, f.padding.adjust
+    f = f[padding:[10, ' ', :left]]
+    assert f.padded?
+    assert_equal :left, f.padding.adjust
+    assert_equal ' ', f.padding.fill
+  end
+
 end

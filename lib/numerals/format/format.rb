@@ -60,6 +60,14 @@ module Numerals
       @rounding.base
     end
 
+    def padding
+      @symbols.padding
+    end
+
+    def padded?
+      padding.padded?
+    end
+
     # Presentation base for the significand
     def significand_base
       base**@mode.base_scale
@@ -94,6 +102,7 @@ module Numerals
       @rounding.set! places: options[:places] if options[:places]
       @symbols.set! repeating: options[:repeating] if options.has_key?(:repeating)
       @symbols.set! case_sensitive: options[:case_sensitive] if options.has_key?(:case_sensitive)
+      @symbols.set! padding: options[:padding] if options[:padding]
     end
 
     def parameters
@@ -128,6 +137,10 @@ module Numerals
 
     aspect :rounding do |*args|
       set! rounding: args
+    end
+
+    aspect :padding do |*args|
+      set! padding: args
     end
 
     aspect :base do |base|
@@ -200,6 +213,10 @@ module Numerals
       @symbols.set_minus!(minus)
     end
 
+    aspect :leading_zeros do |width|
+      @symbols.set_leading_zeros! width
+    end
+
     private
 
     def extract_options(*args)
@@ -217,6 +234,8 @@ module Numerals
           options[:symbols] = arg
         when Symbols::Digits
           options[:digits] = arg
+        when Symbols::Padding
+          options[:padding] = arg
         when Format
           options.merge! arg.parameters
         when :exact_input
@@ -230,7 +249,7 @@ module Numerals
               sci_int_digits: 1
             },
             symbols: {
-              exponent: 'p'
+              exponent: 'p', base_prefix: '0x'
             }
           )
         when :gen, :general, :sci, :scientific, :fix; :fixed

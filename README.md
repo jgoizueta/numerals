@@ -161,8 +161,10 @@ Done:
 * Handling of 'unsignificant' digits: show them either as special
   symbol, as zeros or omit them (comfigured in Symbols)
 
-Pending:
-
 * Padding aspect of formatting on output
 
 * Show base indicators on output
+
+Pending:
+
+* HTML & Latex Input/Output

@@ -223,4 +223,29 @@ class TestFormatInput <  Test::Unit::TestCase # < Minitest::Test
 
   end
 
+  def test_padding
+    f = Format[padding: '*']
+    assert_equal 643454333.32,  f.read("******643,454,333.32", type: Float)
+    assert_equal -643454333.32, f.read("*****-643,454,333.32", type: Float)
+    assert_equal -643454333.32, f.read("-*****643,454,333.32", type: Float)
+    assert_equal 643454333.32,  f.read("+*****643,454,333.32", type: Float)
+    assert_equal 643454333.32,  f.read("643,454,333.32******", type: Float)
+    assert_equal -643454333.32, f.read("-643,454,333.32*****", type: Float)
+    assert_equal 643454333.32,  f.read("***643,454,333.32***", type: Float)
+    assert_equal 643454333.32,  f.read("***643,454,333.32***", type: Float)
+    f.set_leading_zeros! 10
+    assert_equal 123, f.read("0000000123", type: Integer)
+    assert_equal -123, f.read("-000000123", type: Integer)
+    assert_equal 123.5, f.read("00000123.5", type: Float)
+    assert_equal -123.5, f.read("-00000123.5000", type: Float)
+    assert_equal 123.5, f.read("00000123.5000", type: Float)
+    assert_equal 100.5, f.read("00000100.5", type: Float)
+    assert_equal -100.5, f.read("-0000100.5", type: Float)
+    assert_equal Rational(1,3), f.read("000000.<3>", type: Rational)
+    assert_equal Rational(-1,3), f.read("-00000.<3>", type: Rational)
+    f.set_padding! '*'
+    assert_equal Flt::DecNum('0.667'), f.read("********0.667*******", type: Flt::DecNum)
+    assert_equal Flt::DecNum('-0.667'), f.read("*******-0.667*******", type: Flt::DecNum)
+  end
+
 end

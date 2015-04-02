@@ -32,4 +32,8 @@ class TextParts
    @detect_repeat
  end
 
+ def show_point?(format)
+   format.symbols.show_point || fractional? || repeat?
+ end
+
 end

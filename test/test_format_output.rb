@@ -229,7 +229,7 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
   def test_write_binnum_hex
     context = Flt::BinNum::IEEEDoubleContext
     x = Flt::BinNum('0.1', :fixed, context: context)
-    assert_equal "1.999999999999Ap-4", Format[:hexbin].write(x)
+    assert_equal "0x1.999999999999Ap-4", Format[:hexbin].write(x)
   end
 
   def test_write_to_file
@@ -785,5 +785,47 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
     assert_nothing_raised do
       Format[:short, repeating: false].write(Rational(2469,200))
     end
+  end
+
+  def test_padding
+    f = Format[padding: [:right, 20, fill: 0]]
+
+    f = Format[padding: [:left, 20, fill: '*']]
+    f = f[symbols: [group_separator: ',', grouping: [3]]]
+    assert_equal "******643,454,333.32", f.write(643454333.32)
+    assert_equal "*****-643,454,333.32", f.write(-643454333.32)
+    assert_equal "-*****643,454,333.32", f[padding: :internal].write(-643454333.32)
+    f = f[padding: :right]
+    assert_equal "643,454,333.32******", f.write(643454333.32)
+    assert_equal "-643,454,333.32*****", f.write(-643454333.32)
+    f = f[padding: :center]
+    assert_equal "***643,454,333.32***", f.write(643454333.32)
+    assert_equal "***-643,454,333.32**", f.write(-643454333.32)
+    f.set_leading_zeros! 10
+    assert_equal "0000000123", f.write(123)
+    assert_equal "-000000123", f.write(-123)
+    assert_equal "00000123.5", f.write(123.5)
+    assert_equal "-0000123.5", f.write(-123.5)
+    f.set! symbols: [repeat_delimited: true]
+    assert_equal "000000.<3>", f.write(Rational(1,3))
+    assert_equal "-00000.<3>", f.write(Rational(-1,3))
+    assert_equal "000000.<6>", f.write(Rational(2,3))
+    assert_equal "-00000.<6>", f.write(Rational(-2,3))
+    f.set! rounding: [places: 3]
+    assert_equal "000000.333", f.write(Rational(1,3))
+    assert_equal "-00000.333", f.write(Rational(-1,3))
+    assert_equal "000000.667", f.write(Rational(2,3))
+    assert_equal "-00000.667", f.write(Rational(-2,3))
+    f.set! rounding: [places: 4]
+    assert_equal "00000.3333", f.write(Rational(1,3))
+    assert_equal "-0000.3333", f.write(Rational(-1,3))
+    assert_equal "00000.6667", f.write(Rational(2,3))
+    assert_equal "-0000.6667", f.write(Rational(-2,3))
+    f.set! padding: [:center, width: 20, fill: '*']
+    f.set! rounding: [places: 3]
+    assert_equal "********0.667*******", f.write(Rational(2,3))
+    assert_equal "*******-0.667*******", f.write(Rational(-2,3))
+    f.set! rounding: [places: 4]
+    assert_equal "*******0.5555*******", f.write(Flt::DecNum('0.5555'))
   end
 end

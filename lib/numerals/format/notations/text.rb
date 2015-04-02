@@ -8,35 +8,12 @@ module Numerals
         if text_parts.special?
           output << text_parts.special
         else
-          output << text_parts.sign
-          output << text_parts.integer # or decide here if empty integer part is show as 0?
-          unless !text_parts.fractional? &&
-                 !text_parts.repeat? &&
-                 !format.symbols.show_point
-            output << format.symbols.point
+          if format.symbols.padding.padded?
+            output_size = OutputSize.new
+            assemble_parts(output_size, text_parts)
+            left_padding, internal_padding, right_padding = format.symbols.paddings(output_size.size)
           end
-          output << text_parts.fractional
-          if text_parts.repeat?
-            if format.symbols.repeat_delimited
-              output << format.symbols.repeat_begin
-              output << text_parts.repeat
-              output << format.symbols.repeat_end
-            else
-              n = RepeatDetector.min_repeat_count(
-                    text_parts.numeral.digits.digits_array,
-                    text_parts.numeral.repeat,
-                    format.symbols.repeat_count - 1
-                  )
-              n.times do
-                output << text_parts.repeat
-              end
-              output << format.symbols.repeat_suffix
-            end
-          end
-          if text_parts.exponent_value != 0 || format.mode.mode == :scientific
-            output << format.symbols.exponent
-            output << text_parts.exponent
-          end
+          assemble_parts(output, text_parts, left_padding, internal_padding, right_padding)
         end
       end
 
@@ -57,11 +34,13 @@ module Numerals
           valid = true
           base = format.significand_base
           # TODO: replace numbered groups by named variables ?<var>
-          # TODO: ignore padding, admit base indicators
           regular = /
             \A
+            #{s.regexp(:fill, no_capture: true, optional: true, multiple: true)}
             #{s.regexp(:plus, :minus)}?
             \s*
+            #{s.regexp(:fill, no_capture: true, optional: true, multiple: true)}
+            #{s.regexp(:base_prefix, no_capture: true, optional: true)}
             (?:
               (?:(#{s.regexp(:grouped_digits, base: base, no_capture: true)}+)#{s.regexp(:point)}?)
               |
@@ -70,7 +49,9 @@ module Numerals
             (#{s.regexp(:digits, base: base, no_capture: true)}*)
             (?:#{s.regexp(:repeat_begin)}(#{s.regexp(:digits, base: base, no_capture: true)}+)#{s.regexp(:repeat_end)})?
             #{s.regexp(:repeat_suffix)}?
+            #{s.regexp(:base_suffix, no_capture: true, optional: true)}
             (?:#{s.regexp(:exponent)}#{s.regexp(:plus, :minus)}?(\d+))?
+            #{s.regexp(:fill, no_capture: true, optional: true, multiple: true)}
             \Z
           /x
           unless s.case_sensitive?
@@ -130,6 +111,57 @@ module Numerals
         end
         raise "Invalid text numeral" unless valid
         text_parts
+      end
+
+      private
+
+      class OutputSize
+        def initialize
+          @size = 0
+        end
+        def <<(text)
+          @size += text.size
+        end
+        attr_reader :size
+      end
+
+      def assemble_parts(output, text_parts, left_padding='', internal_padding='', right_padding='')
+        output << left_padding
+        output << text_parts.sign
+        if format.symbols.base_prefix
+          output << format.symbols.base_prefix
+        end
+        output << internal_padding
+        output << text_parts.integer # or decide here if empty integer part is show as 0?
+        if text_parts.show_point?(format)
+          output << format.symbols.point
+        end
+        output << text_parts.fractional
+        if text_parts.repeat?
+          if format.symbols.repeat_delimited
+            output << format.symbols.repeat_begin
+            output << text_parts.repeat
+            output << format.symbols.repeat_end
+          else
+            n = RepeatDetector.min_repeat_count(
+                  text_parts.numeral.digits.digits_array,
+                  text_parts.numeral.repeat,
+                  format.symbols.repeat_count - 1
+                )
+            n.times do
+              output << text_parts.repeat
+            end
+            output << format.symbols.repeat_suffix
+          end
+        end
+        if format.symbols.base_suffix
+          output << format.symbols.base_suffix
+        end
+        if text_parts.exponent_value != 0 || format.mode.mode == :scientific
+          output << format.symbols.exponent
+          output << text_parts.exponent
+        end
+        output << right_padding
       end
 
     end

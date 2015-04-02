@@ -1,6 +1,9 @@
 Numerals
 ========
 
+[![Gem Version](https://badge.fury.io/rb/numerals.svg)](http://badge.fury.io/rb/numerals)
+[![Build Status](https://travis-ci.org/jgoizueta/numerals.svg)](https://travis-ci.org/jgoizueta/numerals)
+
 The Numerals module provides formatted input/output for numeric types.
 
 ## Use

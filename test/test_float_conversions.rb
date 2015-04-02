@@ -1,10 +1,10 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'helper.rb'))
 
 require 'numerals'
-include Numerals
 
 class TestFloatConversions <  Test::Unit::TestCase # < Minitest::Test
 
+  include Numerals
 
   def test_write_special
     assert_equal Numeral.nan, Conversions.write(Float.context.nan)

@@ -1,8 +1,9 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'helper.rb'))
-include Numerals
 require 'yaml'
 
 class TestNumeral <  Test::Unit::TestCase # < Minitest::Test
+
+  include Numerals
 
   def test_numeral_reference_constructors
     # We'll use this forms as reference for comparisons:

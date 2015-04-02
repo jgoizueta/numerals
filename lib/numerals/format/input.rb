@@ -104,7 +104,7 @@ module Numerals
 
         if @mode.base_scale > 1
           # De-scale the significand base
-          digits = Format::BaseScaler.ugrouped_digits(digits, base, @mode.base_scale)
+          digits = Format::BaseScaler.ungrouped_digits(digits, base, @mode.base_scale)
           point  *= @mode.base_scale
           repeat *= @mode.base_scale if repeat
         end

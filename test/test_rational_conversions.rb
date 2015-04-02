@@ -1,9 +1,10 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'helper.rb'))
 
 require 'numerals'
-include Numerals
 
 class TestRationalConversions <  Test::Unit::TestCase # < Minitest::Test
+
+  include Numerals
 
   def test_read_special
     assert_raise(ZeroDivisionError){ Conversions.read(Numeral.nan, type: Rational) }

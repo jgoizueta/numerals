@@ -1,8 +1,9 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'helper.rb'))
-include Numerals
 require 'yaml'
 
 class TestFormatInput <  Test::Unit::TestCase # < Minitest::Test
+
+  include Numerals
 
   def assert_same_flt(x, y)
     assert_equal x.class, y.class, x.to_s

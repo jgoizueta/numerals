@@ -1,9 +1,10 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'helper.rb'))
-include Numerals
 require 'yaml'
 require 'tempfile'
 
 class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
+
+  include Numerals
 
   def test_write_float_dec
     assert_equal '1', Format[rounding: :short].write(1.0)

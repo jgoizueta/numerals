@@ -1,9 +1,10 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'helper.rb'))
 
 require 'numerals'
-include Numerals
 
 class TestBaseScaler <  Test::Unit::TestCase # < Minitest::Test
+
+  include Numerals
 
   def digits_string(part, base)
     part.map{|d| d.to_s(base)}.join

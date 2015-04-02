@@ -1,9 +1,10 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'helper.rb'))
 
 require 'numerals/rounding'
-include Numerals
 
 class TestSymbols <  Test::Unit::TestCase # < Minitest::Test
+
+  include Numerals
 
   def test_symbols
     s = Format::Symbols[show_plus: false]

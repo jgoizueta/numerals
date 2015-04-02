@@ -2,10 +2,11 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'helper.rb'))
 require 'test/unit'
-include Numerals
 require 'yaml'
 
 class TestDigitsDefinition < Test::Unit::TestCase
+
+  include Numerals
 
   DEFAULT_DIGITS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
   MAX_TEST_BASE  = DEFAULT_DIGITS.size

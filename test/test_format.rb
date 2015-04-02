@@ -1,8 +1,9 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'helper.rb'))
-include Numerals
 require 'yaml'
 
 class TestFormat <  Test::Unit::TestCase # < Minitest::Test
+
+  include Numerals
 
   def test_mutated_copy
     f1 = Format[Rounding[precision: 3, base: 2]]

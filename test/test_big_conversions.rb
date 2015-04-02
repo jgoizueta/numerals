@@ -2,10 +2,10 @@ require File.expand_path(File.join(File.dirname(__FILE__),'helper.rb'))
 
 require 'numerals'
 require 'flt/bigdecimal'
-include Numerals
 
 class TestBigConversions <  Test::Unit::TestCase # < Minitest::Test
 
+  include Numerals
 
   def test_write_special
     context = BigDecimal.context

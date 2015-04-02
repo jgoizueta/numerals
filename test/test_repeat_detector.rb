@@ -1,9 +1,10 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'helper.rb'))
 
 require 'numerals'
-include Numerals
 
 class TestRepeatDetector <  Test::Unit::TestCase # < Minitest::Test
+
+  include Numerals
 
   def test_repeat_detector
 

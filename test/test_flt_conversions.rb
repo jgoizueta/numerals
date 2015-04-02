@@ -1,9 +1,10 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'helper.rb'))
 
 require 'numerals'
-include Numerals
 
 class TestFltConversions <  Test::Unit::TestCase # < Minitest::Test
+
+  include Numerals
 
   def test_write_special_binary
     context = Flt::BinNum.context = Flt::BinNum::FloatContext

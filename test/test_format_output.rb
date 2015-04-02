@@ -806,6 +806,13 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
     assert_equal "-000000123", f.write(-123)
     assert_equal "00000123.5", f.write(123.5)
     assert_equal "-0000123.5", f.write(-123.5)
+    f.set_grouping! false
+    assert_equal "0123456789", f.write(123456789)
+    assert_equal "1234567891", f.write(1234567891)
+    assert_equal "12345678912", f.write(12345678912)
+    assert_equal "-123456789", f.write(-123456789)
+    assert_equal "-1234567891", f.write(-1234567891)
+    assert_equal "-12345678912", f.write(-12345678912)
     f.set! symbols: [repeat_delimited: true]
     assert_equal "000000.<3>", f.write(Rational(1,3))
     assert_equal "-00000.<3>", f.write(Rational(-1,3))
@@ -827,5 +834,15 @@ class TestFormatOutput <  Test::Unit::TestCase # < Minitest::Test
     assert_equal "*******-0.667*******", f.write(Rational(-2,3))
     f.set! rounding: [places: 4]
     assert_equal "*******0.5555*******", f.write(Flt::DecNum('0.5555'))
+    f.set! padding: 8
+    assert_equal "*0.5555*", f.write(Flt::DecNum('0.5555'))
+    f.set! padding: 7
+    assert_equal "*0.5555", f.write(Flt::DecNum('0.5555'))
+    f.set! padding: 6
+    assert_equal "0.5555", f.write(Flt::DecNum('0.5555'))
+    f.set! padding: 5
+    assert_equal "0.5555", f.write(Flt::DecNum('0.5555'))
+    f.set! padding: 4
+    assert_equal "0.5555", f.write(Flt::DecNum('0.5555'))
   end
 end

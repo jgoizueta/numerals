@@ -153,8 +153,6 @@ module Numerals
         text_parts.exponent_base = num_parts.exponent_base.to_s(10) # use digits_definition ?
         text_parts.exponent_base_value = num_parts.exponent_base
       end
-      # TODO: justification
-      # TODO: base indicator for significand? significand_bas?
       text_parts
     end
 

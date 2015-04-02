@@ -51,8 +51,6 @@ module Numerals
       # same with @padding
       @padding = Format::Symbols::Padding[]
 
-      # TODO: base_suffixes, base_preffixes, show_base
-
       set! *args
     end
 

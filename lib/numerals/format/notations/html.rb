@@ -34,7 +34,7 @@ module Numerals
             else
               # show base suffix as a subscript
               subscript = format.symbols.base_suffix || base.to_s
-º             output << "<sub>#{subscript}</sub>"
+              output << "<sub>#{subscript}</sub>"
             end
           end
           if text_parts.exponent_value != 0 || format.mode.mode == :scientific

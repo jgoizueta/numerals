@@ -77,6 +77,28 @@ module Numerals
       # Rounding. (in this case the :free and :short precision roundings are
       # equivalent)
       #
+      # Summary
+      #
+      # In result there are 5 basically diferent conversion modes.
+      # Three of them apply only to approximate values, so they are
+      # not available for all input types:
+      #
+      # * 'Short' mode, which produces an exact Numeral. Used when
+      #   input is not exact and rounding precision is :short.
+      # * 'Free' mode, which produces an approximate Numeral. Used
+      #   when input is not exact and rounding precision is :short.
+      # * 'Fixed' mode, which produces an approximate Numeral. Used when
+      #   input isnot exact and rounding precision is limited.
+      #
+      # The other two modes are applied to exact input, so they're
+      # available for all input types (since all can be taken as exact with
+      # the :exact option):
+      #
+      # * 'All' mode, which produces an exact Numeral. Used when
+      #   input is exact and rounding precision is :free (or :short).
+      # * 'Rounded' mode, which produces an approximate Numeral. Used
+      #   when input is exact and rounding precision is limited.
+      #
       def write(number, options = {})
         output_rounding = Rounding[options[:rounding] || Rounding[]]
         conversion = self[number.class, options[:type_options]]
@@ -86,6 +108,76 @@ module Numerals
 
       def exact?(number, options = {})
         self[number.class, options[:type_options]].exact?(number, options)
+      end
+
+      # Convert an number to a different numeric type.
+      # Conversion is done by first converting the number to a Numeral,
+      # then converting the Numeral to de destination type.
+      #
+      # Options:
+      #
+      # * :exact_input Consider the number an exact quantity.
+      #   Otherwise, for approximate types, insignificant digits
+      #   will not be converted.
+      # * :rounding Rounding to be applied during the conversion.
+      # * :type or :context can be used to define the destination
+      #   type.
+      # * :output_mode can have the values :free, :short or :fixed
+      #   and is used to define how the result is generated.
+      #
+      def convert(number, options = {})
+        if options[:exact]
+          options = options.merge(exact_input: true, ouput_mode: :free)
+        end
+
+        exact_input = options[:exact_input] || false
+        rounding = Rounding[options[:rounding] || Rounding[]]
+        output_mode = options[:output_mode] || :free # :short :free :fixed
+        type_options =  options[:type_options]
+        selector = options[:context] || options[:type]
+        output_conversions = self[selector, type_options]
+        if output_conversions && output_conversions.respond_to?(:context)
+          output_base = output_conversions.context.radix
+          if rounding.base != output_base && rounding.free?
+            rounding = rounding[base: output_base]
+          end
+        end
+
+        if number.is_a?(Numeral)
+          numeral = number
+        else
+          input_options = {
+            exact: exact_input,
+            rounding: rounding,
+            type_options: type_options
+          }
+          numeral = write(number, input_options)
+        end
+
+        output_options = {
+          type: options[:type], context: options[:context]
+        }
+        case output_mode
+        when :short
+          output_options.merge!(
+            exact: false,
+            simplify: true
+          )
+        when :free
+          output_options.merge!(
+            exact: false,
+            simplify: false
+          )
+        when :fixed
+          output_options.merge!(
+            exact: true,
+            simplify: false
+          )
+        end
+        if !output_options[:exact] && numeral.exact?
+          numeral.approximate!
+        end
+        read(numeral, output_options)
       end
 
       private

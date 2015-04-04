@@ -38,3 +38,18 @@ PrepareData.init
 def BigDec(x)
   BigDecimal.new(x.to_s)
 end
+
+
+def assert_same_number(x, y)
+  assert_equal x.class, y.class, x.to_s
+  case x
+  when Flt::Num
+    assert_equal x.split, y.split, x.to_s
+  when Float
+    assert_equal Float.context.split(x), Float.context.split(y), x.to_s
+  when Rational
+    assert_equal [x.numerator, x.denominator], [y.numerator, y.denominator]
+  else
+    assert_equal x, y
+  end
+end

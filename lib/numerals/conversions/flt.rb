@@ -106,6 +106,7 @@ module Numerals
         end
       else
         # akin to @context.Num(numeral_text, :fixed)
+        numeral = numeral.exact if exact_input
         fixed_numeral_to_num numeral
       end
     end
@@ -215,7 +216,7 @@ module Numerals
       if @input_rounding
         rounding_mode = @input_rounding.mode
       else
-         rounding_Mode = @context.rounding
+        rounding_Mode = @context.rounding
       end
       reader.read(@context, rounding_mode, sign, coefficient, scale, numeral.base).tap do
         # @exact = reader.exact?

@@ -626,14 +626,23 @@ module Numerals
 
     # Expand to the specified number of digits,
     # then truncate and remove repetitions.
-    def approximate!(number_of_digits)
-      expand! number_of_digits
-      @digits.truncate! number_of_digits
-      @repeat = nil
+    # If no number of digits is given, then it will be
+    # converted to approximate numeral only if it is not
+    # repeating.
+    def approximate!(number_of_digits = nil)
+      if number_of_digits.nil?
+        if exact? && !repeating?
+          @repeat = nil
+        end
+      else
+        expand! number_of_digits
+        @digits.truncate! number_of_digits
+        @repeat = nil
+      end
       self
     end
 
-    def approximate(number_of_digits)
+    def approximate(number_of_digits = nil)
       dup.approximate! number_of_digits
     end
 

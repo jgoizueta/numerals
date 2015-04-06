@@ -72,15 +72,17 @@ Specific precision can be obtained like this:
 But this won't show digits that are insignificant (when the input number
 is regarded as an approximation):
 
-    puts Format[precision: 20].write(0.1)          # -> 0.10000000000000001
-    puts Format[precision: 20].write(Rational(1,10))# -> 0.10000000000000000000
+    puts Format[precision: 20].write(0.1)            # -> 0.10000000000000001
+    puts Format[precision: 20].write(Rational(1,10)) # -> 0.10000000000000000000
 
 Although a Float is considered an approximation by default (since
 it cannot represent arbitrary precision exactly), we can
 reinterpret it as an exact quantity with the :exact_input Format option:
 
-    puts Format[:exact_input, precision: 20].write(0.1)# -> 0.10000000000000000555
-    puts Format[:exact_input].write(0.1)           # -> 0.1000000000000000055511151231257827021181583404541015625
+    puts Format[:exact_input, precision: 20].write(0.1)
+    # -> 0.10000000000000000555
+    puts Format[:exact_input].write(0.1)
+    # -> 0.1000000000000000055511151231257827021181583404541015625
 
 Rationals are always 'exact' quantities, and they may require infinite
 digits to be represented exactly in some output bases. This is handled
@@ -104,28 +106,28 @@ will be a variable-precision result based on the input. The default
 Format, which has :short (simplifying) precision will produce a simple
 result with as few significant digits as possible:
 
-    puts Format[:short].read('1.000', type: Flt::DecNum)# -> 1
-    puts Format[:short].read('0.100', type: Flt::BinNum)# -> 0.1
+    puts Format[:short].read('1.000', type: Flt::DecNum) # -> 1
+    puts Format[:short].read('0.100', type: Flt::BinNum) # -> 0.1
 
 To retain the precision of the input text, the :free precision should be
 used:
 
-    puts Format[:free].read('1.000', type: Flt::DecNum)# -> 1.000
-    puts Format[:free].read('0.100', type: Flt::BinNum)# -> 0.1
+    puts Format[:free].read('1.000', type: Flt::DecNum) # -> 1.000
+    puts Format[:free].read('0.100', type: Flt::BinNum) # -> 0.1
 
 As an alternative, the precision implied by the text input can be ignored
 and the result adjusted to the precision of the destination context. This
 is done by regarding the input as 'exact'.
 
-    puts Format[:exact_input].read('1.000', type: Flt::DecNum)# -> 1.000000000000000000000000000
-    puts Format[:exact_input].read('0.100', type: Flt::BinNum)# -> 0.1
+    puts Format[:exact_input].read('1.000', type: Flt::DecNum) # -> 1.000000000000000000000000000
+    puts Format[:exact_input].read('0.100', type: Flt::BinNum) # -> 0.1
     Flt::DecNum.context.precision = 8
-    puts Format[:exact_input].read('1.000', type: Flt::DecNum)# -> 1.0000000
+    puts Format[:exact_input].read('1.000', type: Flt::DecNum) # -> 1.0000000
 
 If the input specifies repeating digits, then it is automatically regarded
 exact and rounded according to the destination context:
 
-    puts Format[:exact_input].read('0.333...', type: Flt::DecNum)# -> 0.33333333
+    puts Format[:exact_input].read('0.333...', type: Flt::DecNum) # -> 0.33333333
 
 Note that the repeating digits have been automatically detected. This
 happens because the repeating suffix '...' has ben found (it is defined
@@ -138,12 +140,30 @@ in Symbols, which are <> by default:
 
 A Format can also be used to read a formatted number into a Numeral:
 
-    puts Format[].read('1.25', type: Numeral)      # -> Numeral[1, 2, 5, :sign=>1, :point=>1, :normalize=>:approximate, :base=>10]
-    puts Format[].read('1.<3>', type: Numeral)     # -> Numeral[1, 3, :sign=>1, :point=>1, :repeat=>1, :base=>10]
+    puts Format[].read('1.25', type: Numeral)
+    # -> Numeral[1, 2, 5, :sign=>1, :point=>1, :normalize=>:approximate, :base=>10]
+    puts Format[].read('1.<3>', type: Numeral)
+    # -> Numeral[1, 3, :sign=>1, :point=>1, :repeat=>1, :base=>10]
 
 Other examples:
 
     puts Format[:free, base: 2].read('0.1', type: Flt::DecNum)# -> 0.5
+
+## Shortcut notation
+
+The `<<` and `>>` operators can be applied to Format objects
+as a shortcut for formatted writing and reading:
+
+    fmt = Format[]
+    puts fmt << 0.1                                            # -> 0.1
+    puts fmt << 0.1 << ' ' << 0.2 << ' ' << [places: 3] << 0.3 # -> 0.1 0.2 0.300
+    puts fmt >> '0.1' >> Rational                              # -> 1/10
+
+These operators can also be applied to Format, which is equivalent
+to apply them to de default Format, `Format[]`:
+
+    puts Format << [:sci, places: 4] <<  0.1                   # -> 1.000e-1
+    puts Format >> '0.1' >> Rational                           # -> 1/10
 
 Roadmap
 =======

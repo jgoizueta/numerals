@@ -249,4 +249,12 @@ class TestFormatInput <  Test::Unit::TestCase # < Minitest::Test
     assert_equal Flt::DecNum('-0.667'), f.read("*******-0.667*******", type: Flt::DecNum)
   end
 
+  def test_alternative_read_parameters
+    assert_same_number 0.1, Format[].read('0.1', type: Float)
+    assert_same_number 0.1, Format[].read('0.1', as: Float)
+    assert_same_number 0.1, Format[].read('0.1', context: Float.context)
+    assert_same_number 0.1, Format[].read('0.1', Float)
+    assert_same_number 0.1, Format[].read(Float, '0.1')
+  end
+
 end

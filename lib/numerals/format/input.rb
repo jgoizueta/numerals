@@ -3,7 +3,22 @@ module Numerals
   # Formatted input implementation
   module Format::Input
 
-    def read(text, options={})
+    def read(*args)
+      options = {}
+      args.each do |arg|
+        case arg
+        when String
+          options.merge! text: arg
+        when Hash
+          options.merge! arg
+        else
+          options.merge! type: arg
+        end
+      end
+
+      text = options[:text]
+      options[:type] ||= options[:as]
+
       # 1. Obtain destination type
       selector = options[:context] || options[:type]
       conversion = Conversions[selector, options[:type_options]]

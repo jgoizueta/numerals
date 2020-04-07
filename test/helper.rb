@@ -36,7 +36,7 @@ end
 PrepareData.init
 
 def BigDec(x)
-  BigDecimal.new(x.to_s)
+  BigDecimal(x.to_s)
 end
 
 

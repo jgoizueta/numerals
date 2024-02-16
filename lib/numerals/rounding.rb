@@ -48,7 +48,7 @@ module Numerals
       DEFAULTS.each do |param, value|
         instance_variable_set "@#{param}", value
       end
-      set! *args
+      set!(*args)
     end
 
     DEFAULTS = {

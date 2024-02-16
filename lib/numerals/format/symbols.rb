@@ -51,11 +51,11 @@ module Numerals
       # same with @padding
       @padding = Format::Symbols::Padding[]
 
-      set! *args
+      set!(*args)
     end
 
     attr_reader :digits, :nan, :infinity, :plus, :minus, :exponent, :point,
-                :group_separator, :zero, :insignificant_digit, :padding,
+                :group_separator, :insignificant_digit, :padding,
                 :repeat_begin, :repeat_end, :repeat_suffix, :repeat_delimited,
                 :show_plus, :show_exponent_plus, :uppercase, :lowercase,
                 :show_zero, :show_point,
@@ -240,7 +240,7 @@ module Numerals
     end
 
     aspect :padding do |*args|
-      @padding.set! *args
+      @padding.set!(*args)
     end
 
     aspect :leading_zeros do |width|

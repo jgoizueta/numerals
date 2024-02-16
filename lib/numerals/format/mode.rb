@@ -49,7 +49,7 @@ module Numerals
       DEFAULTS.each do |param, value|
         instance_variable_set "@#{param}", value
       end
-      set! *args
+      set!(*args)
     end
 
     attr_reader :mode, :sci_int_digits, :max_leading, :max_trailing, :base_scale

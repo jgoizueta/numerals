@@ -83,7 +83,7 @@ module RepeatDetector
       n = detect_min_rep
       loop do
         n += 1
-        detected_digits, detected_repeat = detect(
+        _detected_digits, detected_repeat = detect(
           digits + digits[repeat..-1]*(n-1), detect_min_rep
         )
         if repeat == detected_repeat # && detected_digits == digits

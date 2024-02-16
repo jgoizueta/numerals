@@ -66,8 +66,8 @@ module Numerals
             # TODO: we could avoid capturing point, point_with_no_integer_part
             sign = match[1]
             integer_part = match[2]
-            point = match[3]
-            point_with_no_integer_part = match[4]
+            _point = match[3]
+            _point_with_no_integer_part = match[4]
             fractional_part = match[5]
             repeat_begin = match[6]
             repeat_part = match[7]

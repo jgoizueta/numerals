@@ -73,7 +73,6 @@ module Numerals
         end
       else
         # Parse and convert text parts to values
-        input_rounding = @input_rounding || @rounding
         input_base = significand_base
 
         if !@symbols.repeating && (text_parts.repeat || text_parts.detect_repeat)
@@ -134,6 +133,7 @@ module Numerals
         end
         numeral = Numeral[digits, sign: sign, point: point, repeat: repeat, base: base, normalize: normalization]
       end
+      return numeral
     end
 
     def conversion_in(numeral, options)

@@ -31,7 +31,7 @@ module Numerals
     end
 
     def self.[](*args)
-      new *args
+      new(*args)
     end
 
     def to_a

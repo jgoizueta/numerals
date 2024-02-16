@@ -50,7 +50,7 @@ module Numerals
       @symbols = Symbols[]
       @notation = :text
       @input_rounding = nil
-      set! *args
+      set!(*args)
     end
 
     attr_reader :rounding, :exact_input, :mode, :symbols, :notation,
@@ -252,7 +252,7 @@ module Numerals
               exponent: 'p', base_prefix: '0x'
             }
           )
-        when :gen, :general, :sci, :scientific, :fix; :fixed
+        when :gen, :general, :sci, :scientific, :fix, :fixed, :eng, :engineering
           options[:mode] = Mode[arg]
         when :short, :free, :simplify, :preserve
           options[:precision] = arg

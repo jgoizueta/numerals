@@ -3,15 +3,15 @@ module Numerals
   class FormattingAspect
 
     def [](*args)
-      set *args
+      set(*args)
     end
 
     def self.[](*args)
-      new *args
+      new(*args)
     end
 
     def set(*args)
-      dup.set! *args
+      dup.set!(*args)
     end
 
     def self.aspect(aspect, &blk)

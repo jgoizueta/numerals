@@ -11,7 +11,7 @@ module Numerals
       @case_sensitive = false
       @uppercase = false
       @lowercase = false
-      set! *args
+      set!(*args)
     end
 
     include ModalSupport::StateEquivalent

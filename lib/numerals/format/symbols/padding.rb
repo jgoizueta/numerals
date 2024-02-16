@@ -14,7 +14,7 @@ module Numerals
       @width = 0
       @fill = nil
       @adjust = :right
-      set! *args
+      set!(*args)
     end
 
     include ModalSupport::StateEquivalent

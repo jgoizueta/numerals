@@ -26,9 +26,8 @@ class Numerals::BigDecimalConversion < Numerals::ContextConversion
 
   def number_of_digits(value, options={})
     base = options[:base] || 10
-    precision = x.precs.first
-    decimal_digits = x.split[1].size
-    n = decimal_digits # or use precision?
+    decimal_digits = value.split[1].size
+    n = decimal_digits # or use precision? (precision = value.precs.first)
     if base == 10
       n
     else
@@ -213,7 +212,7 @@ class Numerals::BigDecimalConversion < Numerals::ContextConversion
     if @input_rounding
       rounding_mode = @input_rounding.mode
     else
-       rounding_Mode = @context.rounding
+      rounding_mode = @context.rounding
     end
     dec_num_context = Flt::DecNum::Context(
       precision: @context.precision,

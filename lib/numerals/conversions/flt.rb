@@ -155,7 +155,7 @@ module Numerals
 
       normalization = :approximate
 
-      numeral = Numerals::Numeral[digits, sign: sign, point: dec_pos, rep_pos: formatter.repeat, base: output_base, normalize: normalization]
+      numeral = Numerals::Numeral[digits, sign: sign, point: dec_pos, rep_pos: rep_pos, base: output_base, normalize: normalization]
 
       numeral = rounding.round(numeral, round_up: formatter.round_up)
 
@@ -216,7 +216,7 @@ module Numerals
       if @input_rounding
         rounding_mode = @input_rounding.mode
       else
-        rounding_Mode = @context.rounding
+        rounding_mode = @context.rounding
       end
       reader.read(@context, rounding_mode, sign, coefficient, scale, numeral.base).tap do
         # @exact = reader.exact?

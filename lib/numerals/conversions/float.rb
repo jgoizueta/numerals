@@ -241,7 +241,7 @@ class Numerals::FloatConversion < Numerals::ContextConversion
     if @input_rounding
       rounding_mode = @input_rounding.mode
     else
-       rounding_Mode = @context.rounding
+      rounding_mode = @context.rounding
     end
     reader.read(@context, rounding_mode, sign, coefficient, scale, numeral.base).tap do
       # @exact = reader.exact?
